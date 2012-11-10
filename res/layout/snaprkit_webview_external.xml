@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout 
+	android:id="@+id/linearLayoutExternal" 
+	android:layout_height="fill_parent" 
+	android:layout_width="fill_parent" 
+	android:orientation="vertical"
+	xmlns:android="http://schemas.android.com/apk/res/android">
+	<WebView
+		android:id="@+id/snaprkit_webViewExternal"
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent"
+		android:layout_weight="1">
+	</WebView>
+	<RelativeLayout 
+		android:id="@+id/relativeLayoutBottomBar" 
+		android:layout_height="wrap_content" 
+		android:layout_width="fill_parent" 
+		android:orientation="vertical">
+		<ImageView 
+			android:id="@+id/imageViewBar"
+			android:layout_height="wrap_content" 
+			android:layout_width="fill_parent" 
+			android:background="@drawable/snaprkit_bar">
+		</ImageView>
+		<Button
+			android:id="@+id/buttonExit"   
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_centerInParent="true"
+			android:background="@drawable/snaprkit_button_black"
+			android:text="Close"
+			android:textColor="#FFFFFF">
+		</Button>
+	</RelativeLayout>
+</LinearLayout>

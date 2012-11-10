@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:paddingLeft="20dip"
+    android:paddingRight="20dip" >
+
+    <ImageView
+        android:id="@+id/effect_imageview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:padding="4dip"
+        android:src="@drawable/snaprkit_pinkbonboneffect_button" />
+
+    <ImageView
+        android:id="@+id/locked_overlay_imageview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/effect_imageview"
+        android:layout_alignLeft="@+id/effect_imageview"
+        android:layout_alignRight="@+id/effect_imageview"
+        android:layout_alignTop="@+id/effect_imageview"
+        android:padding="4dip"
+        android:src="@drawable/snaprkit_locked_overlay" 
+        android:visibility="invisible"/>
+
+    <TextView
+        android:id="@+id/effect_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/effect_imageview"
+        android:layout_centerHorizontal="true"
+        android:paddingTop="5dip"
+        android:text="Small Text"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textColor="@android:color/white" />
+
+    <ImageView
+        android:id="@+id/chosen_imageview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/effect_imageview"
+        android:layout_alignLeft="@+id/effect_imageview"
+        android:layout_alignParentTop="true"
+        android:layout_alignRight="@+id/effect_imageview"
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/snaprkit_border_selector" />
+
+</RelativeLayout>

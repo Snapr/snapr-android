@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<resources>
+    <!-- Snapr App -->
+    <string name="snaprkit_name">Snapr</string>
+    <string name="snaprkit_location_error">Could not retrieve your location!</string>
+    <string name="snaprkit_finish">Finish</string>
+    
+    <!-- FX Module: Picker -->
+    <string name="snaprkit_app_name">SnaprImage</string>
+    <string name="snaprkit_pick_photo">Pick Photo</string>
+    <string name="snaprkit_take_photo">Take Photo</string>
+    <string name="snaprkit_cannot_write_to_sdcard">Cannot store photo. Please check storage.</string>
+    
+    <!--  FX Module: Effects -->
+    <string name="snaprkit_original">Original</string>
+    <string name="snaprkit_pnk">LUV</string>
+    <string name="snaprkit_confetti">Confetti</string>
+    <string name="snaprkit_bonbon">Bon Bon</string>
+    <string name="snaprkit_sunrise">Sunrise</string>
+    <string name="snaprkit_late_nights">Late Nights</string>
+    <string name="snaprkit_dreamer">Dreamer</string>
+    <string name="snaprkit_sweet_talk">Sweet Talk</string>
+    <string name="snaprkit_gumdrop">Gumdrop</string>
+    <string name="snaprkit_love_letter">Love Letter</string>
+    <string name="snaprkit_summer">Summer</string>
+    <string name="snaprkit_retro">Retro</string>
+    <string name="snaprkit_bubble">Bubble</string>
+    
+    <!-- FX Module: Editor -->
+    <string name="snaprkit_applying">Applying…</string>
+    <string name="snaprkit_saving_">Saving…</string>
+    <string name="snaprkit_problem_saving_check_storage">Problem saving.  Check your device’s storage</string>
+    <string name="snaprkit_unable_to_load_image_try_another_">Unable to load image. Try another.</string>
+    <string name="snaprkit_loading">Loading…</string>
+    <string name="snaprkit_hold_on">HOLD ON</string>
+    
+    <!-- Unlock messages -->
+    <string name="snaprkit_not_enough_pink_points_need_1000">You need 1,000 PINK points to unlock this filter. Play games to earn your points!</string>
+    <string name="snaprkit_not_enough_pink_points_need_10000">You need 10,000 PINK points to unlock this filter. Play games to earn your points!</string>
+    <string name="snaprkit_not_enough_pink_points_need_25000">You need 25,000 PINK points to unlock this filter. Play games to earn your points!</string>
+    
+</resources>
