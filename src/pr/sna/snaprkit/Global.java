@@ -34,7 +34,8 @@ public class Global
 	
 	// Shared Preferences
 	public static final String SNAPR_PREFERENCES = "SnaprPrefs";
-	public static final String SNAPR_PREFERENCES_USERNAME = "username";
+	public static final String SNAPR_PREFERENCES_DISPLAY_USERNAME = "snapr_display_user";
+	public static final String SNAPR_PREFERENCES_SNAPR_USERNAME = "username";
 	public static final String SNAPR_PREFERENCES_ACCESS_TOKEN = "access_token";
 	public static final String SNAPR_PREFERENCES_QUEUE_ON = "QueueOn";
 	public static final String SNAPR_PREFERENCES_QUEUE_WIFI_ONLY = "QueueWifiOnly";
@@ -88,6 +89,7 @@ public class Global
 	
 	// Parameters
 	public static final String PARAM_USERNAME = "username";
+	public static final String PARAM_DISPLAY_USERNAME = "display_username";
 	public static final String PARAM_SNAPR_USER = "snapr_user";
 	public static final String PARAM_ACCESS_TOKEN = "access_token";
 	public static final String PARAM_APPMODE = "appmode";

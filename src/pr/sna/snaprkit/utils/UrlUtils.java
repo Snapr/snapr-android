@@ -210,14 +210,16 @@ public class UrlUtils
 		params.add(new BasicNameValuePair(Global.PARAM_ENVIRONMENT, Global.ENVIRONMENT));
 
 		// Customize some parameters based on logged in status
-		String[] credentials = new String[2];
-		CredentialsUtils.loadCredentials(context, credentials);
-		String userName = credentials[0];
-		String accessToken = credentials[1];
-		if (userName != null && userName.length() > 0 && accessToken != null && accessToken.length() > 0)
+		String[] userInfo = new String[3];
+		UserInfoUtils.loadUserInfo(context, userInfo);
+		String displayUserName = userInfo[0];
+		String snaprUserName = userInfo[1];
+		String accessToken = userInfo[2];
+		if (UserInfoUtils.haveUserInfo(displayUserName, snaprUserName, accessToken))
 		{
-			// We have username and token, so create URL that performs login
-			params.add(new BasicNameValuePair(Global.PARAM_SNAPR_USER, userName));
+			// Create URL that performs login
+			params.add(new BasicNameValuePair(Global.PARAM_DISPLAY_USERNAME, displayUserName));
+			params.add(new BasicNameValuePair(Global.PARAM_SNAPR_USER, snaprUserName));
 			params.add(new BasicNameValuePair(Global.PARAM_ACCESS_TOKEN, accessToken));
 		}
 		else

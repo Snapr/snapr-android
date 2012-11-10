@@ -22,12 +22,13 @@ import pr.sna.snaprkit.utils.AssetUtils;
 import pr.sna.snaprkit.utils.AssetsCopier;
 import pr.sna.snaprkit.utils.AssetsCopier.AssetCopierListener;
 import pr.sna.snaprkit.utils.CameraUtils;
-import pr.sna.snaprkit.utils.CredentialsUtils;
+import pr.sna.snaprkit.utils.UserInfoUtils;
 import pr.sna.snaprkit.utils.FileUtils;
 import pr.sna.snaprkit.utils.GeoManager;
 import pr.sna.snaprkit.utils.GeoManager.GeoListener;
 import pr.sna.snaprkit.utils.NetworkUtils;
 import pr.sna.snaprkit.utils.UrlUtils;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
@@ -71,8 +72,9 @@ public class SnaprKitFragment extends Fragment
 	private boolean mQueueUploadModeOn = true;
 	private WebView mWebView;
 	private ArrayList<UrlMapping> mActionMappings = new ArrayList<UrlMapping>();
-	private String  mUserName;
+	private String  mSnaprUserName;
 	private String  mAccessToken;
+	private String  mDisplayUserName;
 	private PictureAcquisitionManager mPictureAcquisitionManager;
 	//private TransitionDialog mTransitionDialog;
 	private GeoManager mGeoManager; // Used for snapr://get_location
@@ -374,6 +376,7 @@ public class SnaprKitFragment extends Fragment
 		int  numUploadsFailed = 0;
 		Date dateLastFailed = null; 
 		
+		@SuppressLint("UseValueOf")
 		@Override
 		public void onReceive(Context context, Intent intent)
 		{
@@ -921,18 +924,10 @@ public class SnaprKitFragment extends Fragment
 		}
 	}
 
-	// Checks whether the user credentials are loaded
-    private Boolean haveCredentials()
+	// Checks whether the user info was loaded
+    private boolean haveUserInfo()
     {
-    	// Having the username and access token filled in signifies we are logged in
-    	if((mUserName != null) && (mUserName.length()>0) && (mAccessToken != null) && (mAccessToken.length()>0))
-    	{
-    		return true;
-    	}
-    	else
-    	{
-    		return false;
-    	}
+    	return UserInfoUtils.haveUserInfo(mDisplayUserName, mSnaprUserName, mAccessToken);
     }
     
     // Load shared preferences into class members
@@ -985,7 +980,7 @@ public class SnaprKitFragment extends Fragment
         
         // Add login parameters
     	params = new Vector<BasicNameValuePair>();
-    	params.add(new BasicNameValuePair(Global.PARAM_SNAPR_USER, mUserName));
+    	params.add(new BasicNameValuePair(Global.PARAM_SNAPR_USER, mSnaprUserName));
     	params.add(new BasicNameValuePair(Global.PARAM_ACCESS_TOKEN, mAccessToken));
         
         // Create the URL
@@ -1011,10 +1006,11 @@ public class SnaprKitFragment extends Fragment
         params.add(new BasicNameValuePair(Global.PARAM_ENVIRONMENT, Global.ENVIRONMENT));
         
         // Customize some parameters based on logged in status
-        if(haveCredentials())
+        if(haveUserInfo())
 		{
-        	// We have username and token, so create URL that performs login
-        	params.add(new BasicNameValuePair(Global.PARAM_SNAPR_USER, mUserName));
+        	// We have user info, so create URL that performs login
+        	params.add(new BasicNameValuePair(Global.PARAM_DISPLAY_USERNAME, mDisplayUserName));
+        	params.add(new BasicNameValuePair(Global.PARAM_SNAPR_USER, mSnaprUserName));
         	params.add(new BasicNameValuePair(Global.PARAM_ACCESS_TOKEN, mAccessToken));
 		}
         else
@@ -1034,7 +1030,8 @@ public class SnaprKitFragment extends Fragment
      * Build the picture sharing URL
      * @return Returns the picture sharing URL
      */
-    private String getSharePictureUrl(String imageName, double latitude, double longitude, String redirectUrl)
+    @SuppressLint({ "UseValueOf", "UseValueOf" })
+	private String getSharePictureUrl(String imageName, double latitude, double longitude, String redirectUrl)
     {
         // Declare
         String url;
@@ -1046,10 +1043,11 @@ public class SnaprKitFragment extends Fragment
         params.add(new BasicNameValuePair(Global.PARAM_ENVIRONMENT, Global.ENVIRONMENT));
         
         // Customize some parameters based on logged in status
-        if(haveCredentials())
+        if(haveUserInfo())
 		{
-        	// We have username and token, so create URL that performs login
-        	params.add(new BasicNameValuePair(Global.PARAM_SNAPR_USER, mUserName));
+        	// We have user info, so create URL that performs login
+        	params.add(new BasicNameValuePair(Global.PARAM_DISPLAY_USERNAME, mDisplayUserName));
+        	params.add(new BasicNameValuePair(Global.PARAM_SNAPR_USER, mSnaprUserName));
         	params.add(new BasicNameValuePair(Global.PARAM_ACCESS_TOKEN, mAccessToken));
 		}
         else
@@ -1100,10 +1098,11 @@ public class SnaprKitFragment extends Fragment
         params.add(new BasicNameValuePair(Global.PARAM_ENVIRONMENT, Global.ENVIRONMENT));
         
         // Customize some parameters based on logged in status
-        if(haveCredentials())
+        if(haveUserInfo())
 		{
-        	// We have username and token, so create URL that performs login
-        	params.add(new BasicNameValuePair(Global.PARAM_SNAPR_USER, mUserName));
+        	// We have user info, so create URL that performs login
+        	params.add(new BasicNameValuePair(Global.PARAM_DISPLAY_USERNAME, mDisplayUserName));
+        	params.add(new BasicNameValuePair(Global.PARAM_SNAPR_USER, mSnaprUserName));
         	params.add(new BasicNameValuePair(Global.PARAM_ACCESS_TOKEN, mAccessToken));
 		}
         else
@@ -1151,21 +1150,22 @@ public class SnaprKitFragment extends Fragment
     	@Override
     	public void run(String url)
     	{
-    		// Login URL - get credentials and redirect to startup URL
+    		// Login URL - get user info and redirect to startup URL
 			
 			// Convert AJAX URL to normal URL - necessary for Uri parsing to work
 			String normalUrl = UrlUtils.normalUrl(url);
 			
 			// Parse the URL parameters
 			Uri uri = Uri.parse(normalUrl);
-			mUserName = uri.getQueryParameter(Global.PARAM_SNAPR_USER);
+			mDisplayUserName = uri.getQueryParameter(Global.PARAM_DISPLAY_USERNAME);
+			mSnaprUserName = uri.getQueryParameter(Global.PARAM_SNAPR_USER);
 			mAccessToken = uri.getQueryParameter(Global.PARAM_ACCESS_TOKEN);
 			
-			// Check if we have proper credentials now that we loaded info from the URL
-			if(haveCredentials())
+			// Check if we have proper user info now that we loaded info from the URL
+			if(haveUserInfo())
 			{
-				// Save user credentials
-				CredentialsUtils.saveCredentials(getContext(), mUserName, mAccessToken);
+				// Save user info
+				UserInfoUtils.saveUserInfo(getContext(), mDisplayUserName, mSnaprUserName, mAccessToken);
 			}
 			
 			// Get startup URL
@@ -1182,8 +1182,8 @@ public class SnaprKitFragment extends Fragment
     	@Override
     	public void run(String url)
     	{
-    		// Clear the locally stored login credentials
-    		CredentialsUtils.clearCredentials(getContext());
+    		// Clear the locally stored user info
+    		UserInfoUtils.clearUserInfo(getContext());
     	}
     };
     
@@ -1242,7 +1242,8 @@ public class SnaprKitFragment extends Fragment
     };
     
     // Creates an upload id based on current date time
-    private String getUploadId()
+    @SuppressLint("UseValueOf")
+	private String getUploadId()
     {
     	Random random = new Random();
     	int randomInt = random.nextInt();
@@ -1758,7 +1759,8 @@ public class SnaprKitFragment extends Fragment
     
     // Set webview settings and display startup page
 	// mWebView global should have been prepopulated
-    private void initWebView(View view, Bundle savedInstanceState)
+    @SuppressLint("SetJavaScriptEnabled")
+	private void initWebView(View view, Bundle savedInstanceState)
     {
     	// Declare
     	String url = null;
@@ -2428,11 +2430,12 @@ public class SnaprKitFragment extends Fragment
     	// Initialize the camera manager
     	initCameraManager(savedInstanceState);
     	
-    	// Load credentials from preferences
-    	String credentials[] = new String[2];
-    	CredentialsUtils.loadCredentials(SnaprKitFragment.this.getActivity(), credentials);
-    	mUserName = credentials[0];
-    	mAccessToken = credentials[1];
+    	// Load user info from preferences
+    	String userInfo[] = new String[3];
+    	UserInfoUtils.loadUserInfo(SnaprKitFragment.this.getActivity(), userInfo);
+    	mDisplayUserName = userInfo[0];
+    	mSnaprUserName = userInfo[1];
+    	mAccessToken = userInfo[2];
     	
     	// Initialize queue settings
     	initQueueSettings();
@@ -2680,28 +2683,37 @@ public class SnaprKitFragment extends Fragment
 		if (Global.URL_BASE == null) Global.URL_BASE = Global.getLocalUrlBase(getActivity());
 		
 		loadUserProvidedUrl(pageUrl);
-	}
+	}	
 	
-	// Set the credentials
-	public void setCredentials(String snaprUser, String accessToken)
+	/**
+	 * Set the Snapr user info
+	 * @param displayUserName The username to display on screen
+	 * @param userName The Snapr username
+	 * @param accessToken The Snapr access token
+	 */
+	public void setUserInfo(String displayUserName, String snaprUserName, String accessToken)
 	{
-		// Set username and access token
-		mUserName = snaprUser;
+		// Set user info
+		mDisplayUserName = displayUserName;
+		mSnaprUserName = snaprUserName;
 		mAccessToken = accessToken;
 		
 		// Set the shared preferences
-		CredentialsUtils.saveCredentials(getContext(), mUserName, mAccessToken);
+		UserInfoUtils.saveUserInfo(getContext(), mDisplayUserName, mSnaprUserName, mAccessToken);
 	}
 	
-	// Clear the credentials
-	public void clearCredentials()
+	/**
+	 * Clears the Snapr user info
+	 */
+	public void clearUserInfo()
 	{
 		// Clear class members
-		mUserName = null;
+		mDisplayUserName = null;
+		mSnaprUserName = null;
 		mAccessToken = null;
 		
 		// Clear shared preferences
-		CredentialsUtils.clearCredentials(getContext());
+		UserInfoUtils.clearUserInfo(getContext());
 	}
 	
 	/**

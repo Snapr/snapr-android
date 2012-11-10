@@ -11,7 +11,7 @@ import org.json.JSONObject;
 
 import pr.sna.snaprkit.utils.SnaprJsonUtils;
 import pr.sna.snaprkit.Uploader.UploadListener;
-import pr.sna.snaprkit.utils.CredentialsUtils;
+import pr.sna.snaprkit.utils.UserInfoUtils;
 import pr.sna.snaprkit.utils.FileUtils;
 import pr.sna.snaprkit.utils.NetworkUtils;
 
@@ -429,11 +429,12 @@ public class UploadService extends Service
 				+ "/queue.json";
 		String jsonString = FileUtils.getStringFromFile(queueSettingsFileName);
 
-		// Load the credentials from the shared preferences
-		String credentials[] = new String[2];
-		CredentialsUtils.loadCredentials(UploadService.this, credentials);
-		// String userName = credentials[0];
-		String accessToken = credentials[1];
+		// Load the user info from the shared preferences
+		String userInfo[] = new String[3];
+		UserInfoUtils.loadUserInfo(UploadService.this, userInfo);
+		// String displayUserName = userInfo[0]; 
+		// String userName = userInfo[1];
+		String accessToken = userInfo[2];
 
 		if (Global.LOG_MODE)
 			Global.log(Global.getCurrentMethod()
