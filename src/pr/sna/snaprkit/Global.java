@@ -15,19 +15,19 @@ import android.util.Log;
 public class Global
 {
 	// General settings
-	public static final String TAG = "SNAPRLIB";
+	public static final String TAG = "SNAPRKIT";
 	
 	// Java debugging
-    public static final boolean LOG_MODE = false;
+    public static final boolean LOG_MODE = true;
     
 	// HTML debugging and local URL base
-    public static final boolean HTML_DEBUG = false;
+    public static final boolean HTML_DEBUG = true;
 	public static final String URL_BASE_SDCARD_HTML = "file://" + Environment.getExternalStorageDirectory().getAbsolutePath() + "/snaprkit_html/";  // must end in slash
 	public static final String URL_BASE_ASSETS_HTML = "file:///android_asset/snaprkit_html/"; // must end in slash
 	public static String URL_BASE = "";              // generated based on HTML_DEBUG and URL_BASE_* values above, overwritten from start flows in Honeycomb+
 	
 	// Remote environment and remote URL base
-	public static final String ENVIRONMENT = "live-android";              // either dev-android or live-android
+	public static final String ENVIRONMENT = "dev-android";              // either dev-android or live-android
 	public static final String URL_SERVER_PROD = "https://api.sna.pr/";   // must end in slash
 	public static final String URL_SERVER_DEV = "http://dev.sna.pr/api/"; // must end in slash
 	public static final String URL_SERVER = getRemoteUrlBase();           // generated based on ENVIRONMENT and URL_SERVER_* values above
@@ -102,7 +102,7 @@ public class Global
 	public static final String PARAM_REDIRECT = "redirect";
 	public static final String PARAM_REDIRECT_URL = "redirect_url";
 	public static final String PARAM_URL = "url";
-	public static final String PARAM_ID = "id";
+	public static final String PARAM_LOCAL_ID = "local_id";
 	public static final String PARAM_DESCRIPTION = "description";
 	public static final String PARAM_STATUS = "status";
 	public static final String PARAM_TWEET = "tweet";

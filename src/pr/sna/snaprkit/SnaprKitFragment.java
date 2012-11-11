@@ -434,9 +434,9 @@ public class SnaprKitFragment extends Fragment
 					// For upload cancelled we need to call the upload_cancelled JS function
 					if (broadcast == Global.BROADCAST_UPLOAD_CANCELED)
 					{
-						String id = intent.getStringExtra(Global.PARAM_ID);
-						if (Global.LOG_MODE) Global.log( " -> " + Global.getCurrentMethod() + ": Sending upload_cancelled('" + id + "')");
-						mWebView.loadUrl("javascript:upload_cancelled('" + id + "');");
+						String localId = intent.getStringExtra(Global.PARAM_LOCAL_ID);
+						if (Global.LOG_MODE) Global.log( " -> " + Global.getCurrentMethod() + ": Sending upload_cancelled('" + localId + "')");
+						mWebView.loadUrl("javascript:upload_cancelled('" + localId + "');");
 					}
 					
 					// For upload completed call the upload_complete function
@@ -444,10 +444,10 @@ public class SnaprKitFragment extends Fragment
 					if (broadcast == Global.BROADCAST_UPLOAD_COMPLETED)
 					{
 						// Call upload_completed JS
-						String id = intent.getStringExtra(Global.PARAM_ID);
+						String localId = intent.getStringExtra(Global.PARAM_LOCAL_ID);
 						String snaprId = intent.getStringExtra(Global.PARAM_SNAPR_ID);
-						if (Global.LOG_MODE) Global.log( " -> " + Global.getCurrentMethod() + ": Sending upload_completed('" + id + "', '"  + snaprId + "')");
-						mWebView.loadUrl("javascript:upload_completed('" + id + "', '"  + snaprId + "')");
+						if (Global.LOG_MODE) Global.log( " -> " + Global.getCurrentMethod() + ": Sending upload_completed('" + localId + "', '"  + snaprId + "')");
+						mWebView.loadUrl("javascript:upload_completed('" + localId + "', '"  + snaprId + "')");
 						
 						// Log
 						if (Global.LOG_MODE) Global.log( " -> " + Global.getCurrentMethod() + ": Determining signups needed");
@@ -1086,7 +1086,7 @@ public class SnaprKitFragment extends Fragment
      * Build the signups for shared services URL 
      * @return Returns the signups URL
      */
-    private String getSignupsNeededUrl(String id, String signupsNeeded, String redirectUrl)
+    private String getSignupsNeededUrl(String localId, String signupsNeeded, String redirectUrl)
     {
         // Declare
         String url;
@@ -1112,7 +1112,7 @@ public class SnaprKitFragment extends Fragment
         }
         
         // Pass the image id
-        params.add(new BasicNameValuePair(Global.PARAM_PHOTO_ID, id));
+        params.add(new BasicNameValuePair(Global.PARAM_PHOTO_ID, localId));
         
         // Pass the signups needed
         params.add(new BasicNameValuePair(Global.PARAM_TO_LINK, signupsNeeded));
@@ -1241,9 +1241,9 @@ public class SnaprKitFragment extends Fragment
     	}
     };
     
-    // Creates an upload id based on current date time
+    // Creates an upload localId based on current date time
     @SuppressLint("UseValueOf")
-	private String getUploadId()
+	private String getUploadLocalId()
     {
     	Random random = new Random();
     	int randomInt = random.nextInt();
@@ -1260,7 +1260,7 @@ public class SnaprKitFragment extends Fragment
 			
 			// Extract the parameters from the query
 			Uri uri = Uri.parse(url);
-			String id = uri.getQueryParameter(Global.PARAM_ID);
+			String localId = uri.getQueryParameter(Global.PARAM_LOCAL_ID);
 			String description = uri.getQueryParameter(Global.PARAM_DESCRIPTION);
 			String status = uri.getQueryParameter(Global.PARAM_STATUS);
 			String tweet = uri.getQueryParameter(Global.PARAM_TWEET);
@@ -1325,10 +1325,10 @@ public class SnaprKitFragment extends Fragment
 				if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Original URL was " + url);
 			}
 			
-			// Create the id if blank
-			if (id == null || id.length() == 0 || id.equals("undefined"))
+			// Create the localId if blank
+			if (localId == null || localId.length() == 0 || localId.equals("undefined"))
 			{
-				id = getUploadId();
+				localId = getUploadLocalId();
 			}
 			
 			// Log the description
@@ -1338,7 +1338,7 @@ public class SnaprKitFragment extends Fragment
 			Intent uploadIntent = new Intent(getContext(), UploadService.class);
 	        uploadIntent.putExtra(Global.PARAM_ACTION, Global.ACTION_QUEUE_ADD);
 	        uploadIntent.putExtra(Global.PARAM_ACCESS_TOKEN, mAccessToken);
-	        uploadIntent.putExtra(Global.PARAM_ID, id);
+	        uploadIntent.putExtra(Global.PARAM_LOCAL_ID, localId);
 	        uploadIntent.putExtra(Global.PARAM_PHOTO, photo);
 	        uploadIntent.putExtra(Global.PARAM_DESCRIPTION, description);
 	        uploadIntent.putExtra(Global.PARAM_LATITUDE, latitude);
@@ -1664,15 +1664,15 @@ public class SnaprKitFragment extends Fragment
     		// Log
     		if (Global.LOG_MODE) Global.log(Global.TAG, " -> queueCancelAction: Received URL " + url);
     		
-    		// Get the id from the url
+    		// Get the localId from the url
     		Uri uri = Uri.parse(url);
-    		String id = uri.getQueryParameter(Global.PARAM_CANCEL);
-    		if (Global.LOG_MODE) Global.log(Global.TAG, " -> queueCancelAction: Got cancel for id " + id);
+    		String localId = uri.getQueryParameter(Global.PARAM_CANCEL);
+    		if (Global.LOG_MODE) Global.log(Global.TAG, " -> queueCancelAction: Got cancel for localId " + localId);
     		
     		// Send the information to the upload service via intent
 			Intent intent = new Intent(getContext(), UploadService.class);
 	        intent.putExtra(Global.PARAM_ACTION, Global.ACTION_QUEUE_REMOVE);
-	        intent.putExtra(Global.PARAM_ID, id);
+	        intent.putExtra(Global.PARAM_LOCAL_ID, localId);
 	        if (Global.LOG_MODE) Global.log(Global.TAG, " -> queueCancelAction: Before call to service");
 	        getContext().startService(intent);
 	        if (Global.LOG_MODE) Global.log(Global.TAG, " -> queueCancelAction: After call to service");

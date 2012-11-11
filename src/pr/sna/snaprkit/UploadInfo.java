@@ -1,11 +1,16 @@
 package pr.sna.snaprkit;
 
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import pr.sna.snaprkit.utils.ExceptionUtils;
 import pr.sna.snaprkit.utils.UrlUtils;
 
 public class UploadInfo
@@ -16,7 +21,7 @@ public class UploadInfo
 	
 	// access_token not saved to JSON for security but needs to be restored as well 
 	private static final String UPLOAD_URL = "upload_url";
-	private static final String ID = "id";
+	private static final String LOCAL_ID = "local_id";
 	private static final String FILENAME = "fileName";
 	private static final String DESCRIPTION = "description";
 	private static final String LATITUDE = "latitude";
@@ -42,7 +47,7 @@ public class UploadInfo
 	// Upload data
 	private String mAccessToken;
 	private String mUploadUrl;
-	private String mId;
+	private String mLocalId;
 	private String mFileName;
 	private String mDescription;
 	private Double mLatitude;
@@ -81,7 +86,7 @@ public class UploadInfo
     		// Add each download description field
     		// json.put(this.ACCESS_TOKEN, mAccessToken); // Access token not saved for security
     		json.put(UPLOAD_URL, (mUploadUrl != null)?mUploadUrl:"");
-    		json.put(ID, (mId != null)?mId:"");
+    		json.put(LOCAL_ID, (mLocalId != null)?mLocalId:"");
     		json.put(FILENAME, (mFileName != null)?mFileName:"");
     		json.put(DESCRIPTION, (mDescription != null)?mDescription:"");
     		json.put(LATITUDE, getLatitudeString());
@@ -125,14 +130,14 @@ public class UploadInfo
     		if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Failed to restore upload URL");
     	}
     	
-    	// Id
+    	// localId
     	try
     	{
-    		uploadInfo.mId = json.getString(ID);
+    		uploadInfo.mLocalId = json.getString(LOCAL_ID);
     	}
     	catch (JSONException e)
     	{
-    		if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Failed to restore ID");
+    		if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Failed to restore localId");
     	}
     	
     	// Filename
@@ -313,37 +318,32 @@ public class UploadInfo
     {
     	// Declare
 		JSONObject jsonUpload = new JSONObject();
-		JSONObject jsonLocation = new JSONObject();
-		JSONObject jsonShared = new JSONObject();
 		
+		// Add the optional parameters based on the list of upload params
 		try
 		{
-			// Fill location object
-			jsonLocation.put(Global.PARAM_LATITUDE, mLatitude);
-			jsonLocation.put(Global.PARAM_LONGITUDE, mLongitude);
-			jsonLocation.put(Global.PARAM_LOCATION, (mFoursquareVenue!=null)?mFoursquareVenue:"");
+			// Parse the upload parameters and send them
+			URI uri = URI.create("snapr://upload?" + getUploadParams());
+			List<NameValuePair> params = URLEncodedUtils.parse(uri, "UTF-8");
 			
-			// Fill shared object
-			jsonShared.put(Global.PARAM_TWEETED, mTweet);
-			jsonShared.put(Global.PARAM_FACEBOOK_NEWSFEED, mFacebookFeed);
-			jsonShared.put(Global.PARAM_FOURSQUARE_CHECKIN, mFoursquareCheckin);
-			jsonShared.put(Global.PARAM_TUMBLR, mTumblr);
-			jsonShared.put(Global.PARAM_FOURSQUARE_VENUE, mFoursquareVenue);
-			
-			// Fill upload object
-			jsonUpload.put(Global.PARAM_ID, (mId != null)?mId:"");
-			jsonUpload.put(Global.PARAM_THUMBNAIL, (mFileName != null)?mFileName:"");
-			jsonUpload.put(Global.PARAM_UPLOAD_STATUS, uploadStatus);
-			jsonUpload.put(Global.PARAM_PERCENT_COMPLETE, percent);
-			jsonUpload.put(Global.PARAM_STATUS, (mPrivacy!=null)?mPrivacy:"");
-			jsonUpload.put(Global.PARAM_DESCRIPTION, (mDescription != null)?mDescription:"");
-			jsonUpload.put(Global.PARAM_LOCATION, jsonLocation);
-			jsonUpload.put(Global.PARAM_DATE, getPictureDateTimeString());
-			jsonUpload.put(Global.PARAM_SHARED, jsonShared);
+			// Loop the list and add each parameter to the POST
+			for (int i=0; i<params.size(); i++)
+			{
+				// Extract the GET param
+				NameValuePair param = params.get(i);
+				
+				// Extract paramName and paramValue
+				String paramName = param.getName();
+				String paramValue = param.getValue();
+				if (paramValue == null) paramValue = "";
+				
+				// Add the new JSON param
+				jsonUpload.put(paramName, paramValue);
+			}
 		}
-		catch (JSONException e)
+		catch (Exception e)
 		{
-			if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Failed with JSON error " + e);
+			if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Failed to attach params with error " + ExceptionUtils.getExceptionStackString(e));
 		}
 		
 		return jsonUpload;
@@ -361,14 +361,14 @@ public class UploadInfo
 	// Getters / Setters
 	// ------------------------------------------------------------------------
     
-    public String getId()
+    public String getLocalId()
     {
-		return mId;
+		return mLocalId;
 	}
 
-	public void setId(String uploadId)
+	public void setLocalId(String uploadId)
 	{
-		this.mId = uploadId;
+		this.mLocalId = uploadId;
 	}
 
 	public String getDescription()

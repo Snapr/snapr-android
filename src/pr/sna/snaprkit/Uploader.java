@@ -59,7 +59,7 @@ public class Uploader
 				
 				if (last_percent != percent)
 				{
-					mUploadListener.onUploadProgress(mUploadInfo.getId(), percent);
+					mUploadListener.onUploadProgress(mUploadInfo.getLocalId(), percent);
 					last_percent = percent;
 				}
 			}
@@ -196,7 +196,7 @@ public class Uploader
 		try
 		{
 			if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": File " + mUploadInfo.getFileName() + " upload started");
-			if (mUploadListener != null) mUploadListener.onUploadStarted(mUploadInfo.getId());
+			if (mUploadListener != null) mUploadListener.onUploadStarted(mUploadInfo.getLocalId());
 			
 			// Perform request
 			// Request is performed synchronously
@@ -228,25 +228,25 @@ public class Uploader
 		if (mCanceled)
 		{
         	if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": File " + mUploadInfo.getFileName() + " upload cancelled");
-    		if (mUploadListener != null) mUploadListener.onUploadCanceled(mUploadInfo.getId());			
+    		if (mUploadListener != null) mUploadListener.onUploadCanceled(mUploadInfo.getLocalId());			
 		}
 		else if (mStopped)
 		{
         	if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": File " + mUploadInfo.getFileName() + " upload stopped");
-        	if (mUploadListener != null) mUploadListener.onUploadStopped(mUploadInfo.getId());
+        	if (mUploadListener != null) mUploadListener.onUploadStopped(mUploadInfo.getLocalId());
         	uploadSuccess = false;			
 		}
 		else if (exception != null)
 		{
 			// Notify user
 			if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Failed to perform upload with error: " +  ExceptionUtils.getExceptionStackString(exception));
-            if (mUploadListener != null) mUploadListener.onUploadFailed(mUploadInfo.getId(), exception);
+            if (mUploadListener != null) mUploadListener.onUploadFailed(mUploadInfo.getLocalId(), exception);
             uploadSuccess = false;
 		}
         else
         {
         	if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": File " + mUploadInfo.getFileName() + " upload finished");
-        	if (mUploadListener != null) mUploadListener.onUploadComplete(mUploadInfo.getId(), jsonResponse);
+        	if (mUploadListener != null) mUploadListener.onUploadComplete(mUploadInfo.getLocalId(), jsonResponse);
         }
         
         // Clear internals
@@ -308,11 +308,11 @@ public class Uploader
     
     public interface UploadListener
     {
-    	public void onUploadStarted(String id);
-    	public void onUploadProgress(String id, int percent);
-    	public void onUploadCanceled(String id);
-    	public void onUploadStopped(String id);
-    	public void onUploadFailed(String id, Exception e);
-    	public void onUploadComplete(String id, JSONObject jsonResponse);
+    	public void onUploadStarted(String localId);
+    	public void onUploadProgress(String localId, int percent);
+    	public void onUploadCanceled(String localId);
+    	public void onUploadStopped(String localId);
+    	public void onUploadFailed(String localId, Exception e);
+    	public void onUploadComplete(String localId, JSONObject jsonResponse);
     }
 }

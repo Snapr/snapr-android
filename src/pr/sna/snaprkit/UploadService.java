@@ -32,7 +32,7 @@ public class UploadService extends Service
 	boolean mQueueUploadModeOn = true;
 	boolean mUploadThreadRunning = false;
 
-	private UploadInfo getUploadInfoById(String id)
+	private UploadInfo getUploadInfoById(String localId)
 	{
 		// Find it in the queue
 		if (mQueue != null)
@@ -43,7 +43,7 @@ public class UploadService extends Service
 				while (i.hasNext())
 				{
 					UploadInfo uploadInfo = i.next();
-					if (uploadInfo.getId().equals(id))
+					if (uploadInfo.getLocalId().equals(localId))
 					{
 						return uploadInfo;
 					}
@@ -199,7 +199,7 @@ public class UploadService extends Service
 					UploadInfo uploadInfo = mQueue.get(i);
 
 					// Create JSON upload
-					String uploadId = uploadInfo.getId();
+					String uploadId = uploadInfo.getLocalId();
 					if (activeId != null && uploadId != null
 							&& uploadId.equals(activeId))
 					{
@@ -231,7 +231,7 @@ public class UploadService extends Service
 	private UploadListener mUploadListener = new UploadListener()
 	{
 		@Override
-		public void onUploadStarted(String id)
+		public void onUploadStarted(String localId)
 		{
 			if (Global.LOG_MODE)
 				Global.log(" -> " + Global.getCurrentMethod());
@@ -258,19 +258,19 @@ public class UploadService extends Service
 		}
 
 		@Override
-		public void onUploadProgress(String id, int percent)
+		public void onUploadProgress(String localId, int percent)
 		{
 			if (Global.LOG_MODE)
 				Global.log(" -> " + Global.getCurrentMethod() + ": percent "
 						+ percent);
 
-			// Find our upload based on id
-			UploadInfo uploadInfo = getUploadInfoById(id);
+			// Find our upload based on localId
+			UploadInfo uploadInfo = getUploadInfoById(localId);
 
 			if (uploadInfo != null)
 			{
 				// Create JSON data
-				String jsonData = getQueueJSON(uploadInfo.getId(), percent);
+				String jsonData = getQueueJSON(uploadInfo.getLocalId(), percent);
 
 				// Send an intent to broadcast to the main app
 				Intent intent = new Intent();
@@ -284,13 +284,13 @@ public class UploadService extends Service
 				// Log
 				if (Global.LOG_MODE)
 					Global.log(Global.getCurrentMethod()
-							+ ": Send broadcast for upload with id " + id);
+							+ ": Send broadcast for upload with localId " + localId);
 			} else
 			{
 				// Log
 				if (Global.LOG_MODE)
 					Global.log(Global.getCurrentMethod()
-							+ ": Could not find upload with id " + id + "!");
+							+ ": Could not find upload with localId " + localId + "!");
 			}
 
 			if (Global.LOG_MODE)
@@ -300,7 +300,7 @@ public class UploadService extends Service
 		// The exception for this function is either a HttpClient exception,
 		// an IOException or a JSON error wrapped in a RuntimeException
 		@Override
-		public void onUploadFailed(String id, Exception e)
+		public void onUploadFailed(String localId, Exception e)
 		{
 			try
 			{
@@ -321,7 +321,7 @@ public class UploadService extends Service
 					UploadService.this.sendBroadcast(intent);
 
 					// Find upload and kill it
-					UploadInfo info = getUploadInfoById(id);
+					UploadInfo info = getUploadInfoById(localId);
 					if (mQueue != null)
 					{
 						synchronized (mQueue)
@@ -339,13 +339,13 @@ public class UploadService extends Service
 		}
 
 		@Override
-		public void onUploadComplete(String id, JSONObject jsonResponse)
+		public void onUploadComplete(String localId, JSONObject jsonResponse)
 		{
 			if (Global.LOG_MODE)
 				Global.log(" -> " + Global.getCurrentMethod());
 
 			// Get the upload information
-			UploadInfo uploadInfo = getUploadInfoById(id);
+			UploadInfo uploadInfo = getUploadInfoById(localId);
 
 			// Check if we need sign ups
 			String signupsNeeded = getSignupsNeeded(uploadInfo, jsonResponse);
@@ -357,7 +357,7 @@ public class UploadService extends Service
 			intent.addCategory(Intent.CATEGORY_DEFAULT);
 			intent.putExtra(Global.PARAM_ACTION,
 					Global.BROADCAST_UPLOAD_COMPLETED);
-			intent.putExtra(Global.PARAM_ID, id);
+			intent.putExtra(Global.PARAM_LOCAL_ID, localId);
 			intent.putExtra(Global.PARAM_SNAPR_ID, snaprId);
 			intent.putExtra(Global.PARAM_SIGNUPS_NEEDED, signupsNeeded);
 			synchronized (mQueue)
@@ -382,20 +382,20 @@ public class UploadService extends Service
 		}
 
 		@Override
-		public void onUploadCanceled(String id)
+		public void onUploadCanceled(String localId)
 		{
 			if (Global.LOG_MODE)
 				Global.log(" -> " + Global.getCurrentMethod());
 
 			// Broadcast the cancel
-			sendQueueItemCanceled(id);
+			sendQueueItemCanceled(localId);
 
 			if (Global.LOG_MODE)
 				Global.log(" <- " + Global.getCurrentMethod());
 		}
 
 		@Override
-		public void onUploadStopped(String id)
+		public void onUploadStopped(String localId)
 		{
 			// Update the Queue JSON
 			sendQueueStatus();
@@ -470,7 +470,7 @@ public class UploadService extends Service
 								if (Global.LOG_MODE)
 									Global.log(Global.getCurrentMethod()
 											+ ": Added queue item "
-											+ uploadInfo.getId()
+											+ uploadInfo.getLocalId()
 											+ " with filename "
 											+ uploadInfo.getFileName());
 							}
@@ -479,7 +479,7 @@ public class UploadService extends Service
 							if (Global.LOG_MODE)
 								Global.log(Global.getCurrentMethod()
 										+ ": Did not add queue item "
-										+ uploadInfo.getId()
+										+ uploadInfo.getLocalId()
 										+ " with filename "
 										+ uploadInfo.getFileName()
 										+ " because data file is missing");
@@ -492,7 +492,7 @@ public class UploadService extends Service
 							if (Global.LOG_MODE)
 								Global.log(Global.getCurrentMethod()
 										+ ": Added queue item "
-										+ uploadInfo.getId()
+										+ uploadInfo.getLocalId()
 										+ " with filename "
 										+ uploadInfo.getFileName());
 						}
@@ -733,7 +733,7 @@ public class UploadService extends Service
 		String jsonData = null;
 		String currentUploadId = null;
 		if (mUploader != null && mUploader.getCurrentUpload() != null)
-			currentUploadId = mUploader.getCurrentUpload().getId();
+			currentUploadId = mUploader.getCurrentUpload().getLocalId();
 		jsonData = getQueueJSON(currentUploadId, 0);
 
 		// Send an intent to broadcast to the main app
@@ -746,14 +746,14 @@ public class UploadService extends Service
 		UploadService.this.sendBroadcast(broadcastIntent);
 	}
 
-	public void sendQueueItemCanceled(String id)
+	public void sendQueueItemCanceled(String localId)
 	{
 		// Send an intent to broadcast to the main app
 		Intent intent = new Intent();
 		intent.setAction(Global.INTENT_BROADCAST_UPLOAD);
 		intent.addCategory(Intent.CATEGORY_DEFAULT);
 		intent.putExtra(Global.PARAM_ACTION, Global.BROADCAST_UPLOAD_CANCELED);
-		intent.putExtra(Global.PARAM_ID, id);
+		intent.putExtra(Global.PARAM_LOCAL_ID, localId);
 		synchronized (mQueue)
 		{
 			intent.putExtra(Global.PARAM_NUM_UPLOADS, mQueue.size());
@@ -858,7 +858,7 @@ public class UploadService extends Service
 			// Retrieve all upload parameters
 			String accessToken = intent
 					.getStringExtra(Global.PARAM_ACCESS_TOKEN);
-			String id = intent.getStringExtra(Global.PARAM_ID);
+			String localId = intent.getStringExtra(Global.PARAM_LOCAL_ID);
 			String photo = intent.getStringExtra(Global.PARAM_PHOTO);
 			String description = intent
 					.getStringExtra(Global.PARAM_DESCRIPTION);
@@ -884,19 +884,19 @@ public class UploadService extends Service
 					.getStringExtra(Global.PARAM_PUBLIC_GROUP);
 			String uploadParams = intent.getStringExtra(Global.PARAM_UPLOAD_PARAMS);
 
-			// Check if a file with the same id is already in the queue
+			// Check if a file with the same localId is already in the queue
 			// Can happen when we press the Share button in quick succession
-			UploadInfo existingUploadInfo = getUploadInfoById(id);
+			UploadInfo existingUploadInfo = getUploadInfoById(localId);
 			if (existingUploadInfo == null)
 			{
 				if (Global.LOG_MODE)
-					Global.log("File with id " + id + " does not exist ");
+					Global.log("File with localId " + localId + " does not exist ");
 
 				// Create upload object
 				UploadInfo uploadInfo = new UploadInfo();
 				uploadInfo.setUploadUrl(Global.URL_UPLOAD_LOCATION);
 				uploadInfo.setAccessToken(accessToken);
-				uploadInfo.setId(id);
+				uploadInfo.setLocalId(localId);
 				uploadInfo.setFileName(photo);
 				uploadInfo.setDescription(description);
 				uploadInfo.setPrivacy(privacy);
@@ -930,7 +930,7 @@ public class UploadService extends Service
 					Global.log(Global.getCurrentMethod() + "accessToken = "
 							+ accessToken);
 				if (Global.LOG_MODE)
-					Global.log(Global.getCurrentMethod() + "id = " + id);
+					Global.log(Global.getCurrentMethod() + "id = " + localId);
 				if (Global.LOG_MODE)
 					Global.log(Global.getCurrentMethod() + "photo = " + photo);
 				if (Global.LOG_MODE)
@@ -988,26 +988,26 @@ public class UploadService extends Service
 			} else
 			{
 				if (Global.LOG_MODE)
-					Global.log("File with id " + id + " already EXISTS!!! ");
+					Global.log("File with localId " + localId + " already EXISTS!!! ");
 			}
 		} else if (action == Global.ACTION_QUEUE_REMOVE)
 		{
-			// Retrieve file id parameter
-			String id = intent.getStringExtra(Global.PARAM_ID);
+			// Retrieve file localId parameter
+			String localId = intent.getStringExtra(Global.PARAM_LOCAL_ID);
 
 			// Log
 			if (Global.LOG_MODE)
 				Global.log(Global.getCurrentMethod()
 						+ "ACTION_QUEUE_REMOVE received parameters:");
 			if (Global.LOG_MODE)
-				Global.log(Global.getCurrentMethod() + "id = " + id);
+				Global.log(Global.getCurrentMethod() + "localId = " + localId);
 
 			// Remove from list
-			UploadInfo uploadInfo = getUploadInfoById(id);
+			UploadInfo uploadInfo = getUploadInfoById(localId);
 			if (uploadInfo != null)
 			{
 				if (mUploader != null && mUploader.getCurrentUpload() != null
-						&& mUploader.getCurrentUpload().getId().equals(id))
+						&& mUploader.getCurrentUpload().getLocalId().equals(localId))
 				{
 					if (Global.LOG_MODE)
 						Global.log(Global.getCurrentMethod()
@@ -1035,7 +1035,7 @@ public class UploadService extends Service
 					if (Global.LOG_MODE)
 						Global.log(Global.getCurrentMethod()
 								+ ": Broadcasting cancel");
-					sendQueueItemCanceled(id);
+					sendQueueItemCanceled(localId);
 				}
 
 				if (Global.LOG_MODE)
@@ -1052,7 +1052,7 @@ public class UploadService extends Service
 				if (Global.LOG_MODE)
 					Global.log(Global.getCurrentMethod()
 							+ ": Broadcasting cancel");
-				sendQueueItemCanceled(id);
+				sendQueueItemCanceled(localId);
 				
 			}
 		} else if (action == Global.ACTION_QUEUE_UPLOAD_MODE)
