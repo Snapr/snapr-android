@@ -168,6 +168,13 @@ public class Global
 	public static final String PARAM_APP_GROUP = "app_group";
 	public static final String PARAM_PUBLIC_GROUP = "public_group";
 	public static final String PARAM_UPLOAD_PARAMS = "upload_params";
+	public static final String PARAM_TITLE = "title";
+	public static final String PARAM_DESTRUCTIVE_BUTTON_LABEL = "destructiveButton";
+	public static final String PARAM_CANCEL_BUTTON_LABEL = "cancelButton";
+	public static final String PARAM_OTHER_BUTTON_1_LABEL = "otherButton1";
+	public static final String PARAM_OTHER_BUTTON_2_LABEL = "otherButton2";
+	public static final String PARAM_OTHER_BUTTON_3_LABEL = "otherButton3";
+	public static final String PARAM_ACTION_ID = "actionID";
 	
 	// Images
 	public static final String IMAGE_NAME_PREFIX = "SNAPR_";

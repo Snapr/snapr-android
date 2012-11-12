@@ -45,6 +45,8 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -60,6 +62,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 //import com.aviary.android.feather.FeatherActivity;
+import android.widget.Button;
 
 public class SnaprKitFragment extends Fragment
 {
@@ -90,6 +93,14 @@ public class SnaprKitFragment extends Fragment
 	private String mSharedPictureFileName = null;
 	private SnaprKitListener mSnaprKitListener = null;
 	private PictureAcquisitionListener mPictureAcquisitionListener;
+	private Button mContextMenuButton;
+	private String mContextMenuTitle = null;
+	private String mContextMenuDestructiveItemLabel = null;
+	private String mContextMenuCancelItemLabel = null;
+	private String mContextMenuOtherItem1Label = null;
+	private String mContextMenuOtherItem2Label = null;
+	private String mContextMenuOtherItem3Label = null;
+	private int mContextMenuActionId = -1;
 
 	private List<EffectConfig> mEffectConfigs;
 	private Intent mPendingIntent;
@@ -175,6 +186,9 @@ public class SnaprKitFragment extends Fragment
 			
 	        // Prepare the webview
 			initWebView(mView, savedInstanceState);
+			
+			// Prepare the dummy button for context menu
+			mContextMenuButton = (Button)mView.findViewById(R.id.buttonContextMenu);
 		}
 		else
 		{
@@ -1732,6 +1746,33 @@ public class SnaprKitFragment extends Fragment
 			if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
     	}
     };
+    
+    // The actionsheet action
+    private Action actionSheetAction = new Action() {
+    	@Override
+    	public void run(String url)
+    	{
+    		// Log
+    		if (Global.LOG_MODE) Global.log(Global.TAG, " -> actionSheetAction: Received URL " + url);
+    		
+    		// Get the setting from the URL
+    		Uri uri = Uri.parse(url);
+    		mContextMenuTitle = uri.getQueryParameter(Global.PARAM_TITLE);
+    		mContextMenuDestructiveItemLabel = uri.getQueryParameter(Global.PARAM_DESTRUCTIVE_BUTTON_LABEL);
+    		mContextMenuCancelItemLabel = uri.getQueryParameter(Global.PARAM_CANCEL_BUTTON_LABEL);
+    		mContextMenuOtherItem1Label = uri.getQueryParameter(Global.PARAM_OTHER_BUTTON_1_LABEL);
+    		mContextMenuOtherItem2Label = uri.getQueryParameter(Global.PARAM_OTHER_BUTTON_2_LABEL);
+    		mContextMenuOtherItem3Label = uri.getQueryParameter(Global.PARAM_OTHER_BUTTON_3_LABEL);
+    		String contextMenuActionIdString = uri.getQueryParameter(Global.PARAM_ACTION_ID);
+    		mContextMenuActionId = Integer.parseInt(contextMenuActionIdString);
+    		
+    		// Open the context menu
+    		getActivity().openContextMenu(mContextMenuButton);
+			
+			// Log
+			if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
+    	}
+    };
 
     private void initActionMap()
     {
@@ -1749,6 +1790,7 @@ public class SnaprKitFragment extends Fragment
 		mActionMappings.add(new UrlMapping("snapr://redirect.*", redirectAction));
 		mActionMappings.add(new UrlMapping("snapr://camera.*", cameraAction));
     	mActionMappings.add(new UrlMapping("snapr://photo-library.*", photoGalleryAction));
+    	mActionMappings.add(new UrlMapping("snapr://action.*", actionSheetAction));
     	mActionMappings.add(new UrlMapping("snapr://link.*", externalBrowseAction));
     	if (Global.FEATURE_AVIARY_SDK) mActionMappings.add(new UrlMapping("snapr://aviary.*", editPhotoAction));
 		mActionMappings.add(new UrlMapping("snapr://.*", defaultAction));
@@ -2516,6 +2558,38 @@ public class SnaprKitFragment extends Fragment
 		return SnaprKitApplication.getInstance();
 	}
 	
+	@Override
+	public boolean onContextItemSelected(MenuItem item)
+	{
+		// Extract the items id
+		int itemId = item.getItemId();
+		
+		// Check it for validity
+		if (itemId <-1 || itemId > 3) return false;
+		
+		// Call the JavaScript to report click
+		mWebView.loadUrl("javascript:tapped_action(" + mContextMenuActionId + ", " + itemId + ");");
+		
+		// Log
+		if (Global.LOG_MODE) Global.log( " -> " + Global.getCurrentMethod() + ": Called JavaScript with action id " + mContextMenuActionId + " and item id " + itemId);
+		
+		// Return
+		return true;  
+	}
+
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v,
+			ContextMenuInfo menuInfo)
+	{
+		super.onCreateContextMenu(menu, v, menuInfo);
+		menu.setHeaderTitle(mContextMenuTitle);
+        menu.add(0, -1, 0, mContextMenuDestructiveItemLabel);
+        menu.add(0, 0, 0, mContextMenuCancelItemLabel);
+        if (mContextMenuOtherItem1Label != null) menu.add(0, 1, 0, mContextMenuOtherItem1Label);
+        if (mContextMenuOtherItem2Label != null) menu.add(0, 2, 0, mContextMenuOtherItem2Label);
+        if (mContextMenuOtherItem3Label != null) menu.add(0, 3, 0, mContextMenuOtherItem3Label);
+	}
+
 	/**
 	 * Searches for an existing effect configuration for the effect identified by
 	 * the given id. Returns the index of the entry in the internal collection, or
