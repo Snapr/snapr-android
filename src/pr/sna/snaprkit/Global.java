@@ -75,7 +75,7 @@ public class Global
 	public static final String URL_FEED = "feed/";
 	public static final String URL_MAP = "map/";
 	public static final String URL_PEOPLE = "people/";
-	public static final String URL_PHOTO_SHARE = "photo-edit/";
+	public static final String URL_PHOTO_SHARE = "share/";
 	
 	public static final String URL_SNAPR_LOGIN = "snapr://login";
 	public static final String URL_SNAPR_LOGOUT = "snapr://logout";
