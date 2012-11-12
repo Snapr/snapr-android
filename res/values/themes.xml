@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 
+        SnaprKit: Style for Aviary Feather integration, optional
+        Double-check with latest Aviary instructions
+    -->	
+    <!--
+    <style name="FeatherDefaultTheme.Custom" parent="FeatherDefaultTheme" />
+    -->
+</resources>

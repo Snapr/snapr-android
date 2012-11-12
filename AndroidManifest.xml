@@ -65,7 +65,7 @@
 			android:screenOrientation="unspecified"
 			android:hardwareAccelerated="true"
 			android:largeHeap="true"
-			android:theme="@style/FeatherTheme.Custom" />
+			android:theme="@style/FeatherDefaultTheme.Custom" />
 		-->
         
         <!-- SnaprKit: Services, required -->

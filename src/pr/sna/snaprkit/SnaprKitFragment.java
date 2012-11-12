@@ -1473,6 +1473,9 @@ public class SnaprKitFragment extends Fragment
 	    		// You can force feather to display only a certain tools
 	    		//newIntent.putExtra("tools-list", new String[]{"EFFECTS", "CROP", "BRIGHTNESS", "CONTRAST", "SATURATION", "COLORS", "STICKERS", "TEXT", "DRAWING", "RED_EYE", "WHITEN", "BLEMISH", "ROTATE", "FLIP", "BLUR", "SHARPEN"} );
 	    		
+	    		// enable fast rendering preview
+	    		newIntent.putExtra( "effect-enable-fast-preview", true );
+	    		
 	    		// Start feather
 	    		startActivityForResult(newIntent, ACTION_REQUEST_FEATHER );
 	    		
