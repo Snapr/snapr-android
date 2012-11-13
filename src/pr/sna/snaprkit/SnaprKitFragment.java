@@ -2594,7 +2594,8 @@ public class SnaprKitFragment extends Fragment
 	
 	private Context getContext()
 	{
-		return SnaprKitApplication.getInstance();
+		//return SnaprKitApplication.getInstance();
+		return (getActivity()!=null?getActivity():mView.getContext());
 	}
 	
 	@Override
