@@ -84,9 +84,6 @@ public class SnaprKitFragment extends Fragment
 	private ConnectivityBroadcastReceiver mConnectivityReceiver;
 	private UploadBroadcastReceiver mServiceCallbackReceiver;
 	private boolean mMenuInitDone = false;
-	private double mLastPictureLatitude = 0;
-	private double mLastPictureLongitude = 0;
-	private Date mLastPictureDate = null;
 	private String mCurrentUrl = null;
 	@SuppressWarnings("unused")
 	private boolean mRestoredFromSavedState = false;
@@ -101,6 +98,13 @@ public class SnaprKitFragment extends Fragment
 	private String mContextMenuOtherItem2Label = null;
 	private String mContextMenuOtherItem3Label = null;
 	private int mContextMenuActionId = -1;
+	private double mLastPictureLatitude = 0;
+	private double mLastPictureLongitude = 0;
+	private Date mLastPictureDate = null;
+	private String mLastDescription = null;
+	private String mLastFoursquareVenueName = null;
+	private String mLastFoursquareVenueId = null;
+	private String mLastLocationName = null;
 
 	private List<EffectConfig> mEffectConfigs;
 	private Intent mPendingIntent;
@@ -623,9 +627,9 @@ public class SnaprKitFragment extends Fragment
 	}
 	
 	/**
-     * Function called from onPictureAcquired or after we return from Aviary 
+     * Function called from onPictureAcquired 
      */
-	private void displayPhotoShareOptions(String fileName, double latitude, double longitude)
+	private void displayPhotoShareOptions(String fileName, double latitude, double longitude, String description, String foursquareVenueId, String foursquareVenueName, String locationName)
 	{
 		if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod());
 		
@@ -633,7 +637,7 @@ public class SnaprKitFragment extends Fragment
 		
 		if (Global.LOG_MODE) Global.log(Global.TAG, Global.getCurrentMethod() + ": Got filename " + fileName);
 		String redirectUrl = getSnaprUrl(UrlUtils.getFullLocalUrl(Global.URL_UPLOAD), true);
-		String url = getSharePictureUrl(fileName, latitude, longitude, redirectUrl);
+		String url = getSharePictureUrl(fileName, latitude, longitude, redirectUrl, description, foursquareVenueId, foursquareVenueName, locationName);
 		if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Redirecting to " + url);
 		mWebView.loadUrl(url);
 		
@@ -690,7 +694,7 @@ public class SnaprKitFragment extends Fragment
 			String fileName = info.getFileName();
 			
 			// Get the URL
-	        String url = getSharePictureUrl(fileName, latitude, longitude, null);
+	        String url = getSharePictureUrl(fileName, latitude, longitude, null, null, null, null, null);
 	        
 	        // Go to URL
 	        mWebView.loadUrl(url);
@@ -780,7 +784,7 @@ public class SnaprKitFragment extends Fragment
 					}
 					
 					// Display the share options
-					displayPhotoShareOptions(fileName, mLastPictureLatitude, mLastPictureLongitude);
+					displayPhotoShareOptions(fileName, mLastPictureLatitude, mLastPictureLongitude, null, null, null, null);
 		        }
 		    	else
 		    	{
@@ -818,7 +822,7 @@ public class SnaprKitFragment extends Fragment
 			    	// Display the picture options
 			    	if (fileName != null)
 			    	{
-			    		displayPhotoShareOptions(fileName, mLastPictureLatitude, mLastPictureLongitude);
+			    		displayPhotoShareOptions(fileName, mLastPictureLatitude, mLastPictureLongitude, mLastDescription, mLastFoursquareVenueId, mLastFoursquareVenueName, mLastLocationName);
 			    	}
 			    	else
 			    	{
@@ -1045,7 +1049,7 @@ public class SnaprKitFragment extends Fragment
      * @return Returns the picture sharing URL
      */
     @SuppressLint({ "UseValueOf", "UseValueOf" })
-	private String getSharePictureUrl(String imageName, double latitude, double longitude, String redirectUrl)
+	private String getSharePictureUrl(String imageName, double latitude, double longitude, String redirectUrl, String description, String foursquareVenueId, String foursquareVenueName, String locationName)
     {
         // Declare
         String url;
@@ -1070,22 +1074,48 @@ public class SnaprKitFragment extends Fragment
         	params.add(new BasicNameValuePair(Global.PARAM_NEW_USER, "true"));
         }
         
-        // Pass the image name
+        // Add the image name
         if(imageName.startsWith("file:///") == false)
         {
         	imageName = "file:///" + imageName;
         }
-        params.add(new BasicNameValuePair(Global.PARAM_PHOTO_PATH, imageName));
+        params.add(new BasicNameValuePair(Global.PARAM_PHOTO_URL, imageName));
         
+        // Add latitude and longitude
         if((latitude != 0) && (longitude != 0))
         {
         	params.add(new BasicNameValuePair(Global.PARAM_LATITUDE, new Double(latitude).toString()));
         	params.add(new BasicNameValuePair(Global.PARAM_LONGITUDE, new Double(longitude).toString()));
         }
         
+        // Add redirect URL
         if ((redirectUrl != null) && (redirectUrl.length() > 0))
         {
         	params.add(new BasicNameValuePair(Global.PARAM_REDIRECT_URL, redirectUrl));
+        }
+        
+        // Add description
+        if ((description != null) && (description.length() > 0))
+        {
+        	params.add(new BasicNameValuePair(Global.PARAM_DESCRIPTION, description));
+        }
+        
+        // Add Foursquare venue name
+        if ((foursquareVenueName != null) && (foursquareVenueName.length() > 0))
+        {
+        	params.add(new BasicNameValuePair(Global.PARAM_FOURSQUARE_VENUE_NAME, foursquareVenueName));
+        }
+        
+        // Add Foursquare venue id
+        if ((foursquareVenueId != null) && (foursquareVenueId.length() > 0))
+        {
+        	params.add(new BasicNameValuePair(Global.PARAM_FOURSQUARE_VENUE_ID, foursquareVenueId));
+        }
+        
+        // Add location name
+        if ((locationName != null) && (locationName.length() > 0))
+        {
+        	params.add(new BasicNameValuePair(Global.PARAM_LOCATION, locationName));
         }
         
         // Create the URL
@@ -1443,12 +1473,18 @@ public class SnaprKitFragment extends Fragment
 	    		// Log
 	    		if (Global.LOG_MODE) Global.log(Global.TAG, " -> editPhotoAction(): Received URL " + url);
 	    
-	    		// Get the filepath parameter
+	    		// Get the photo url parameter
 	    		Uri sourceUri = Uri.parse(url);
-	    		String photoPath = sourceUri.getQueryParameter(Global.PARAM_PHOTO_PATH);
+	    		String photoUrl = sourceUri.getQueryParameter(Global.PARAM_PHOTO_URL);
+	    		
+	    		// Store the remaining params
+	    		mLastDescription = sourceUri.getQueryParameter(Global.PARAM_DESCRIPTION);
+	    		mLastFoursquareVenueName = sourceUri.getQueryParameter(Global.PARAM_FOURSQUARE_VENUE_NAME);
+	    		mLastFoursquareVenueId = sourceUri.getQueryParameter(Global.PARAM_FOURSQUARE_VENUE_ID);
+	    		mLastLocationName = sourceUri.getQueryParameter(Global.PARAM_LOCATION);
 	    		
 	    		// Create the photo uri
-	    		Uri uri = Uri.parse(photoPath);
+	    		Uri uri = Uri.parse(photoUrl);
 	    		
 	    		// Create the intent needed to start feather
 	    		Intent newIntent = new Intent(getContext(), FeatherActivity.class);
@@ -2741,7 +2777,7 @@ public class SnaprKitFragment extends Fragment
 				if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Found location information in picture (" + latitude + "," + longitude + ")");
 				
 	        	// Get the URL
-		        url = getSharePictureUrl(fileName, latitude, longitude, null);	
+		        url = getSharePictureUrl(fileName, latitude, longitude, null, null, null, null, null);	
 			}
         }
         

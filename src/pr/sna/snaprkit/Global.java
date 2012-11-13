@@ -96,7 +96,7 @@ public class Global
 	public static final String PARAM_ENVIRONMENT = "environment";
 	public static final String PARAM_NEW_USER = "new_user";
 	public static final String PARAM_CLIENT_ID = "client_id";
-	public static final String PARAM_PHOTO_PATH = "photo_path";
+	public static final String PARAM_PHOTO_URL = "photo_url";
 	public static final String PARAM_LATITUDE = "latitude";
 	public static final String PARAM_LONGITUDE = "longitude";
 	public static final String PARAM_REDIRECT = "redirect";
@@ -131,6 +131,7 @@ public class Global
 	public static final String PARAM_UPLOAD = "upload";
 	public static final String PARAM_SEND = "send";
 	public static final String PARAM_FOURSQUARE_VENUE_ID = "foursquare_venue_id";
+	public static final String PARAM_FOURSQUARE_VENUE_NAME = "foursquare_venue_name";
 	public static final String PARAM_UPLOAD_MODE = "upload_mode";
 	public static final String PARAM_SIGNUPS_NEEDED = "needed_signups";
 	public static final String PARAM_PHOTO = "photo";
