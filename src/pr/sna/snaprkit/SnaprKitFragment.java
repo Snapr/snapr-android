@@ -193,6 +193,7 @@ public class SnaprKitFragment extends Fragment
 			
 			// Prepare the dummy button for context menu
 			mContextMenuButton = (Button)mView.findViewById(R.id.buttonContextMenu);
+			registerForContextMenu(mContextMenuButton);
 		}
 		else
 		{
