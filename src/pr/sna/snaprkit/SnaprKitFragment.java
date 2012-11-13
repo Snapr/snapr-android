@@ -1212,13 +1212,6 @@ public class SnaprKitFragment extends Fragment
 				// Save user info
 				UserInfoUtils.saveUserInfo(getContext(), mDisplayUserName, mSnaprUserName, mAccessToken);
 			}
-			
-			// Get startup URL
-			url = getStartupUrl();
-			
-			// Load the startup URL
-			if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + " Redirect to " + url);
-			mWebView.loadUrl(url);
     	}
     };
 
