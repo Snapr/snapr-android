@@ -97,6 +97,7 @@ public class Global
 	public static final String PARAM_NEW_USER = "new_user";
 	public static final String PARAM_CLIENT_ID = "client_id";
 	public static final String PARAM_PHOTO_URL = "photo_url";
+	public static final String PARAM_PHOTO_PATH = "photo_path";
 	public static final String PARAM_LATITUDE = "latitude";
 	public static final String PARAM_LONGITUDE = "longitude";
 	public static final String PARAM_REDIRECT = "redirect";

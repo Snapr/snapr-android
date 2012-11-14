@@ -1061,6 +1061,7 @@ public class SnaprKitFragment extends Fragment
         params.add(new BasicNameValuePair(Global.PARAM_APPMODE, "android"));
         params.add(new BasicNameValuePair(Global.PARAM_ENVIRONMENT, Global.ENVIRONMENT));
         
+        /*
         // Customize some parameters based on logged in status
         if(haveUserInfo())
 		{
@@ -1074,13 +1075,14 @@ public class SnaprKitFragment extends Fragment
         	// We have no username and password, so create URL that indicates new user
         	params.add(new BasicNameValuePair(Global.PARAM_NEW_USER, "true"));
         }
+        */
         
         // Add the image name
         if(imageName.startsWith("file:///") == false)
         {
         	imageName = "file:///" + imageName;
         }
-        params.add(new BasicNameValuePair(Global.PARAM_PHOTO_URL, imageName));
+        params.add(new BasicNameValuePair(Global.PARAM_PHOTO_PATH, imageName));
         
         // Add latitude and longitude
         if((latitude != 0) && (longitude != 0))
