@@ -2617,11 +2617,11 @@ public class SnaprKitFragment extends Fragment
 	{
 		super.onCreateContextMenu(menu, v, menuInfo);
 		menu.setHeaderTitle(mContextMenuTitle);
-		if (mContextMenuDestructiveItemLabel != null) menu.add(0, -1, 0, mContextMenuDestructiveItemLabel);
-		if (mContextMenuCancelItemLabel != null) menu.add(0, 0, 0, mContextMenuCancelItemLabel);
+		if (mContextMenuDestructiveItemLabel != null) menu.add(0, -1, 0, mContextMenuDestructiveItemLabel); // always first
         if (mContextMenuOtherItem1Label != null) menu.add(0, 1, 0, mContextMenuOtherItem1Label);
         if (mContextMenuOtherItem2Label != null) menu.add(0, 2, 0, mContextMenuOtherItem2Label);
         if (mContextMenuOtherItem3Label != null) menu.add(0, 3, 0, mContextMenuOtherItem3Label);
+        if (mContextMenuCancelItemLabel != null) menu.add(0, 0, 0, mContextMenuCancelItemLabel); // always last
 	}
 
 	/**
