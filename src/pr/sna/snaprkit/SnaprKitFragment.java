@@ -1202,9 +1202,9 @@ public class SnaprKitFragment extends Fragment
 			
 			// Parse the URL parameters
 			Uri uri = Uri.parse(normalUrl);
-			mDisplayUserName = uri.getQueryParameter(Global.PARAM_DISPLAY_USERNAME);
-			mSnaprUserName = uri.getQueryParameter(Global.PARAM_SNAPR_USER);
-			mAccessToken = uri.getQueryParameter(Global.PARAM_ACCESS_TOKEN);
+			mDisplayUserName = UrlUtils.getQueryParameter(uri, Global.PARAM_DISPLAY_USERNAME);
+			mSnaprUserName = UrlUtils.getQueryParameter(uri, Global.PARAM_SNAPR_USER);
+			mAccessToken = UrlUtils.getQueryParameter(uri, Global.PARAM_ACCESS_TOKEN);
 			
 			// Check if we have proper user info now that we loaded info from the URL
 			if(haveUserInfo())
@@ -1298,20 +1298,20 @@ public class SnaprKitFragment extends Fragment
 			
 			// Extract the parameters from the query
 			Uri uri = Uri.parse(url);
-			String localId = uri.getQueryParameter(Global.PARAM_LOCAL_ID);
-			String description = uri.getQueryParameter(Global.PARAM_DESCRIPTION);
-			String status = uri.getQueryParameter(Global.PARAM_STATUS);
-			String tweet = uri.getQueryParameter(Global.PARAM_TWEET);
-			String facebookFeed = uri.getQueryParameter(Global.PARAM_FACEBOOK_FEED);
-			String facebookAlbum = uri.getQueryParameter(Global.PARAM_FACEBOOK_ALBUM);
-			String facebookAlbumName = uri.getQueryParameter(Global.PARAM_FACEBOOK_ALBUM_NAME);
-			String tumblr = uri.getQueryParameter(Global.PARAM_TUMBLR);
-			String foursquareCheckin = uri.getQueryParameter(Global.PARAM_FOURSQUARE_CHECKIN);
-			String photo = uri.getQueryParameter(Global.PARAM_PHOTO);
-			String redirectUrl = uri.getQueryParameter(Global.PARAM_REDIRECT_URL);
-			String foursquareVenueId = uri.getQueryParameter(Global.PARAM_FOURSQUARE_VENUE);
-			String appGroup = uri.getQueryParameter(Global.PARAM_APP_GROUP);
-			String publicGroup = uri.getQueryParameter(Global.PARAM_PUBLIC_GROUP);
+			String localId = UrlUtils.getQueryParameter(uri, Global.PARAM_LOCAL_ID);
+			String description = UrlUtils.getQueryParameter(uri, Global.PARAM_DESCRIPTION);
+			String status = UrlUtils.getQueryParameter(uri, Global.PARAM_STATUS);
+			String tweet = UrlUtils.getQueryParameter(uri, Global.PARAM_TWEET);
+			String facebookFeed = UrlUtils.getQueryParameter(uri, Global.PARAM_FACEBOOK_FEED);
+			String facebookAlbum = UrlUtils.getQueryParameter(uri, Global.PARAM_FACEBOOK_ALBUM);
+			String facebookAlbumName = UrlUtils.getQueryParameter(uri, Global.PARAM_FACEBOOK_ALBUM_NAME);
+			String tumblr = UrlUtils.getQueryParameter(uri, Global.PARAM_TUMBLR);
+			String foursquareCheckin = UrlUtils.getQueryParameter(uri, Global.PARAM_FOURSQUARE_CHECKIN);
+			String photo = UrlUtils.getQueryParameter(uri, Global.PARAM_PHOTO);
+			String redirectUrl = UrlUtils.getQueryParameter(uri, Global.PARAM_REDIRECT_URL);
+			String foursquareVenueId = UrlUtils.getQueryParameter(uri, Global.PARAM_FOURSQUARE_VENUE);
+			String appGroup = UrlUtils.getQueryParameter(uri, Global.PARAM_APP_GROUP);
+			String publicGroup = UrlUtils.getQueryParameter(uri, Global.PARAM_PUBLIC_GROUP);
 			String uploadParams = uri.getEncodedQuery();
 			
 			// Fix filename
@@ -1469,13 +1469,13 @@ public class SnaprKitFragment extends Fragment
 	    
 	    		// Get the photo url parameter
 	    		Uri sourceUri = Uri.parse(url);
-	    		String photoUrl = sourceUri.getQueryParameter(Global.PARAM_PHOTO_URL);
+	    		String photoUrl = UrlUtils.getQueryParameter(sourceUri, Global.PARAM_PHOTO_URL);
 	    		
 	    		// Store the remaining params
-	    		mLastDescription = sourceUri.getQueryParameter(Global.PARAM_DESCRIPTION);
-	    		mLastFoursquareVenueName = sourceUri.getQueryParameter(Global.PARAM_FOURSQUARE_VENUE_NAME);
-	    		mLastFoursquareVenueId = sourceUri.getQueryParameter(Global.PARAM_FOURSQUARE_VENUE_ID);
-	    		mLastLocationName = sourceUri.getQueryParameter(Global.PARAM_LOCATION);
+	    		mLastDescription = UrlUtils.getQueryParameter(sourceUri, Global.PARAM_DESCRIPTION);
+	    		mLastFoursquareVenueName = UrlUtils.getQueryParameter(sourceUri, Global.PARAM_FOURSQUARE_VENUE_NAME);
+	    		mLastFoursquareVenueId = UrlUtils.getQueryParameter(sourceUri, Global.PARAM_FOURSQUARE_VENUE_ID);
+	    		mLastLocationName = UrlUtils.getQueryParameter(sourceUri, Global.PARAM_LOCATION);
 	    		
 	    		// Create the photo uri
 	    		Uri uri = Uri.parse(photoUrl);
@@ -1629,7 +1629,7 @@ public class SnaprKitFragment extends Fragment
     		
     		// Get the setting from the URL
     		Uri uri = Uri.parse(url);
-    		String settingString = uri.getQueryParameter(Global.PARAM_SETTING);
+    		String settingString = UrlUtils.getQueryParameter(uri, Global.PARAM_SETTING);
     		boolean queueUploadModeWifiOnly = getWifiOnlyFromUploadMode(settingString);
     		boolean queueUploadModeOn = getOnFromUploadMode(settingString);
 	    	
@@ -1713,7 +1713,7 @@ public class SnaprKitFragment extends Fragment
     		
     		// Get the localId from the url
     		Uri uri = Uri.parse(url);
-    		String localId = uri.getQueryParameter(Global.PARAM_CANCEL);
+    		String localId = UrlUtils.getQueryParameter(uri, Global.PARAM_CANCEL);
     		if (Global.LOG_MODE) Global.log(Global.TAG, " -> queueCancelAction: Got cancel for localId " + localId);
     		
     		// Send the information to the upload service via intent
@@ -1748,7 +1748,7 @@ public class SnaprKitFragment extends Fragment
     		if (uri.getScheme().equals(Global.SCHEME_SNAPR))
 			{
     			// Set the url to the embedded parameter
-    			url = uri.getQueryParameter(Global.PARAM_URL);
+    			url = UrlUtils.getQueryParameter(uri, Global.PARAM_URL);
 			}
 			*/
     		
@@ -1790,13 +1790,13 @@ public class SnaprKitFragment extends Fragment
     		
     		// Get the setting from the URL
     		Uri uri = Uri.parse(url);
-    		mContextMenuTitle = uri.getQueryParameter(Global.PARAM_TITLE);
-    		mContextMenuDestructiveItemLabel = uri.getQueryParameter(Global.PARAM_DESTRUCTIVE_BUTTON_LABEL);
-    		mContextMenuCancelItemLabel = uri.getQueryParameter(Global.PARAM_CANCEL_BUTTON_LABEL);
-    		mContextMenuOtherItem1Label = uri.getQueryParameter(Global.PARAM_OTHER_BUTTON_1_LABEL);
-    		mContextMenuOtherItem2Label = uri.getQueryParameter(Global.PARAM_OTHER_BUTTON_2_LABEL);
-    		mContextMenuOtherItem3Label = uri.getQueryParameter(Global.PARAM_OTHER_BUTTON_3_LABEL);
-    		String contextMenuActionIdString = uri.getQueryParameter(Global.PARAM_ACTION_ID);
+    		mContextMenuTitle = UrlUtils.getQueryParameter(uri, Global.PARAM_TITLE);
+    		mContextMenuDestructiveItemLabel = UrlUtils.getQueryParameter(uri, Global.PARAM_DESTRUCTIVE_BUTTON_LABEL);
+    		mContextMenuCancelItemLabel = UrlUtils.getQueryParameter(uri, Global.PARAM_CANCEL_BUTTON_LABEL);
+    		mContextMenuOtherItem1Label = UrlUtils.getQueryParameter(uri, Global.PARAM_OTHER_BUTTON_1_LABEL);
+    		mContextMenuOtherItem2Label = UrlUtils.getQueryParameter(uri, Global.PARAM_OTHER_BUTTON_2_LABEL);
+    		mContextMenuOtherItem3Label = UrlUtils.getQueryParameter(uri, Global.PARAM_OTHER_BUTTON_3_LABEL);
+    		String contextMenuActionIdString = UrlUtils.getQueryParameter(uri, Global.PARAM_ACTION_ID);
     		mContextMenuActionId = Integer.parseInt(contextMenuActionIdString);
     		
     		// Open the context menu

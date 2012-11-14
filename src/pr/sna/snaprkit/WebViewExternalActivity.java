@@ -392,7 +392,7 @@ public class WebViewExternalActivity extends Activity {
 	    	if (uri != null)
 	    	{
 	    		// Get the redirect_url parameter
-	    		String exitUrl = uri.getQueryParameter(Global.PARAM_REDIRECT);
+	    		String exitUrl = UrlUtils.getQueryParameter(uri, Global.PARAM_REDIRECT);
 	    		
 	    		// Return
 	    		if (exitUrl!= null && exitUrl.length() > 0)

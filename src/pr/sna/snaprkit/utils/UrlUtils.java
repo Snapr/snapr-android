@@ -349,4 +349,18 @@ public class UrlUtils
     	File file = new File(imagePath);
     	return Uri.fromFile(file);
     }
+    
+    /* This function fixes a query param decoding bug in all Android versions prior 
+     * to Android 4.0 where '+' characters are not translated into ' ' in 
+     * calls to android.net.Uri.getQueryParameter. This bug was officially fixed in 
+     * Android 4.0 and is documented in the Android docs for android.net.Uri.getQueryParam. 
+     * This fix takes the form of a function because unfortunately android.net.Uri 
+     * is an abstract class that cannot be extended, meaning that a more elegant 
+     * object-oriented fix is not possible
+    */
+    public static String getQueryParameter(Uri uri, String key)
+    {
+    	String value = uri.getQueryParameter(key);
+    	return (value==null)?value:value.replace("+", " ");
+    }
 }
