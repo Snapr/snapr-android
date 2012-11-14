@@ -3,6 +3,7 @@ package pr.sna.snaprkit.utils;
 import pr.sna.snaprkit.Global;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.view.WindowManager.BadTokenException;
 
 public class TransitionDialog
 {
@@ -26,7 +27,14 @@ public class TransitionDialog
     		mTransitionDialog.setTitle(title);
     		mTransitionDialog.setIndeterminate(true);
     		mTransitionDialog.setCancelable(true);
-    		mTransitionDialog.show();
+    		try
+    		{
+    			mTransitionDialog.show();
+    		}
+    		catch(BadTokenException e)
+    		{
+    			// Comes up if we are trying to start the dialog as the activity is closing
+    		}
     	}
     	if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
     }
