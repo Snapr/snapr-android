@@ -930,7 +930,7 @@ public class UploadService extends Service
 					Global.log(Global.getCurrentMethod() + "accessToken = "
 							+ accessToken);
 				if (Global.LOG_MODE)
-					Global.log(Global.getCurrentMethod() + "id = " + localId);
+					Global.log(Global.getCurrentMethod() + "localId = " + localId);
 				if (Global.LOG_MODE)
 					Global.log(Global.getCurrentMethod() + "photo = " + photo);
 				if (Global.LOG_MODE)
