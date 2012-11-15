@@ -168,7 +168,7 @@ public class Uploader
 				if (paramValue == null) paramValue = "";
 				
 				// Add the new POST param
-				if (!paramName.equals("photo") && !paramName.equals("redirect_url"))
+				if (isUploadParam(paramName))
 				{
 					entity.addPart(paramName, new StringBody(paramValue, "text/plain", Charset.forName( "UTF-8" )));
 					if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Added param " + paramName + " to web request as " + paramValue);
@@ -259,6 +259,26 @@ public class Uploader
         
         return uploadSuccess;
     }
+	
+	/**
+	 * Determines whether a certain parameter should be added to the upload request
+	 * @param paramName Parameter name
+	 * @return Boolean indicating whether parameter should be added to upload request
+	 */
+	public boolean isUploadParam(String paramName)
+	{
+		String[] excludedParams = {"snapr_user","display_username","local_id","redirect_url","photo"};
+		
+		for (int i=0; i<excludedParams.length; i++)
+		{
+			if (excludedParams[i].equals(paramName))
+			{
+				return false;
+			}
+		}
+	
+		return true;
+	}
     
     /**
      * Used when the user cancels an upload
