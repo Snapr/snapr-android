@@ -322,6 +322,12 @@ public class UploadInfo
 		// Add the optional parameters based on the list of upload params
 		try
 		{
+			// Fill basic JSON options
+			jsonUpload.put(Global.PARAM_UPLOAD_STATUS, uploadStatus);
+			jsonUpload.put(Global.PARAM_PERCENT_COMPLETE, percent);
+			jsonUpload.put(Global.PARAM_LOCAL_ID, (mLocalId != null)?mLocalId:"");
+			jsonUpload.put(Global.PARAM_THUMBNAIL, (mFileName != null)?mFileName:"");
+			
 			// Parse the upload parameters and send them
 			URI uri = URI.create("snapr://upload?" + getUploadParams());
 			List<NameValuePair> params = URLEncodedUtils.parse(uri, "UTF-8");
