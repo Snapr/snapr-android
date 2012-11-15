@@ -290,7 +290,8 @@ public class SnaprKitFragment extends Fragment
 						}
 						else
 						{
-							
+							// Display the share options
+							displayPhotoShareOptions(fileName, mLastPictureLatitude, mLastPictureLongitude, null, null, null, null);
 						}
 					}
 				}
