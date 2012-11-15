@@ -772,12 +772,14 @@ public class SnaprKitFragment extends Fragment
 					String fileName = data.getStringExtra(SnaprImageEditFragmentActivity.EXTRA_FILEPATH);
 					
 					// Re-tag the picture (due to filters dropping the latitude and longitude)
+					/*
 					if (Global.LOG_MODE) Global.log(Global.TAG, Global.getCurrentMethod() + ": Retagging picture with latitude and longitude...");
 			    	Location location = new Location("");
 			    	location.setTime((mLastPictureDate!=null)?mLastPictureDate.getTime():0);
 			    	location.setLatitude(mLastPictureLatitude);
 			    	location.setLongitude(mLastPictureLongitude);
 			    	CameraUtils.geotagPicture(fileName, location);
+			    	*/
 					
 					// Get the analytics
 					ArrayList<String> analytics = data.getStringArrayListExtra(SnaprImageEditFragmentActivity.EXTRA_ANALYTICS);

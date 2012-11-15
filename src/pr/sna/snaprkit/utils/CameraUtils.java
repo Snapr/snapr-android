@@ -26,6 +26,7 @@ import org.apache.sanselan.formats.tiff.write.TiffOutputSet;
 import pr.sna.snaprkit.ExifData;
 import pr.sna.snaprkit.Global;
 
+import android.annotation.SuppressLint;
 import android.location.Location;
 import android.media.ExifInterface;
 
@@ -275,6 +276,7 @@ public class CameraUtils
 	 * @return Returns a boolean indicating whether it succeeded
 	 * Based on Sanselan usage example; uses openstreetmap Sanselan fixes
 	 */
+	@SuppressLint("UseValueOf")
 	public static boolean geotagPictureSanselan(String fileName, Location location)
     {
 		if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod());
@@ -481,15 +483,15 @@ public class CameraUtils
 		    exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, "W");
 		    }
 
-		    SimpleDateFormat exifFormatter = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss"); //$NON-NLS-1$
-            exifFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+		    //SimpleDateFormat exifFormatter = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss"); //$NON-NLS-1$
+            //exifFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-            String exifDate = exifFormatter.format(new Date(location.getTime()));
+            //String exifDate = exifFormatter.format(new Date(location.getTime()));
 
-            String[] dateTimeSplit = exifDate.split("\\s+");
+            //String[] dateTimeSplit = exifDate.split("\\s+");
             
-            exif.setAttribute(ExifInterface.TAG_GPS_DATESTAMP, dateTimeSplit[0]);
-            exif.setAttribute(ExifInterface.TAG_GPS_TIMESTAMP, dateTimeSplit[1]);
+            //exif.setAttribute(ExifInterface.TAG_GPS_DATESTAMP, dateTimeSplit[0]);
+            //exif.setAttribute(ExifInterface.TAG_GPS_TIMESTAMP, dateTimeSplit[1]);
 		    
 		    exif.saveAttributes();
 		 
