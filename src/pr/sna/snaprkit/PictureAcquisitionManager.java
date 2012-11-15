@@ -327,7 +327,7 @@ public class PictureAcquisitionManager
 	    	Location exifLocation = exifData.getLocation();
 			if(exifLocation != null)
 			{
-				if (Global.LOG_MODE) Global.log(Global.TAG, Global.getCurrentMethod() + ": Camera provided geolocation data...");
+				if (Global.LOG_MODE) Global.log(Global.TAG, Global.getCurrentMethod() + ": Camera provided geolocation data  - " + exifLocation.getLatitude() + "," + exifLocation.getLongitude() +"...");
 				mLocation = exifLocation;
 				terminatePictureAcquisition(mImagePath);
 			}

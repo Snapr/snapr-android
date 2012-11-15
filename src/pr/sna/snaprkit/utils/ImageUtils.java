@@ -115,19 +115,20 @@ public class ImageUtils
 	
 	public static Date parseExifDate(ExifInterface exif, String fieldId, String fieldFormat)
     {
+		String dateTimeString = null;
     	Date returnDateTime = null;
     	
-		// Get modify date time
+		// Get modify date time    	
 		try
 		{
-			String dateTimeString = exif.getAttribute(fieldId);
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss");
+			dateTimeString = exif.getAttribute(fieldId);
+			SimpleDateFormat sdf = new SimpleDateFormat(fieldFormat);
 			returnDateTime = sdf.parse(dateTimeString);
 		}
 		catch (Exception e)
 		{
 			// Log
-			if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod() + " Failed to parse date with taginfo " + fieldId + " and format " + fieldFormat);
+			if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod() + " Failed to parse date '" + dateTimeString + "' with taginfo '" + fieldId + "' and format '" + fieldFormat+"'");
 			if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod() + " Got error " + e);
 		}
 		

@@ -771,6 +771,14 @@ public class SnaprKitFragment extends Fragment
 			    	// Get the filename
 					String fileName = data.getStringExtra(SnaprImageEditFragmentActivity.EXTRA_FILEPATH);
 					
+					// Re-tag the picture (due to filters dropping the latitude and longitude)
+					if (Global.LOG_MODE) Global.log(Global.TAG, Global.getCurrentMethod() + ": Retagging picture with latitude and longitude...");
+			    	Location location = new Location("");
+			    	location.setTime((mLastPictureDate!=null)?mLastPictureDate.getTime():0);
+			    	location.setLatitude(mLastPictureLatitude);
+			    	location.setLongitude(mLastPictureLongitude);
+			    	CameraUtils.geotagPicture(fileName, location);
+					
 					// Get the analytics
 					ArrayList<String> analytics = data.getStringArrayListExtra(SnaprImageEditFragmentActivity.EXTRA_ANALYTICS);
 					
@@ -813,6 +821,7 @@ public class SnaprKitFragment extends Fragment
 				    	fileName = UrlUtils.getRealPathFromURI(SnaprKitFragment.this.getActivity(), imageUri);
 				    	
 				    	// Re-tag the picture (due to Aviary dropping the latitude and longitude)
+				    	if (Global.LOG_MODE) Global.log(Global.TAG, Global.getCurrentMethod() + ": Retagging picture with latitude and longitude...");
 				    	Location location = new Location("");
 				    	location.setTime((mLastPictureDate!=null)?mLastPictureDate.getTime():0);
 				    	location.setLatitude(mLastPictureLatitude);
@@ -2082,6 +2091,7 @@ public class SnaprKitFragment extends Fragment
         // If we want the soft keyboard to show for form fields in the webview
         // we must obtain focus after load. We also need to add an event handler 
         // to obtain focus after every field touch
+        
         mWebView.requestFocus(View.FOCUS_DOWN);
         mWebView.setOnTouchListener(new View.OnTouchListener()
         {
