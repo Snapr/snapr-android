@@ -32,6 +32,9 @@ public class Global
 	public static final String URL_SERVER_DEV = "http://dev.sna.pr/api/"; // must end in slash
 	public static final String URL_SERVER = getRemoteUrlBase();           // generated based on ENVIRONMENT and URL_SERVER_* values above
 	
+	// Picture editing options
+	public static final boolean USE_PICTURE_EDITOR = false;
+	
 	// Shared Preferences
 	public static final String SNAPR_PREFERENCES = "SnaprPrefs";
 	public static final String SNAPR_PREFERENCES_DISPLAY_USERNAME = "snapr_display_user";

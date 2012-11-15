@@ -267,14 +267,31 @@ public class SnaprKitFragment extends Fragment
 					// Process differently based on data source
 					if (dataSource == PictureAcquisitionManager.PICTURE_SOURCE_CAMERA)
 					{
-						// For camera, we already have a copy of the picture, so edit in place
-						displayPhotoEdit(SnaprKitApplication.getInstance(), fileName, null, timeStamp);
+						// Check if we should use a picture editor (FX module or Aviary)
+						if (Global.USE_PICTURE_EDITOR)
+						{
+							// For camera, we already have a copy of the picture, so edit in place
+							displayPhotoEdit(SnaprKitApplication.getInstance(), fileName, null, timeStamp);
+						}
+						else
+						{
+							// Display the share options
+							displayPhotoShareOptions(fileName, mLastPictureLatitude, mLastPictureLongitude, null, null, null, null);
+						}
 					}
 					else
 					{
-						// For gallery provide output filename so module makes copy of source picture
-						String destinationFileName = FileUtils.getDCIMCameraDirectory() + "/" + CameraUtils.getPictureName();
-						displayPhotoEdit(SnaprKitApplication.getInstance(), fileName, destinationFileName, timeStamp);
+						// Check if we should use a picture editor (FX module or Aviary)
+						if (Global.USE_PICTURE_EDITOR)
+						{
+							// For gallery provide output filename so module makes copy of source picture
+							String destinationFileName = FileUtils.getDCIMCameraDirectory() + "/" + CameraUtils.getPictureName();
+							displayPhotoEdit(SnaprKitApplication.getInstance(), fileName, destinationFileName, timeStamp);
+						}
+						else
+						{
+							
+						}
 					}
 				}
 				else
