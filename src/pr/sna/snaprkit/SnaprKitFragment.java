@@ -1306,7 +1306,8 @@ public class SnaprKitFragment extends Fragment
     		if (uri.getScheme().equals(Global.SCHEME_SNAPR))
 			{
     			// Set the url to the embedded parameter
-    			redirectUrl = UrlUtils.getQueryParameter(uri, Global.PARAM_URL);
+    			redirectUrl = UrlUtils.getQueryParameter(uri, Global.PARAM_REDIRECT_URL);
+    			if (Global.LOG_MODE) Global.log("redirectAction(): Parsed SNAPR redirect URL " + redirectUrl);
 			}
 			
 			// Load our URL
