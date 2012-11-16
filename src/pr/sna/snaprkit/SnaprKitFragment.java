@@ -1216,7 +1216,7 @@ public class SnaprKitFragment extends Fragment
     	public void run(String url)
     	{
     		// Send info through listener
-    		mSnaprKitListener.onSnaprKitParent(url);
+    		if (mSnaprKitListener !=null) mSnaprKitListener.onSnaprKitParent(url);
     	}
     };
     
