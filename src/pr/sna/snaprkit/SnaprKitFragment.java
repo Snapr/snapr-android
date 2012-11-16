@@ -1301,12 +1301,17 @@ public class SnaprKitFragment extends Fragment
     	{
 			if (Global.LOG_MODE) Global.log(Global.TAG, "redirectAction(): Started with URL " + url);
 			
-			// Remove the first part of the URL
-			String redirectUrl = url.replace("snapr://redirect?url=", "");
+			String redirectUrl=null;
+			Uri uri = Uri.parse(url);
+    		if (uri.getScheme().equals(Global.SCHEME_SNAPR))
+			{
+    			// Set the url to the embedded parameter
+    			redirectUrl = UrlUtils.getQueryParameter(uri, Global.PARAM_URL);
+			}
 			
 			// Load our URL
 			if (Global.LOG_MODE) Global.log("redirectAction(): Redirecting to " + redirectUrl);
-			mWebView.loadUrl(redirectUrl);
+			if (redirectUrl != null) mWebView.loadUrl(redirectUrl);
     	}
     };
     
@@ -1767,21 +1772,13 @@ public class SnaprKitFragment extends Fragment
     	{
     		// Log
     		if (Global.LOG_MODE) Global.log(Global.TAG, " -> externalBrowseAction: Received URL " + url);
-
-    		// For snapr://link urls extract the embedded url parameter
-    		if (url != null && url.startsWith("snapr://link?url="))
-    		{
-    			url = url.substring(17);
-    		}
     		
-    		/*
     		Uri uri = Uri.parse(url);
     		if (uri.getScheme().equals(Global.SCHEME_SNAPR))
 			{
     			// Set the url to the embedded parameter
     			url = UrlUtils.getQueryParameter(uri, Global.PARAM_URL);
 			}
-			*/
     		
     		if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Starting external webview with URL " + url);
     		
