@@ -1,12 +1,10 @@
 package pr.sna.snaprkit;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.List;
 import java.util.Random;
 import java.util.Vector;
 
@@ -15,7 +13,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import pr.sna.snaprkit.PictureAcquisitionManager.PictureAcquisitionListener;
-import pr.sna.snaprkit.SnaprImageEditFragmentActivity.EffectConfig;
 import pr.sna.snaprkit.dummy.FeatherActivity;
 import pr.sna.snaprkit.utils.AlertUtils;
 import pr.sna.snaprkit.utils.AssetUtils;
@@ -105,9 +102,6 @@ public class SnaprKitFragment extends Fragment
 	private String mLastFoursquareVenueName = null;
 	private String mLastFoursquareVenueId = null;
 	private String mLastLocationName = null;
-
-	private List<EffectConfig> mEffectConfigs;
-	private Intent mPendingIntent;
 	
 	@Override
 	public void onSaveInstanceState(Bundle outState)
@@ -145,7 +139,6 @@ public class SnaprKitFragment extends Fragment
 		outState.putBoolean("mWifiProviderEnabled", mPictureAcquisitionManager.getWifiProviderEnabled());
 		
 		outState.putLong("mPhotoTimestamp", mPictureAcquisitionManager.getPhotoTimestamp());
-		if (mEffectConfigs != null) outState.putSerializable("mEffectConfigs", mEffectConfigs instanceof Serializable ? (Serializable) mEffectConfigs : new ArrayList<EffectConfig>(mEffectConfigs));
 		
 		// Save the WebView history
 		mWebView.saveState(outState);
@@ -633,15 +626,6 @@ public class SnaprKitFragment extends Fragment
 	{
 		if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod());
 		
-//		addEffectConfiguration(SnaprEffect.EFFECT_BUBBLE_ID);
-//		addEffectConfiguration(SnaprEffect.EFFECT_RETRO_ID);
-//		addEffectConfiguration(SnaprEffect.EFFECT_SUMMER_ID);
-		
-		// Launch the photo edit activity | outputFileName == null means a photo was just captured
-		Intent intent = SnaprImageEditFragmentActivity.getIntentForStartActivity(context, inputFileName, outputFileName == null, timeStamp, outputFileName, mEffectConfigs); 
-		if (getActivity() != null) startActivityForResult(intent, SnaprImageEditFragmentActivity.EDIT_IMAGE);
-		else mPendingIntent = intent;
-		
 		if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
 	}
 	
@@ -781,47 +765,6 @@ public class SnaprKitFragment extends Fragment
 		    	}
 		    	break;
 		    }
-		    // FX module photo edit complete
-		    case SnaprImageEditFragmentActivity.EDIT_IMAGE:
-		    {
-		    	if (resultCode == Activity.RESULT_OK)
-		        {
-			    	// Get the filename
-					String fileName = data.getStringExtra(SnaprImageEditFragmentActivity.EXTRA_FILEPATH);
-					
-					// Re-tag the picture (due to filters dropping the latitude and longitude)
-					/*
-					if (Global.LOG_MODE) Global.log(Global.TAG, Global.getCurrentMethod() + ": Retagging picture with latitude and longitude...");
-			    	Location location = new Location("");
-			    	location.setTime((mLastPictureDate!=null)?mLastPictureDate.getTime():0);
-			    	location.setLatitude(mLastPictureLatitude);
-			    	location.setLongitude(mLastPictureLongitude);
-			    	CameraUtils.geotagPicture(fileName, location);
-			    	*/
-					
-					// Get the analytics
-					ArrayList<String> analytics = data.getStringArrayListExtra(SnaprImageEditFragmentActivity.EXTRA_ANALYTICS);
-					
-					// Send analytics data out through listener
-					if (mSnaprKitListener != null && analytics != null)
-					{
-						for (int i = 0; i< analytics.size(); i++)
-						{
-							String url = analytics.get(i);
-							mSnaprKitListener.onSnaprKitParent(url);
-						}
-					}
-					
-					// Display the share options
-					displayPhotoShareOptions(fileName, mLastPictureLatitude, mLastPictureLongitude, null, null, null, null);
-		        }
-		    	else
-		    	{
-		    		if (Global.LOG_MODE) Global.log(Global.TAG, Global.getCurrentMethod() + ": Returned from FX module with a non-OK error code");
-		    		mWebView.loadUrl(getStartupUrl());
-		    	}
-		    	break;
-		    }
 		    
 		    case ACTION_REQUEST_FEATHER:
 		    {
@@ -897,11 +840,6 @@ public class SnaprKitFragment extends Fragment
     	
     	// Init rest of the app
         init(savedInstanceState);
-        
-        if (mPendingIntent != null) {
-        	startActivityForResult(mPendingIntent, SnaprImageEditFragmentActivity.EDIT_IMAGE);
-        	mPendingIntent = null;
-        }
         
 //        Location location = mPictureAcquisitionManager.getLocation();
 //        int callerId = mPictureAcquisitionManager.getCallerId();
@@ -2318,7 +2256,7 @@ public class SnaprKitFragment extends Fragment
     	if (Global.LOG_MODE) Global.log(" <- " + Global.getCurrentMethod());
     }
     
-    @SuppressWarnings("unchecked") private void initCameraManager(Bundle savedInstanceState)
+    private void initCameraManager(Bundle savedInstanceState)
     {
     	// Log
     	if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod());
@@ -2330,10 +2268,6 @@ public class SnaprKitFragment extends Fragment
     		// Log
         	if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod() + ": Found saved state");
     		
-        	if (savedInstanceState.containsKey("mEffectConfigs")) {
-        		mEffectConfigs = (List<EffectConfig>) savedInstanceState.getSerializable("mEffectConfigs");
-        		if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Restored mEffectConfigs to " + mEffectConfigs.size());
-        	}
         	long photoTimestamp = savedInstanceState.getLong("mPhotoTimestamp");
         	mPictureAcquisitionManager.setPhotoTimestamp(photoTimestamp);
         	if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Restored mPhotoTimestamp to " + photoTimestamp);
@@ -2653,21 +2587,6 @@ public class SnaprKitFragment extends Fragment
         if (mContextMenuOtherItem3Label != null) menu.add(0, 3, 0, mContextMenuOtherItem3Label);
         if (mContextMenuCancelItemLabel != null) menu.add(0, 0, 0, mContextMenuCancelItemLabel); // always last
 	}
-
-	/**
-	 * Searches for an existing effect configuration for the effect identified by
-	 * the given id. Returns the index of the entry in the internal collection, or
-	 * -1 if no match is found.
-	 */
-	private int indexOfEffectConfig(int effectId) {
-		if (mEffectConfigs == null || mEffectConfigs.isEmpty()) return -1;
-		for (int i=0; i<mEffectConfigs.size(); i++) {
-			if (mEffectConfigs.get(i).mEffectId != effectId) continue;
-			return i;
-		}
-		return -1;
-		
-	}
 	
 	// ------------------------------------------------------------------------
 	// Library interface
@@ -2852,55 +2771,5 @@ public class SnaprKitFragment extends Fragment
 		
 		// Clear shared preferences
 		UserInfoUtils.clearUserInfo(getContext());
-	}
-	
-	/**
-	 * Sets the full collection of configurations for effects, clearing out any existing entries.
-	 * Returns whether setting the configuration was successful.
-	 * @param config The configuration to set.
-	 */
-	public boolean setEffectConfiguration(List<EffectConfig> config) {
-		if (mEffectConfigs == null) mEffectConfigs = new ArrayList<EffectConfig>();
-		mEffectConfigs.clear();
-		return mEffectConfigs.addAll(config);
-	}
-	
-	/**
-	 * Adds an effect configuration to the current list of configurations. Returns whether the operation was successful.
-	 * Shorthand for {@link #addEffectConfiguration(effectId, false, null)}, meaning this will add a config indicating
-	 * the effect identified by the given parameter is *not* locked. Any existing configuration for the given effectId
-	 * will get overwritten.
-	 * @param effectId The effect identifier to add a configuration for.
-	 */
-	public boolean addEffectConfiguration(int effectId) {
-		return addEffectConfiguration(effectId, false, null);
-	}
-	
-	/**
-	 * Adds an effect configuration to the current list of configurations. Returns whether the operation was successful.
-	 * This will add a config for the given effectId with a flag indicating whether the effect is locked or not, and a
-	 * message that gives a hint on how to unlock the effect. If the effect is flagged as 'locked', you *have* to supply
-	 * an unlock message. If you do not keep to this contract, a runtime error will be generated. Any existing config for 
-	 * the given effectId will get overwritten.
-	 * @param effectId The effect identifier to add a configuration for.
-	 * @param isLocked Whether the effect is locked or not.
-	 * @param unlockMessage The message hinting on how to unlock the effect.
-	 */
-	public boolean addEffectConfiguration(int effectId, boolean isLocked, String unlockMessage) {
-		if (mEffectConfigs == null) mEffectConfigs = new ArrayList<EffectConfig>();
-		// search for existing entry and remove if found (index != -1)
-		int index = indexOfEffectConfig(effectId);
-		if (index != -1) mEffectConfigs.remove(index);
-		return mEffectConfigs.add(new EffectConfig(effectId, isLocked, unlockMessage));
-	}
-	
-	/**
-	 * Clears out all previously added effect configurations, returning whether the operation was successful. 
-	 */
-	public boolean clearEffectConfigurations() {
-		if (mEffectConfigs != null) mEffectConfigs.clear();
-		mEffectConfigs = null;
-		return true;
-	}
-	
+	}	
 }
