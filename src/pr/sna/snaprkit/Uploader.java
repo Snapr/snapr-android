@@ -85,7 +85,7 @@ public class Uploader
 	protected void finalize() throws Throwable {
 
     	// Try and abort the upload
-    	mRequest.abort();
+    	if (mRequest != null) mRequest.abort();
 
 		super.finalize();
 	}
