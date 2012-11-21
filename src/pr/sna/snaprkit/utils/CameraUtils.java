@@ -385,7 +385,7 @@ public class CameraUtils
 	            tempStream = new BufferedOutputStream(tempStream);
 	
 	            // Update metadata
-	            new ExifRewriter().updateExifMetadataLossless(inFile, tempStream, outputSet);
+	            new ExifRewriter().updateExifMetadataLossy(inFile, tempStream, outputSet);
 	
 	            // Rename temporary output to source filename
 	            if (inFile.delete())
