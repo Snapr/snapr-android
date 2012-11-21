@@ -141,6 +141,7 @@ public class PictureAcquisitionManager
     	}
 	}
 	
+	/*
 	public void terminatePictureAcquisition(long timeStamp)
 	{
 		if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod() + " with no imagePath!");
@@ -150,19 +151,14 @@ public class PictureAcquisitionManager
 		
 		if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
 	}
+	*/
 	
 	private void terminatePictureAcquisition(String imagePath)
 	{
 		if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod() + " with imagePath " + imagePath);
-		// Close the camera and return filename to calling activity
-		mIsActive = false;
-        
-		// Send message for the geolocation service to finish
-		Intent intent = new Intent(SnaprKitApplication.getInstance(), GeolocationService.class);
-		SnaprKitApplication.getInstance().stopService(intent);
 		
-        // Call the picture taken function 
-		mPictureAcquisitionListener.onPictureAcquired(SnaprKitApplication.getInstance(), imagePath, mImageSource, (mLocation != null)?mLocation.getLatitude():0, (mLocation != null)?mLocation.getLongitude():0, mTakePhotoTimestamp);
+		RotationFixTask task = new RotationFixTask();
+		task.execute(imagePath);
 		
 		if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
 	}
@@ -762,6 +758,93 @@ public class PictureAcquisitionManager
     	
     	if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
     }
+    
+    public void showRotationFixPendingDialog()
+    {
+    	if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod());
+    	
+    	if (mTransitionDialog != null)
+    	{
+    		if (Global.LOG_MODE) Global.log(Global.TAG, " -> Error: Already have a mPleaseWaitDialog" + Global.getCurrentMethod());
+    		return;
+    	}
+    	
+    	mTransitionDialog = new TransitionDialog(mFragment.getActivity());
+    	mTransitionDialog.showTransitionDialog("Processing image...", "Please wait");
+	    
+    	if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
+    }
+    
+    public void cancelRotationFixPendingDialog()
+    {
+    	if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod());
+    	
+    	if (mTransitionDialog != null)
+    	{
+    		mTransitionDialog.cancelTransitionDialog();
+    		mTransitionDialog = null;
+    	}
+    	
+    	if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
+    }
+    
+    private class RotationFixTask extends AbstractErrorHandlingAsyncTask<String, Void, String>
+	{
+    	@Override
+		protected void onPreExecute()
+		{
+			// Call base implementation
+			super.onPreExecute();
+			showRotationFixPendingDialog();
+		}
+		
+		@Override
+		protected String computeResult(String... params)
+		{			
+			// Extract the parameters
+			String imagePath = params[0];
+			
+			if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod() + " with imagePath " + imagePath);
+			
+	    	// Fix camera orientation issues on Android 4.0
+	    	CameraUtils.fixImageOrientation(imagePath);
+	    	
+	    	if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
+	    	
+	    	// Pass the image path along
+			return imagePath;
+		}
+
+		@Override
+		protected void onResult(String imagePath)
+		{
+			if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod() + " with imagePath " + imagePath);
+			
+			mIsActive = false;
+			
+            // Ask the media scanner to scan it
+            CameraUtils.scanMedia(mFragment.getActivity(), imagePath);
+			
+			cancelRotationFixPendingDialog();
+	        
+			// Send message for the geolocation service to finish
+			Intent intent = new Intent(SnaprKitApplication.getInstance(), GeolocationService.class);
+			SnaprKitApplication.getInstance().stopService(intent);
+			
+	        // Call the picture taken function 
+			mPictureAcquisitionListener.onPictureAcquired(SnaprKitApplication.getInstance(), imagePath, mImageSource, (mLocation != null)?mLocation.getLatitude():0, (mLocation != null)?mLocation.getLongitude():0, mTakePhotoTimestamp);
+			
+			if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
+		}
+
+		@Override
+		protected void onError(Throwable e)
+		{
+			// No errors thrown, no errors to process
+			
+			cancelRotationFixPendingDialog();
+		}
+	};
     
     public interface PictureAcquisitionListener
     {

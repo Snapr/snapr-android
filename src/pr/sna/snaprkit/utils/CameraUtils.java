@@ -2,22 +2,29 @@ package pr.sna.snaprkit.utils;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.TimeZone;
 import java.util.Vector;
 
 import org.apache.sanselan.ImageReadException;
+import org.apache.sanselan.ImageWriteException;
 import org.apache.sanselan.Sanselan;
 import org.apache.sanselan.SanselanFixes;
 import org.apache.sanselan.common.IImageMetadata;
 import org.apache.sanselan.formats.jpeg.JpegImageMetadata;
 import org.apache.sanselan.formats.jpeg.exifRewrite.ExifRewriter;
+import org.apache.sanselan.formats.tiff.TiffField;
 import org.apache.sanselan.formats.tiff.TiffImageMetadata;
+import org.apache.sanselan.formats.tiff.constants.ExifTagConstants;
 import org.apache.sanselan.formats.tiff.constants.GPSTagConstants;
+import org.apache.sanselan.formats.tiff.constants.TagInfo;
 import org.apache.sanselan.formats.tiff.constants.TiffConstants;
 import org.apache.sanselan.formats.tiff.write.TiffOutputDirectory;
 import org.apache.sanselan.formats.tiff.write.TiffOutputField;
@@ -27,8 +34,15 @@ import pr.sna.snaprkit.ExifData;
 import pr.sna.snaprkit.Global;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.location.Location;
 import android.media.ExifInterface;
+import android.net.Uri;
 
 /**
  * @author Theo
@@ -250,34 +264,18 @@ public class CameraUtils
     	return returnData;
     }
     
-    
-    /**
-     * Attempt to tag picture with location info using Sanselan first 
-     * and falling back to Android on failure
-     * @param fileName Picture filename
-     * @param location GPS location
-     * @return Returns a boolean indicating whether it succeeded
-     */
-    public static boolean geotagPicture(String fileName, Location location)
-    {
-    	boolean success = geotagPictureSanselan(fileName, location); 
-    	if (!success)
-    	{
-    		success = geotagPictureAndroid(fileName, location);
-    	}
-    	
-    	return success;
-    }
-    
     /**
 	 * Tag the picture with the GPS information
 	 * @param fileName Picture filename
 	 * @param location GPS location
 	 * @return Returns a boolean indicating whether it succeeded
 	 * Based on Sanselan usage example; uses openstreetmap Sanselan fixes
+	 * 
+	 * Always use Sanselan to write EXIF info, since the ExifInterface corrupts
+	 * the data on many versions of Android
 	 */
 	@SuppressLint("UseValueOf")
-	public static boolean geotagPictureSanselan(String fileName, Location location)
+	public static boolean geotagPicture(String fileName, Location location)
     {
 		if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod());
 		
@@ -290,38 +288,17 @@ public class CameraUtils
 		
 		try
 		{
-			File jpegSrcFile = new File(fileName);
-			OutputStream os = null;
+			File inFile = null;
+			File tempFile = null;
+			OutputStream tempStream = null;
 			
-	        try {
-	            TiffOutputSet outputSet = null;
-	            
-	            // note that metadata might be null if no metadata is found.
-	            IImageMetadata metadata = Sanselan.getMetadata(jpegSrcFile);
-	            JpegImageMetadata jpegMetadata = (JpegImageMetadata) metadata;
-	            if (null != jpegMetadata)
-	            {
-	            	// note that exif might be null if no Exif metadata is found.
-	                TiffImageMetadata exif = jpegMetadata.getExif();
-	
-	                if (null != exif)
-	                {
-	                	// TiffImageMetadata class is immutable (read-only).
-	                	// TiffOutputSet class represents the Exif data to write.
-	                	//
-	                	// Usually, we want to update existing Exif metadata by
-	                	// changing
-	                	// the values of a few fields, or adding a field.
-	                	// In these cases, it is easiest to use getOutputSet() to
-	                	// start with a "copy" of the fields read from the image.
-	                    outputSet = exif.getOutputSet();
-	                }
-	            }
-	
-	            if (null == outputSet)
-	            {
-	                outputSet = new TiffOutputSet();
-	            }
+	        try
+	        {
+	        	// Open the input file
+	        	inFile = new File(fileName);
+	        	
+	        	// Get the output set
+	            TiffOutputSet outputSet = getSanselanOutputSet(inFile);
 	            
 	            // Format date
 	            long timestamp = location.getTime();
@@ -403,22 +380,22 @@ public class CameraUtils
 	            SanselanFixes.setGPSInDegrees(outputSet, longitude, latitude);
 	
 	            // Create output temporary file
-	            File jpegDestFile = new File(fileName + ".tmp");
-	            os = new FileOutputStream(jpegDestFile);
-	            os = new BufferedOutputStream(os);
+	            tempFile = new File(fileName + ".tmp");
+	            tempStream = new FileOutputStream(tempFile);
+	            tempStream = new BufferedOutputStream(tempStream);
 	
 	            // Update metadata
-	            new ExifRewriter().updateExifMetadataLossless(jpegDestFile, os, outputSet);
+	            new ExifRewriter().updateExifMetadataLossless(inFile, tempStream, outputSet);
 	
 	            // Rename temporary output to source filename
-	            if (jpegSrcFile.delete())
+	            if (inFile.delete())
 	            {
-	            	jpegDestFile.renameTo(jpegSrcFile);
+	            	tempFile.renameTo(inFile);
 	            }
 	            
 	            // Close
-	            os.close();
-	            os = null;
+	            tempStream.close();
+	            tempStream = null;
 	            
 	            // Return
 	            if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
@@ -426,15 +403,20 @@ public class CameraUtils
 	        }
 	        finally
 	        {
-	            if (os != null)
+	            if (tempStream != null)
 	            {
 	                try
 	                {
-	                    os.close();
+	                    tempStream.close();
 	                }
 	                catch (IOException e)
 	                {
 	                }
+	            }
+	            
+	            if (tempFile != null)
+	            {
+	            	if (tempFile.exists()) tempFile.delete();
 	            }
 	        }
 		}
@@ -448,62 +430,384 @@ public class CameraUtils
 		return false;
     }
 	
-	public static boolean geotagPictureAndroid(String fileName, Location location)
+	/**
+	 * On Android 4.0, the camera uses EXIF picture orientation to indicate by what degree
+	 * the picture should be rotated to be properly displayed on screen, but the Android 
+	 * WebView ignores this value, resulting in incorrect picture display (mostly for
+	 * portrait orientation pictures). We fix this by unpacking the image, rotating it
+	 * and then setting the orientation angle to 0
+	 * 
+	 * @param imagePath Path to the image
+	 */
+	public static void fixImageOrientation(String imagePath)
 	{
 		if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod());
 		
+		// Get the orientation angle
+		int angle = ExifOrientationToAngle(getExifOrientation(imagePath));
+		
+		if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod() + ": Got rotation angle " + angle);
+
+		// When angle is not 0, rotate image
+		if (angle != 0)
+		{
+			String inPath = imagePath;
+			String tempPath = imagePath + ".tmp";
+			
+			File inFile = null;
+			File tempFile = null;
+			OutputStream tempStream = null;
+			
+			try
+			{
+				inFile = new File(inPath);
+				
+				Matrix mat = new Matrix();
+				mat.postRotate(angle);
+		
+				if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod() + ": Decoding and rotating images...");
+				
+				Bitmap bmp = BitmapFactory.decodeStream(new FileInputStream(inFile), null, null);
+				Bitmap correctBmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), mat, true);
+				
+				if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod() + ": Compressing new image...");
+				
+				tempStream = new FileOutputStream(tempPath);
+				correctBmp.compress(CompressFormat.JPEG, 100, tempStream);
+				tempStream.close();
+				
+				// Recycle the bitmaps to save memory
+				bmp.recycle();
+				bmp = null;
+				correctBmp.recycle();
+				correctBmp = null;
+				
+				// Copy the EXIF data
+				tempFile = new File(tempPath);
+				List<TagInfo> excludedFields = new ArrayList<TagInfo>();
+				excludedFields.add(ExifTagConstants.EXIF_TAG_ORIENTATION);
+				copyExifData(inFile, tempFile, true, excludedFields);
+
+				// Rename temporary output to source filename
+				if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod() + ": Renaming image...");
+	            if (inFile.delete())
+	            {
+	            	tempFile.renameTo(inFile);
+	            }
+			}
+			catch (IOException e)
+			{
+				Global.log("Error in setting image: " + ExceptionUtils.getExceptionStackString(e));
+			}
+			catch(OutOfMemoryError oom)
+			{
+				Global.log("Out of Memory Error in setting image: " + ExceptionUtils.getExceptionStackString(oom));
+			}
+			finally
+			{
+				if (tempStream != null)
+				{
+					try
+					{
+						tempStream.close();
+					}
+					catch (IOException e)
+					{
+					}
+				}
+				
+				if (tempFile != null)
+				{
+					if (tempFile.exists()) tempFile.delete();
+				}
+			}
+		}
+	}
+	
+	private static int getExifOrientation(String imagePath)
+	{
+		int orientation = getExifOrientationSanselan(imagePath); 
+		
+		if (orientation == ExifInterface.ORIENTATION_UNDEFINED)
+		{
+			orientation = getExifOrientationAndroid(imagePath);
+		}
+		
+		return orientation;
+	}
+	
+	private static int getExifOrientationAndroid(String imagePath)
+	{
 		ExifInterface exif;
-		double latitude = location.getLatitude();
-		double longitude = location.getLongitude();
+		
+		int orientation = 0;
 		
 		try
 		{
-		    exif = new ExifInterface(fileName);
-		    int num1Lat = (int)Math.floor(latitude);
-		    int num2Lat = (int)Math.floor((latitude - num1Lat) * 60);
-		    double num3Lat = (latitude - ((double)num1Lat+((double)num2Lat/60))) * 3600000;
-
-		    int num1Lon = (int)Math.floor(longitude);
-		    int num2Lon = (int)Math.floor((longitude - num1Lon) * 60);
-		    double num3Lon = (longitude - ((double)num1Lon+((double)num2Lon/60))) * 3600000;
-
-		    exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE, num1Lat+"/1,"+num2Lat+"/1,"+num3Lat+"/1000");
-		    exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE, num1Lon+"/1,"+num2Lon+"/1,"+num3Lon+"/1000");
-
-
-		    if (latitude > 0) {
-		        exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF, "N"); 
-		    } else {
-		        exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF, "S");
-		    }
-
-		    if (longitude > 0) {
-		        exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, "E");    
-		    } else {
-		    exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF, "W");
-		    }
-
-		    //SimpleDateFormat exifFormatter = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss"); //$NON-NLS-1$
-            //exifFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-
-            //String exifDate = exifFormatter.format(new Date(location.getTime()));
-
-            //String[] dateTimeSplit = exifDate.split("\\s+");
-            
-            //exif.setAttribute(ExifInterface.TAG_GPS_DATESTAMP, dateTimeSplit[0]);
-            //exif.setAttribute(ExifInterface.TAG_GPS_TIMESTAMP, dateTimeSplit[1]);
-		    
-		    exif.saveAttributes();
-		 
-		    if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
-		    return true;
-
+			exif = new ExifInterface(imagePath);
+			
+			orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED);
 		}
 		catch (IOException e)
 		{
-			if (Global.LOG_MODE) Global.log(Global.TAG, Global.getCurrentMethod() + ": Failed due to error " + e.toString() + "\n" + ExceptionUtils.getExceptionStackString(e));
-			if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
-		    return false;
-		}   
+			e.printStackTrace();
+		}
+		
+		return orientation;
+	}
+	
+	private static int getExifOrientationSanselan(String fileName)
+    {
+    	// Declare
+    	int orientation = 1;
+    	
+		IImageMetadata metadata = null;
+		File file = null;
+    	
+    	// Create a file object
+    	file = new File(fileName);
+		
+		try
+		{
+			metadata = Sanselan.getMetadata(file);
+        }
+		catch (Exception e)
+		{
+			if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Failed with error " + e);
+		}
+ 
+        if (metadata instanceof JpegImageMetadata)
+        {
+        	JpegImageMetadata jpegMetadata = (JpegImageMetadata) metadata;
+        	
+        	TiffField tf = jpegMetadata.findEXIFValue(TiffConstants.EXIF_TAG_ORIENTATION);
+			
+        	try
+        	{
+				Integer integer = (Integer)tf.getValue();
+				orientation = integer.intValue();
+			}
+        	catch (ImageReadException e)
+			{
+				e.printStackTrace();
+			}
+        }
+        
+        return orientation;
+    }
+	
+	public static int ExifOrientationToAngle(int exifOrientation)
+	{
+		int angle = 0;
+		
+		if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_90)
+		{
+			angle = 90;
+		}
+		else if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_180)
+		{
+			angle = 180;
+		}
+		else if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_270)
+		{
+			angle = 270;
+		}
+		
+		return angle;
+	}
+	
+	public static int AngleToExifOrientation(int angle)
+	{
+		int exifOrientation = ExifInterface.ORIENTATION_NORMAL;
+		
+		if (angle == 90)
+		{
+			exifOrientation = ExifInterface.ORIENTATION_ROTATE_90;
+		}
+		else if (angle == 180)
+		{
+			exifOrientation = ExifInterface.ORIENTATION_ROTATE_180;
+		}
+		else if (angle == 270)
+		{
+			exifOrientation = ExifInterface.ORIENTATION_ROTATE_270;
+		}
+		
+		return exifOrientation;
+		
+	}
+	
+	private static TiffOutputSet getSanselanOutputSet(File jpegImageFile) 
+			throws IOException, ImageReadException, ImageWriteException
+	{
+		TiffOutputSet outputSet = null;
+		
+		// note that metadata might be null if no metadata is found.
+		IImageMetadata metadata = Sanselan.getMetadata(jpegImageFile);
+		JpegImageMetadata jpegMetadata = (JpegImageMetadata) metadata;
+		if (null != jpegMetadata)
+		{
+			// note that exif might be null if no Exif metadata is found.
+			TiffImageMetadata exif = jpegMetadata.getExif();
+
+			if (null != exif)
+			{
+				// TiffImageMetadata class is immutable (read-only).
+				// TiffOutputSet class represents the Exif data to write.
+				//
+				// Usually, we want to update existing Exif metadata by
+				// changing
+				// the values of a few fields, or adding a field.
+				// In these cases, it is easiest to use getOutputSet() to
+				// start with a "copy" of the fields read from the image.
+				outputSet = exif.getOutputSet();
+			}
+		}
+
+		// if file does not contain any exif metadata, we create an empty
+		// set of exif metadata. Otherwise, we keep all of the other
+		// existing tags.
+		if (null == outputSet)
+			outputSet = new TiffOutputSet();
+		
+		// Return
+		return outputSet;
+	}
+	
+	/**
+	 * Copies the EXIF data from the source file to the destination file using Sanselan
+	 * 
+	 * Copying the EXIF data directly from source to destination does not work in Sanselan -- 
+	 * Sanselan copies the entire source image data, not just EXIF data, and erases any destination
+	 * image changes (such as image rotation between source and destination). To get around that, 
+	 * we read the source EXIF OutputSet and the dest file EXIF OutputSet. We loop through all EXIF 
+	 * directories and fields in the source OutputSet, manually copying the data to the destination
+	 * OutputSet. Then, we apply the destination OutputSet onto a new temp file. The temp file will 
+	 * now have the correct image and the correct EXIF data as well. The final setp is to replace the 
+	 * dest file with the temp file.
+	 * 
+	 * @param sourceFile - Source image file
+	 * @param destFile   - Destination image file
+	 * @param preserveExistingFields - Preserve fields which already exist in the destination
+	 * @param excludedFields - List of fields to avoid copying from source to destination
+	 */
+	private static void copyExifData(File sourceFile, File destFile, boolean preserveExistingFields, List<TagInfo> excludedFields)
+	{
+		String tempFileName = destFile.getAbsolutePath() + ".tmp";
+		File tempFile = null;
+		OutputStream tempStream = null;
+		
+		try
+		{
+			tempFile = new File (tempFileName);
+			
+			TiffOutputSet sourceSet = getSanselanOutputSet(sourceFile);
+			TiffOutputSet destSet = getSanselanOutputSet(destFile);
+			
+			destSet.getOrCreateExifDirectory();
+			
+			// Go through the source directories
+			List<?> sourceDirectories = sourceSet.getDirectories(); 
+			for (int i=0; i<sourceDirectories.size(); i++)
+			{
+				TiffOutputDirectory sourceDirectory = (TiffOutputDirectory)sourceDirectories.get(i);
+				TiffOutputDirectory destinationDirectory = getOrCreateExifDirectory(destSet, sourceDirectory);
+				
+				if (destinationDirectory == null) continue; // failed to create
+				
+				// Loop the fields
+				List<?> sourceFields = sourceDirectory.getFields();
+				for (int j=0; j<sourceFields.size(); j++)
+				{
+					// Get the source field
+					TiffOutputField sourceField = (TiffOutputField) sourceFields.get(j);
+					
+					// Check exclusion list
+					if (excludedFields.contains(sourceField.tagInfo))
+					{
+						destinationDirectory.removeField(sourceField.tagInfo);
+						continue;
+					}
+					
+					// Check field preservation
+					if (preserveExistingFields && (destinationDirectory.findField(sourceField.tagInfo) != null))
+					{
+						continue;
+					}
+					
+					// Remove any existing field
+					destinationDirectory.removeField(sourceField.tagInfo);
+					
+					// Add field 
+					destinationDirectory.add(sourceField);
+				}
+			}
+			
+			// Save data to destination
+			tempStream = new BufferedOutputStream(new FileOutputStream(tempFile));
+			new ExifRewriter().updateExifMetadataLossy(destFile, tempStream, destSet);
+			tempStream.close();
+			
+			// Replace file
+			if (destFile.delete())
+			{
+				tempFile.renameTo(destFile);
+			}
+		}
+		catch (ImageReadException exception)
+		{
+			exception.printStackTrace();
+		}
+		catch (ImageWriteException exception)
+		{
+			exception.printStackTrace();
+		}
+		catch (IOException exception)
+		{
+			exception.printStackTrace();
+		}
+		finally
+		{
+			if (tempStream != null)
+			{
+				try
+				{
+					tempStream.close();
+				}
+				catch (IOException e)
+				{
+				}
+			}
+			
+			if (tempFile != null)
+			{
+				if (tempFile.exists()) tempFile.delete();
+			}
+		}
+	}
+	
+	private static TiffOutputDirectory getOrCreateExifDirectory(TiffOutputSet outputSet, TiffOutputDirectory outputDirectory)
+	{
+		TiffOutputDirectory result = outputSet.findDirectory(outputDirectory.type);
+		if (null != result)
+			return result;
+		result = new TiffOutputDirectory(outputDirectory.type);
+		try {
+			outputSet.addDirectory(result);
+		}
+		catch (ImageWriteException e)
+		{
+			return null;
+		}
+		return result;
+	}
+	
+	public static void scanMedia(Context context, String path)
+	{
+	    File file = new File(path);
+	    Uri uri = Uri.fromFile(file);
+	    Intent scanFileIntent = new Intent(
+	            Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, uri);
+	    context.sendBroadcast(scanFileIntent);
 	}
 }
