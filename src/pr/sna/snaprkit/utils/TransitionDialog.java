@@ -43,8 +43,15 @@ public class TransitionDialog
 	{
 		if (mTransitionDialog != null && mTransitionDialog.isShowing())
 		{
-			mTransitionDialog.dismiss();
-			mTransitionDialog = null;
+			try
+			{
+				mTransitionDialog.dismiss();
+				mTransitionDialog = null;
+			}
+			catch (IllegalArgumentException e)
+			{
+				// Comes up if we are trying to stop the dialog as the activity is closing
+			}
 		}
 	}
 	
