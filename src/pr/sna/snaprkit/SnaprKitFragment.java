@@ -1246,11 +1246,17 @@ public class SnaprKitFragment extends Fragment
 			String redirectUrl=null;
 			Uri uri = Uri.parse(url);
     		if (uri.getScheme().equals(Global.SCHEME_SNAPR))
-			{
+    		{
+    			// Remove the redirect_url param from the URL's set of params
+    			String encodedQuery = uri.getEncodedQuery();
+    			String encodedQuery2 = UrlUtils.removeParamValuePairFromEncodedQuery(Global.PARAM_REDIRECT_URL, encodedQuery);
+    			
     			// Set the url to the embedded parameter
     			redirectUrl = UrlUtils.getQueryParameter(uri, Global.PARAM_REDIRECT_URL);
+    			if (encodedQuery2.length() > 0) redirectUrl = redirectUrl + "&" + encodedQuery2;
+    			
     			if (Global.LOG_MODE) Global.log("redirectAction(): Parsed SNAPR redirect URL " + redirectUrl);
-			}
+    		}
 			
 			// Load our URL
 			if (Global.LOG_MODE) Global.log("redirectAction(): Redirecting to " + redirectUrl);
@@ -1718,7 +1724,7 @@ public class SnaprKitFragment extends Fragment
     		
     		Uri uri = Uri.parse(url);
     		if (uri.getScheme().equals(Global.SCHEME_SNAPR))
-			{
+    		{
     			// Set the url to the embedded parameter
     			url = UrlUtils.getQueryParameter(uri, Global.PARAM_URL);
 			}

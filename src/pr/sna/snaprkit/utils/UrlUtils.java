@@ -363,4 +363,29 @@ public class UrlUtils
     	String value = uri.getQueryParameter(key);
     	return (value==null)?value:value.replace("+", " ");
     }
+    
+    /**
+     * Removes the param-value pair with the specified param name from an encodedQuery
+     * 
+     * @param paramName - Name of parameter whose parameter-value pair should be removed
+     * @param encodedQuery - Encoded query from which we should remove the param-value pair
+     *                       An encoded query is the part that comes after ? in an URL,
+     *                       and whose parameter values have not been decoded.
+     * @return
+     */
+    public static String removeParamValuePairFromEncodedQuery(String paramName, String encodedQuery)
+    {
+    	String result = "";
+		String[] paramPairs = encodedQuery.split("&");
+		for (String paramPair : paramPairs)
+		{
+			if (!paramPair.startsWith(paramName+"="))
+			{
+				result += paramPair + "&";
+			}
+		}
+		if (result.length() > 0) result = result.substring(0, result.length()-1);
+		
+		return result;
+    }
 }
