@@ -859,55 +859,9 @@ public class SnaprKitFragment extends Fragment
 //		}
     }
     
-    
-    
-	private boolean onBackPressed()
+	private void onBackPressed()
 	{
-		// Get the current webview url
-		String currentUrl = mWebView.getUrl();
-		String previousUrl = UrlUtils.getPreviousUrl(mWebView);
-		if (Global.LOG_MODE) Global.log(Global.getCurrentMethod()+": Got prev url " + previousUrl);
-		
-		// Specialized handling
-		if (currentUrl != null && UrlUtils.normalUrl(currentUrl).startsWith(UrlUtils.getFullLocalUrl(Global.URL_MENU)))
-		{
-			if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Specialized back button handling for menu - deferring to OS for menu page");
-			//super.onBackPressed();
-			return false;
-		}
-		else if (previousUrl != null && UrlUtils.normalUrl(previousUrl).startsWith(UrlUtils.getFullLocalUrl(Global.URL_MENU)))
-		{
-			if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Specialized back button handling for going back to menu");
-			String url = getStartupUrl(); // Retrieve the URL with all its initialization params
-			mWebView.loadUrl(url);
-			return true;
-		}
-		else if (currentUrl != null & previousUrl != null && UrlUtils.normalUrl(currentUrl).startsWith(UrlUtils.getFullLocalUrl(Global.URL_FEED)) && UrlUtils.normalUrl(previousUrl).startsWith(UrlUtils.getFullLocalUrl(Global.URL_PHOTO_SHARE)))
-		{
-			if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Specialized back button handling for post-picture queue - going to camera");
-			String url = getSnaprUrl(UrlUtils.getFullLocalUrl(Global.URL_UPLOAD), true);
-			mWebView.loadUrl(url);
-			cameraAction.run("snapr://camera"); // Call this because it does not trigger
-			return true;
-		}
-		else
-		{
-	    	// Generic back button handling
-			if (mWebView.canGoBack())
-			{
-				if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Generic back button handling - going back to the previous URL");
-				mWebView.goBack();
-			}
-			else
-			{
-				String startupUrl = getStartupUrl();
-				if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Generic back button handling - no history so going to " + startupUrl);
-				mWebView.loadUrl(startupUrl);
-			}
-			
-			// Return
-			return true;
-		}
+		mWebView.loadUrl("javascript:back();");
 	}
 
 	// Checks whether the user info was loaded
@@ -2619,9 +2573,9 @@ public class SnaprKitFragment extends Fragment
 	}
 	
 	// Moves to the previous page
-	public boolean goBack()
+	public void goBack()
 	{
-		return onBackPressed();
+		onBackPressed();
 	}
 	
 	// Start via the normal flow with default page
