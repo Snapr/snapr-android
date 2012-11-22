@@ -7,6 +7,7 @@ import java.util.Date;
 import pr.sna.snaprkit.Global;
 import pr.sna.snaprkit.utils.AlertUtils;
 import pr.sna.snaprkit.utils.CameraUtils;
+import pr.sna.snaprkit.utils.ExceptionUtils;
 import pr.sna.snaprkit.utils.GeoUtils;
 import pr.sna.snaprkit.utils.TransitionDialog;
 import pr.sna.snaprkit.utils.UrlUtils;
@@ -807,7 +808,7 @@ public class PictureAcquisitionManager
 			if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod() + " with imagePath " + imagePath);
 			
 	    	// Fix camera orientation issues on Android 4.0
-	    	CameraUtils.fixImageOrientation(imagePath);
+	    	if (imagePath != null) CameraUtils.fixImageOrientation(imagePath);
 	    	
 	    	if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
 	    	
@@ -823,7 +824,7 @@ public class PictureAcquisitionManager
 			mIsActive = false;
 			
             // Ask the media scanner to scan it
-            CameraUtils.scanMedia(mFragment.getActivity(), imagePath);
+			if (imagePath != null) CameraUtils.scanMedia(mFragment.getActivity(), imagePath);
 			
 			cancelRotationFixPendingDialog();
 	        
@@ -842,6 +843,12 @@ public class PictureAcquisitionManager
 		{
 			// No errors thrown, no errors to process
 			
+			if (Global.LOG_MODE)
+			{
+				Global.log(" -> RotationFixTask.onError got exception: " + ExceptionUtils.getExceptionStackString(e));
+			}
+			
+			mIsActive = false;
 			cancelRotationFixPendingDialog();
 		}
 	};

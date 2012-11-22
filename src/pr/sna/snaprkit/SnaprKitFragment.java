@@ -1210,6 +1210,10 @@ public class SnaprKitFragment extends Fragment
 			{
 				mPictureAcquisitionManager.acquirePicture(PictureAcquisitionManager.PICTURE_SOURCE_CAMERA, getPictureAcquisitionListener());			
 			}
+			else
+			{
+				if (Global.LOG_MODE) Global.log("-> cameraAction(): Not opening camera because camera already open!");
+			}
     	}
     };
 
@@ -1754,6 +1758,7 @@ public class SnaprKitFragment extends Fragment
     	{
     		// Log
     		if (Global.LOG_MODE) Global.log(Global.TAG, " -> actionSheetAction: Received URL " + url);
+    		
     		
     		// Get the setting from the URL
     		Uri uri = Uri.parse(url);
