@@ -2059,6 +2059,8 @@ public class SnaprKitFragment extends Fragment
         // we must obtain focus after load. We also need to add an event handler 
         // to obtain focus after every field touch
         
+        mWebView.setFocusable(true);
+        mWebView.setFocusableInTouchMode(true);
         mWebView.requestFocus(View.FOCUS_DOWN);
         mWebView.setOnTouchListener(new View.OnTouchListener()
         {
