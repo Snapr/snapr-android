@@ -2,6 +2,7 @@ package pr.sna.snaprkit;
 
 import pr.sna.snaprkit.R;
 import pr.sna.snaprkit.utils.UrlUtils;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -151,7 +152,8 @@ public class WebViewExternalActivity extends Activity {
 	}
 
     // Set webview settings and display startup page
-    public void initWebView(Bundle savedInstanceState)
+    @SuppressLint("SetJavaScriptEnabled")
+	public void initWebView(Bundle savedInstanceState)
     {    	
     	// Log
     	if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod());
@@ -305,6 +307,10 @@ public class WebViewExternalActivity extends Activity {
         
         // Enable JavaScript
         mWebView.getSettings().setJavaScriptEnabled(true);
+        
+        // Set viewport
+        mWebView.getSettings().setLoadWithOverviewMode(true);
+        mWebView.getSettings().setUseWideViewPort(true);
         
         // Enable HTML5 local storage (but don't make it persistent)
         mWebView.getSettings().setDomStorageEnabled(true);
