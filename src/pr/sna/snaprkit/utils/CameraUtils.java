@@ -3,6 +3,7 @@ package pr.sna.snaprkit.utils;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -39,6 +40,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
+import android.graphics.BitmapFactory.Options;
 import android.graphics.Matrix;
 import android.location.Location;
 import android.media.ExifInterface;
@@ -439,9 +441,12 @@ public class CameraUtils
 	 * 
 	 * @param imagePath Path to the image
 	 */
-	public static void fixImageOrientation(String imagePath)
+	public static boolean fixImageOrientation(String imagePath)
 	{
 		if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod());
+		
+		// Declare
+		boolean success = false;
 		
 		// Get the orientation angle
 		int angle = ExifOrientationToAngle(getExifOrientation(imagePath));
@@ -454,74 +459,95 @@ public class CameraUtils
 			String inPath = imagePath;
 			String tempPath = imagePath + ".tmp";
 			
-			File inFile = null;
+			File inFile = new File(inPath);
 			File tempFile = null;
 			OutputStream tempStream = null;
 			
-			try
+			boolean continueProcessing = true;
+			Options options = new Options();
+			options.inSampleSize = getInitialScalingFactor(inFile, 1600);
+			
+			while (continueProcessing == true)
 			{
-				inFile = new File(inPath);
-				
-				Matrix mat = new Matrix();
-				mat.postRotate(angle);
-		
-				if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod() + ": Decoding and rotating images...");
-				
-				Bitmap bmp = BitmapFactory.decodeStream(new FileInputStream(inFile), null, null);
-				Bitmap correctBmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), mat, true);
-				
-				if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod() + ": Compressing new image...");
-				
-				tempStream = new FileOutputStream(tempPath);
-				correctBmp.compress(CompressFormat.JPEG, 100, tempStream);
-				tempStream.close();
-				
-				// Recycle the bitmaps to save memory
-				bmp.recycle();
-				bmp = null;
-				correctBmp.recycle();
-				correctBmp = null;
-				
-				// Copy the EXIF data
-				tempFile = new File(tempPath);
-				List<TagInfo> excludedFields = new ArrayList<TagInfo>();
-				excludedFields.add(ExifTagConstants.EXIF_TAG_ORIENTATION);
-				copyExifData(inFile, tempFile, true, excludedFields);
-
-				// Rename temporary output to source filename
-				if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod() + ": Renaming image...");
-	            if (inFile.delete())
-	            {
-	            	tempFile.renameTo(inFile);
-	            }
-			}
-			catch (IOException e)
-			{
-				Global.log("Error in setting image: " + ExceptionUtils.getExceptionStackString(e));
-			}
-			catch(OutOfMemoryError oom)
-			{
-				Global.log("Out of Memory Error in setting image: " + ExceptionUtils.getExceptionStackString(oom));
-			}
-			finally
-			{
-				if (tempStream != null)
+				try
 				{
-					try
+					Matrix mat = new Matrix();
+					mat.postRotate(angle);
+			
+					if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod() + ": Decoding and rotating image using sample size " + options.inSampleSize + "...");
+					
+					Bitmap bmp = BitmapFactory.decodeStream(new FileInputStream(inFile), null, options);
+					Bitmap correctBmp = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), mat, true);
+					
+					if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod() + ": Compressing new image...");
+					
+					tempStream = new FileOutputStream(tempPath);
+					correctBmp.compress(CompressFormat.JPEG, 100, tempStream);
+					tempStream.close();
+					
+					// Recycle the bitmaps to save memory
+					bmp.recycle();
+					bmp = null;
+					correctBmp.recycle();
+					correctBmp = null;
+					System.gc();
+					
+					// Copy the EXIF data
+					tempFile = new File(tempPath);
+					List<TagInfo> excludedFields = new ArrayList<TagInfo>();
+					excludedFields.add(ExifTagConstants.EXIF_TAG_ORIENTATION);
+					copyExifData(inFile, tempFile, true, excludedFields);
+	
+					// Rename temporary output to source filename
+					if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod() + ": Renaming image...");
+		            if (inFile.delete())
+		            {
+		            	tempFile.renameTo(inFile);
+		            }
+		            
+		            // If we get here, then we have succeeded, so mark flags appropriately
+		            success = true;
+		            continueProcessing = false;
+				}
+				catch (IOException e)
+				{
+					// Do not continue for this type of error
+					continueProcessing = false;
+					Global.log("Error in setting image: " + ExceptionUtils.getExceptionStackString(e));
+				}
+				catch(OutOfMemoryError oom)
+				{
+					// For out of memory errors we keep on going using a larger sample size to reduce overall image size
+					continueProcessing = true;
+					options.inSampleSize++;
+					if (options.inSampleSize == 32)
 					{
-						tempStream.close();
-					}
-					catch (IOException e)
-					{
+						// Quit because this is probably not going to work out
+						continueProcessing = false;
 					}
 				}
-				
-				if (tempFile != null)
+				finally
 				{
-					if (tempFile.exists()) tempFile.delete();
+					if (tempStream != null)
+					{
+						try
+						{
+							tempStream.close();
+						}
+						catch (IOException e)
+						{
+						}
+					}
+					
+					if (tempFile != null)
+					{
+						if (tempFile.exists()) tempFile.delete();
+					}
 				}
 			}
 		}
+		
+		return success;
 	}
 	
 	private static int getExifOrientation(String imagePath)
@@ -809,5 +835,39 @@ public class CameraUtils
 	    Intent scanFileIntent = new Intent(
 	            Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, uri);
 	    context.sendBroadcast(scanFileIntent);
+	}
+	
+	private static int getInitialScalingFactor(File bitmapFile, int maximumEdge)
+	{
+		int scalingFactor = 1;
+		
+		FileInputStream bitmapInputStream;
+		try
+		{
+			bitmapInputStream = new FileInputStream(bitmapFile);
+		}
+		catch (FileNotFoundException e)
+		{
+			e.printStackTrace();
+			return scalingFactor;
+		}
+		
+		Options options = new Options();
+		options.inJustDecodeBounds = true;
+		BitmapFactory.decodeStream(bitmapInputStream, null, options);
+		
+		int height = options.outHeight;
+		int width = options.outWidth;
+		
+		if (height > width && height > maximumEdge)
+		{
+			scalingFactor = (int) Math.ceil(height / maximumEdge);
+		}
+		else if (height < width && width > maximumEdge)
+		{
+			scalingFactor = (int) Math.ceil(width / maximumEdge);
+		}
+			
+		return scalingFactor;
 	}
 }

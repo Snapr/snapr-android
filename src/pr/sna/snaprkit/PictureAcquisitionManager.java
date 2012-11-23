@@ -791,6 +791,9 @@ public class PictureAcquisitionManager
     
     private class RotationFixTask extends AbstractErrorHandlingAsyncTask<String, Void, String>
 	{
+    	// Members
+    	String mInputPath;
+    	
     	@Override
 		protected void onPreExecute()
 		{
@@ -804,6 +807,7 @@ public class PictureAcquisitionManager
 		{			
 			// Extract the parameters
 			String imagePath = params[0];
+			mInputPath = imagePath;
 			
 			if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod() + " with imagePath " + imagePath);
 			
@@ -841,15 +845,12 @@ public class PictureAcquisitionManager
 		@Override
 		protected void onError(Throwable e)
 		{
-			// No errors thrown, no errors to process
-			
 			if (Global.LOG_MODE)
 			{
 				Global.log(" -> RotationFixTask.onError got exception: " + ExceptionUtils.getExceptionStackString(e));
 			}
 			
-			mIsActive = false;
-			cancelRotationFixPendingDialog();
+			onResult(mInputPath);
 		}
 	};
     
