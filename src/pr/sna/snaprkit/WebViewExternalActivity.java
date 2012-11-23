@@ -358,7 +358,10 @@ public class WebViewExternalActivity extends Activity {
         // If we want the soft keyboard to show for form fields in the webview
         // we must obtain focus after load. We also need to add an event handler 
         // to obtain focus after every field touch
+        mWebView.setFocusable(true);
+        mWebView.setFocusableInTouchMode(true);
         mWebView.requestFocus(View.FOCUS_DOWN);
+        /*
         mWebView.setOnTouchListener(new View.OnTouchListener()
         {
             @Override
@@ -374,6 +377,7 @@ public class WebViewExternalActivity extends Activity {
                 return false;
             }
         });
+        */
         
         // Log
         if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod());

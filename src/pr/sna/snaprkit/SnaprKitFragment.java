@@ -2016,6 +2016,7 @@ public class SnaprKitFragment extends Fragment
         mWebView.setFocusable(true);
         mWebView.setFocusableInTouchMode(true);
         mWebView.requestFocus(View.FOCUS_DOWN);
+        /*
         mWebView.setOnTouchListener(new View.OnTouchListener()
         {
             @Override
@@ -2031,6 +2032,7 @@ public class SnaprKitFragment extends Fragment
                 return false;
             }
         });
+        */
        
         // Log
         if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod());
