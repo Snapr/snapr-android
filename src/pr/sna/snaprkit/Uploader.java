@@ -203,6 +203,7 @@ public class Uploader
             ResponseHandler<String> responseHandler = new BasicResponseHandler();
             String responseBody = client.execute(mRequest, responseHandler);
 
+            String errorType;
             String errorMessage;
             if (responseBody != null && responseBody.length() > 0)
             {
@@ -214,8 +215,9 @@ public class Uploader
                 uploadSuccess = SnaprJsonUtils.getOperationResult(jsonResponse, null);
                 if (!uploadSuccess)
                 {
+                	errorType = SnaprJsonUtils.getOperationErrorType(jsonResponse, null);
                 	errorMessage = SnaprJsonUtils.getOperationErrorMessage(jsonResponse, null);  
-                	throw new RuntimeException(errorMessage);
+                	throw new SnaprApiException(errorType, errorMessage);
                 }
             }
         }

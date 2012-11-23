@@ -20,6 +20,8 @@ import android.content.Intent;
 import android.os.Environment;
 import android.os.IBinder;
 
+import org.apache.http.client.HttpResponseException;
+
 public class UploadService extends Service
 {
 	// ------------------------------------------------------------------------
@@ -298,18 +300,13 @@ public class UploadService extends Service
 		}
 
 		// The exception for this function is either a HttpClient exception,
-		// an IOException or a JSON error wrapped in a RuntimeException
+		// an IOException or a SnaprApiException
 		@Override
 		public void onUploadFailed(String localId, Exception e)
 		{
 			try
 			{
-				// Special exception checking to only broadcast JSON exceptions
-				// which we have previously wrapped in RuntimeException
-				// Also remove upload from queue when encountering JSON
-				// exceptions
-
-				if (e instanceof RuntimeException)
+				if (e instanceof SnaprApiException || (e instanceof HttpResponseException && (((HttpResponseException) e).getStatusCode() >= 500)))
 				{
 					// Broadcast error
 					Intent intent = new Intent();
@@ -317,22 +314,15 @@ public class UploadService extends Service
 					intent.addCategory(Intent.CATEGORY_DEFAULT);
 					intent.putExtra(Global.PARAM_ACTION,
 							Global.BROADCAST_UPLOAD_ERROR);
+					intent.putExtra(Global.PARAM_LOCAL_ID, localId);
+					intent.putExtra(Global.PARAM_ERROR_TYPE, ((SnaprApiException)e).getType());
 					intent.putExtra(Global.PARAM_ERROR_MESSAGE, e.getMessage());
 					UploadService.this.sendBroadcast(intent);
-
-					// Find upload and kill it
-					UploadInfo info = getUploadInfoById(localId);
-					if (mQueue != null)
-					{
-						synchronized (mQueue)
-						{
-							mQueue.remove(info);
-						}
-					}
 				}
-
-				// Wait 3 seconds after failed uploads
+				
+				// Wait 3 seconds after failed upload
 				Thread.sleep(3000);
+				
 			} catch (Exception ex)
 			{
 			}

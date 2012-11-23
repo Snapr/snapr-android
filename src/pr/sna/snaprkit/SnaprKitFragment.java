@@ -48,7 +48,6 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.CookieManager;
@@ -402,10 +401,7 @@ public class SnaprKitFragment extends Fragment
     }
     
 	public class UploadBroadcastReceiver extends BroadcastReceiver
-	{
-		int  numUploadsFailed = 0;
-		Date dateLastFailed = null; 
-		
+	{		
 		@SuppressLint("UseValueOf")
 		@Override
 		public void onReceive(Context context, Intent intent)
@@ -579,31 +575,66 @@ public class SnaprKitFragment extends Fragment
 				}
 				else if (broadcast == Global.BROADCAST_UPLOAD_ERROR)
 				{
-					// Display alert dialog
+					// Extract params
+					String localId = intent.getStringExtra(Global.PARAM_LOCAL_ID);
+					String errorType = intent.getStringExtra(Global.PARAM_ERROR_TYPE);
 					String errorMessage = intent.getStringExtra(Global.PARAM_ERROR_MESSAGE);
-					showUploadError(errorMessage);
 					
-					// Check availability of connection and increment internal
-					if (NetworkUtils.isAnyConnected(SnaprKitApplication.getInstance()))
+					// Take action
+					if (errorType != null)
 					{
-						// Check date of last failure
-						Date now = new Date();
-						if ((now.getTime() - ((dateLastFailed!=null)?dateLastFailed.getTime():0)) < Global.CONNECTION_FAILURE_TIME_THRESHOLD )
+						if (errorType.equals("authentication.authentication_required"))
 						{
-							// Update last failure date and time
-							numUploadsFailed = numUploadsFailed + 1;
-							dateLastFailed = now;
+							// Override message 
+							errorMessage = "Upload Error: Invalid login details!";
 							
-							// Check if we exceeded threshold
-							if (numUploadsFailed >= Global.CONNECTION_FAILURE_NUM_THRESHOLD)
-							{
-								// Set the queue to paused
-								updateQueueSettings(false, mQueueUploadModeWifiOnly);
-								
-								// Reset the data
-								numUploadsFailed = 0;
-								dateLastFailed = null;
-							}
+							// Show message
+							showUploadError(errorMessage);
+							
+							// Invalidate credentials
+							clearUserInfo();
+							
+							// Redirect to root
+							String url = getStartupUrl();
+							mWebView.loadUrl(url);
+						}
+						else if (errorType.equals("validation.duplicate_upload"))
+						{
+							// Override message
+							errorMessage = "Upload Error: This image has been uploaded before!";
+							
+							// Show message
+							showUploadError(errorMessage);
+						}
+						else if (errorType.equals("validation.corrupt_file"))
+						{
+							// Override message
+							errorMessage = "Upload Error: Invalid File!";
+							
+							// Cancel upload
+							Intent launchIntent = new Intent(getContext(), UploadService.class);
+							launchIntent.putExtra(Global.PARAM_ACTION, Global.ACTION_QUEUE_REMOVE);
+							launchIntent.putExtra(Global.PARAM_LOCAL_ID, localId);
+					        getContext().startService(intent);
+					        
+							// Show message
+							showUploadError(errorMessage);
+						}
+						else if (errorType.equals("5xx"))
+						{
+							// Override message
+							errorMessage = "Upload Error: Server Error!";
+							
+							// Set the queue to paused
+							updateQueueSettings(false, mQueueUploadModeWifiOnly);
+							
+							// Show message
+							showUploadError(errorMessage);
+						}
+						else
+						{
+							// Display alert dialog
+							showUploadError(errorMessage);
 						}
 					}
 				}

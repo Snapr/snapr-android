@@ -149,6 +149,7 @@ public class Global
 	public static final String PARAM_AREA = "area";
 	public static final String PARAM_BACK = "back";
 	public static final String PARAM_ZOOM_LEVEL = "zoom_level";
+	public static final String PARAM_ERROR_TYPE = "error_type";
 	public static final String PARAM_ERROR_MESSAGE = "error_message";
 	public static final String PARAM_KEYWORDS = "keywords";
 	public static final String PARAM_RESULTS = "results";
@@ -247,10 +248,6 @@ public class Global
 	// Formats
 	public static final String DATE_FORMAT_API = "yyyy-MM-dd HH:mm:ss Z";
 	public static final String DATE_FORMAT_API_HTC_SENSATION = "yyyy/MM/dd HH:mm:ss Z"; // HTC Sensation date/time format bug fix
-	
-	// Connection failure threshold
-	public static final int    CONNECTION_FAILURE_TIME_THRESHOLD = 30000; // 30 seconds
-	public static final int    CONNECTION_FAILURE_NUM_THRESHOLD  = 5;     // Fail 5 times and we pause
 	
 	// Screen density - populated once app loads first activity
 	public static int          densityDpi;

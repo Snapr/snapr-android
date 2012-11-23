@@ -97,4 +97,33 @@ public class SnaprJsonUtils
 		
 		return "Unknown";
 	}
+	
+	public static String getOperationErrorType(JSONObject json, String section)
+	{
+		JSONObject jsonResponse = null;
+		JSONObject jsonObject = null;
+		
+		try
+		{
+			if (section == null || section.length() == 0)
+			{
+				jsonObject = json; 
+			}
+			else
+			{
+				jsonResponse = json.getJSONObject("response");
+				jsonObject = jsonResponse.getJSONObject(section);
+			}
+			
+			JSONObject error =  jsonObject.getJSONObject("error");
+			
+			return error.getString("type");
+		}
+		catch(Exception e)
+		{
+			if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Failed to get error message due to error " + e.toString());
+		}
+		
+		return "Unknown";
+	}
 }
