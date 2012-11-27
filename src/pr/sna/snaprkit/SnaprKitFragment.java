@@ -139,6 +139,8 @@ public class SnaprKitFragment extends Fragment
 		
 		outState.putLong("mPhotoTimestamp", mPictureAcquisitionManager.getPhotoTimestamp());
 		
+		outState.putString("mUserData", mPictureAcquisitionManager.getUserData());
+		
 		// Save the WebView history
 		mWebView.saveState(outState);
 	}	
@@ -268,7 +270,7 @@ public class SnaprKitFragment extends Fragment
 						else
 						{
 							// Display the share options
-							displayPhotoShareOptions(fileName, mLastPictureLatitude, mLastPictureLongitude, null, null, null, null);
+							displayPhotoShareOptions(fileName, mLastPictureLatitude, mLastPictureLongitude, null, null, null, null, mPictureAcquisitionManager.getUserData());
 						}
 					}
 					else
@@ -283,7 +285,7 @@ public class SnaprKitFragment extends Fragment
 						else
 						{
 							// Display the share options
-							displayPhotoShareOptions(fileName, mLastPictureLatitude, mLastPictureLongitude, null, null, null, null);
+							displayPhotoShareOptions(fileName, mLastPictureLatitude, mLastPictureLongitude, null, null, null, null, mPictureAcquisitionManager.getUserData());
 						}
 					}
 				}
@@ -663,15 +665,18 @@ public class SnaprKitFragment extends Fragment
 	/**
      * Function called from onPictureAcquired 
      */
-	private void displayPhotoShareOptions(String fileName, double latitude, double longitude, String description, String foursquareVenueId, String foursquareVenueName, String locationName)
+	private void displayPhotoShareOptions(String fileName, double latitude, double longitude, String description, String foursquareVenueId, String foursquareVenueName, String locationName, String extraParams)
 	{
 		if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod());
 		
 		if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": After pic taken queueOn " + mQueueUploadModeOn + " queueWifi " + mQueueUploadModeWifiOnly);
 		
 		if (Global.LOG_MODE) Global.log(Global.TAG, Global.getCurrentMethod() + ": Got filename " + fileName);
+		
+		if (Global.LOG_MODE) Global.log(Global.TAG, Global.getCurrentMethod() + ": Got extraParams " + extraParams);
+		
 		String redirectUrl = getSnaprUrl(UrlUtils.getFullLocalUrl(Global.URL_UPLOAD), true);
-		String url = getSharePictureUrl(fileName, latitude, longitude, redirectUrl, description, foursquareVenueId, foursquareVenueName, locationName);
+		String url = getSharePictureUrl(fileName, latitude, longitude, redirectUrl, description, foursquareVenueId, foursquareVenueName, locationName, extraParams);
 		if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Redirecting to " + url);
 		mWebView.loadUrl(url);
 		
@@ -728,7 +733,7 @@ public class SnaprKitFragment extends Fragment
 			String fileName = info.getFileName();
 			
 			// Get the URL
-	        String url = getSharePictureUrl(fileName, latitude, longitude, null, null, null, null, null);
+	        String url = getSharePictureUrl(fileName, latitude, longitude, null, null, null, null, null, mPictureAcquisitionManager.getUserData());
 	        
 	        // Go to URL
 	        mWebView.loadUrl(url);
@@ -826,7 +831,7 @@ public class SnaprKitFragment extends Fragment
 			    	// Display the picture options
 			    	if (fileName != null)
 			    	{
-			    		displayPhotoShareOptions(fileName, mLastPictureLatitude, mLastPictureLongitude, mLastDescription, mLastFoursquareVenueId, mLastFoursquareVenueName, mLastLocationName);
+			    		displayPhotoShareOptions(fileName, mLastPictureLatitude, mLastPictureLongitude, mLastDescription, mLastFoursquareVenueId, mLastFoursquareVenueName, mLastLocationName, mPictureAcquisitionManager.getUserData());
 			    	}
 			    	else
 			    	{
@@ -1002,7 +1007,7 @@ public class SnaprKitFragment extends Fragment
      * @return Returns the picture sharing URL
      */
     @SuppressLint({ "UseValueOf", "UseValueOf" })
-	private String getSharePictureUrl(String imageName, double latitude, double longitude, String redirectUrl, String description, String foursquareVenueId, String foursquareVenueName, String locationName)
+	private String getSharePictureUrl(String imageName, double latitude, double longitude, String redirectUrl, String description, String foursquareVenueId, String foursquareVenueName, String locationName, String extraParams)
     {
         // Declare
         String url;
@@ -1071,6 +1076,12 @@ public class SnaprKitFragment extends Fragment
         if ((locationName != null) && (locationName.length() > 0))
         {
         	params.add(new BasicNameValuePair(Global.PARAM_LOCATION, locationName));
+        }
+        
+        // Add additional params
+        if (extraParams != null)
+        {
+        	UrlUtils.appendParams(params, extraParams);
         }
         
         // Create the URL
@@ -1193,6 +1204,8 @@ public class SnaprKitFragment extends Fragment
 			// Start the camera and take picture
 			if ((mPictureAcquisitionManager != null) && (mPictureAcquisitionManager.isActive() == false))
 			{
+				Uri launchUri = Uri.parse(url);
+				mPictureAcquisitionManager.setUserData(launchUri.getEncodedQuery());
 				mPictureAcquisitionManager.acquirePicture(PictureAcquisitionManager.PICTURE_SOURCE_CAMERA, getPictureAcquisitionListener());			
 			}
 			else
@@ -1216,6 +1229,8 @@ public class SnaprKitFragment extends Fragment
 			// Start the gallery and let user select picture
 			if ((mPictureAcquisitionManager != null) && (mPictureAcquisitionManager.isActive() == false))
 			{
+				Uri launchUri = Uri.parse(url);
+				mPictureAcquisitionManager.setUserData(launchUri.getEncodedQuery());
 				mPictureAcquisitionManager.acquirePicture(PictureAcquisitionManager.PICTURE_SOURCE_GALLERY, getPictureAcquisitionListener());			
 			}
     	}
@@ -2322,6 +2337,10 @@ public class SnaprKitFragment extends Fragment
     		mPictureAcquisitionManager.setWifiProviderEnabled(wifiProviderEnabled);
     		if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Restored wifiProviderEnabled to " + wifiProviderEnabled);
     		
+    		String userData = savedInstanceState.getString("mUserData");
+    		mPictureAcquisitionManager.setUserData(userData);
+    		if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Restored userData to " + userData);
+    		
     		// Add back the camera listener, but use current version
     		mPictureAcquisitionManager.setPictureAcquisitionListener(getPictureAcquisitionListener());
     	}
@@ -2721,7 +2740,7 @@ public class SnaprKitFragment extends Fragment
 				if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Found location information in picture (" + latitude + "," + longitude + ")");
 				
 	        	// Get the URL
-		        url = getSharePictureUrl(fileName, latitude, longitude, null, null, null, null, null);	
+		        url = getSharePictureUrl(fileName, latitude, longitude, null, null, null, null, null, null);	
 			}
         }
         

@@ -52,7 +52,8 @@ public class PictureAcquisitionManager
 	private boolean mIsActive;
 	private boolean mIsGeolocationActive;
 	private GeolocationBroadcastReceiver mGeolocationCallbackReceiver;
-	
+	private String mUserData;
+
 	private long mTakePhotoTimestamp = -1;
 	
 	public PictureAcquisitionManager(Fragment fragment)
@@ -294,6 +295,16 @@ public class PictureAcquisitionManager
     public void setPhotoTimestamp(long photoTimestamp) {
     	mTakePhotoTimestamp = photoTimestamp; 
     }
+    
+	public String getUserData()
+	{
+		return mUserData;
+	}
+
+	public void setUserData(String userData)
+	{
+		mUserData = userData;
+	}
 	
     public void onPictureAcquired(Intent data)
     {    	

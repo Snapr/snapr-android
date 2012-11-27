@@ -1,7 +1,10 @@
 package pr.sna.snaprkit.utils;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
 import org.apache.http.NameValuePair;
@@ -387,5 +390,62 @@ public class UrlUtils
 		if (result.length() > 0) result = result.substring(0, result.length()-1);
 		
 		return result;
+    }
+    
+    /**
+     * Returns a set of the unique names of all query parameters. Iterating
+     * over the set will return the names in order of their first occurrence.
+     *
+     * @throws UnsupportedOperationException if this isn't a hierarchical URI
+     *
+     * @return a set of decoded names
+     * 
+     * Lifted from Android 4.1.1 source code for android.net.Uri and modified 
+     * to work with uri parameter
+     */
+    public static Set<String> getQueryParameterNames(Uri uri) {
+        if (uri.isOpaque()) {
+            throw new UnsupportedOperationException("This isn't a hierarchical URI.");
+        }
+
+        String query = uri.getEncodedQuery();
+        if (query == null) {
+            return Collections.emptySet();
+        }
+
+        Set<String> names = new LinkedHashSet<String>();
+        int start = 0;
+        do {
+            int next = query.indexOf('&', start);
+            int end = (next == -1) ? query.length() : next;
+
+            int separator = query.indexOf('=', start);
+            if (separator > end || separator == -1) {
+                separator = end;
+            }
+
+            String name = query.substring(start, separator);
+            names.add(Uri.decode(name));
+
+            // Move start to end of name.
+            start = end + 1;
+        } while (start < query.length());
+
+        return Collections.unmodifiableSet(names);
+    }
+    
+    public static void appendParams(Vector<BasicNameValuePair> existingParams, String newParams)
+    {
+	    String url = "snapr://dummy?" + newParams;
+		Uri uri = Uri.parse(url);
+		Set<String> paramNames = UrlUtils.getQueryParameterNames(uri);
+		for (String paramName: paramNames)
+		{
+			// Get the parameter value
+			String paramValue = uri.getQueryParameter(paramName);
+			
+			// Add a new basic name value pair
+			existingParams.add(new BasicNameValuePair(paramName, paramValue));
+		}
     }
 }
