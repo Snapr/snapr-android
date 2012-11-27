@@ -895,12 +895,17 @@ public class SnaprKitFragment extends Fragment
 //		}
     }
     
-	private void onBackPressed()
+	private boolean onBackPressed()
 	{
 		if (mWebView.canGoBack())
 		{
 			if (Global.LOG_MODE) Global.log( " -> " + Global.getCurrentMethod() + ": Calling JavaScript back() function...");
 			mWebView.loadUrl("javascript:back();");
+			return true;
+		}
+		else
+		{
+			return false;
 		}
 	}
 
@@ -2629,9 +2634,9 @@ public class SnaprKitFragment extends Fragment
 	}
 	
 	// Moves to the previous page
-	public void goBack()
+	public boolean goBack()
 	{
-		onBackPressed();
+		return onBackPressed();
 	}
 	
 	// Start via the normal flow with default page
@@ -2639,8 +2644,6 @@ public class SnaprKitFragment extends Fragment
 	{
 		startNormalFlow(null);
 	}
-	
-	
 	
 	private class PostAssetCopyUrlRedirecter implements AssetCopierListener
 	{
