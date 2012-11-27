@@ -897,7 +897,11 @@ public class SnaprKitFragment extends Fragment
     
 	private void onBackPressed()
 	{
-		mWebView.loadUrl("javascript:back();");
+		if (mWebView.canGoBack())
+		{
+			if (Global.LOG_MODE) Global.log( " -> " + Global.getCurrentMethod() + ": Calling JavaScript back() function...");
+			mWebView.loadUrl("javascript:back();");
+		}
 	}
 
 	// Checks whether the user info was loaded
