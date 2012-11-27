@@ -2498,11 +2498,7 @@ public class SnaprKitFragment extends Fragment
     	initCameraManager(savedInstanceState);
     	
     	// Load user info from preferences
-    	String userInfo[] = new String[3];
-    	UserInfoUtils.loadUserInfo(SnaprKitFragment.this.getActivity(), userInfo);
-    	mDisplayUserName = userInfo[0];
-    	mSnaprUserName = userInfo[1];
-    	mAccessToken = userInfo[2];
+    	loadUserInfo();
     	
     	// Initialize queue settings
     	initQueueSettings();
@@ -2671,6 +2667,9 @@ public class SnaprKitFragment extends Fragment
 		// Initialize URL base
 		Global.URL_BASE = Global.getLocalUrlBase(getActivity());
 		
+		// Load the user info
+		loadUserInfo();
+		
 		// Set default URL
 		if (pageUrl == null)
 		{
@@ -2686,6 +2685,8 @@ public class SnaprKitFragment extends Fragment
        	// Ensure we have a full URL
     	String fullUrl = UrlUtils.relativeUrlToFullUrl(pageUrl);
 		
+    	if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Loading url " + pageUrl);
+    	
 		// Workaround for bug 17535:
     	// Using HTML files from assets folder does not allow passing parameters or anchor strings 
     	// http://code.google.com/p/android/issues/detail?id=17535
@@ -2712,6 +2713,9 @@ public class SnaprKitFragment extends Fragment
 	{
 		// Declare
 		String url = null;
+		
+		// Load the user info
+		loadUserInfo();
 		
 		// Initialize URL base
 		Global.URL_BASE = Global.getLocalUrlBase(getActivity());
@@ -2798,4 +2802,17 @@ public class SnaprKitFragment extends Fragment
 		// Clear shared preferences
 		UserInfoUtils.clearUserInfo(getContext());
 	}	
+	
+	private void loadUserInfo()
+	{
+		if (!haveUserInfo())
+		{
+	    	// Load user info from preferences
+	    	String userInfo[] = new String[3];
+	    	UserInfoUtils.loadUserInfo(SnaprKitFragment.this.getActivity(), userInfo);
+	    	mDisplayUserName = userInfo[0];
+	    	mSnaprUserName = userInfo[1];
+	    	mAccessToken = userInfo[2];
+		}
+	}
 }
