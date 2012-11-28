@@ -27,7 +27,7 @@ public class Global
 	public static String URL_BASE = "";              // generated based on HTML_DEBUG and URL_BASE_* values above, overwritten from start flows in Honeycomb+
 	
 	// Remote environment and remote URL base
-	public static final String ENVIRONMENT = "dev-android";              // either dev-android or live-android
+	public static final String ENVIRONMENT = "dev";                       // either dev, dev-android, live, live-android
 	public static final String URL_SERVER_PROD = "https://api.sna.pr/";   // must end in slash
 	public static final String URL_SERVER_DEV = "http://dev.sna.pr/api/"; // must end in slash
 	public static final String URL_SERVER = getRemoteUrlBase();           // generated based on ENVIRONMENT and URL_SERVER_* values above
