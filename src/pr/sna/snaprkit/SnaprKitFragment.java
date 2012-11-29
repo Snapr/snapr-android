@@ -709,7 +709,7 @@ public class SnaprKitFragment extends Fragment
 			if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod() + ": Terminated with location null");
 			
 			// Communicate with JavaScript
-			mWebView.loadUrl("javascript:location_error('" + R.string.snaprkit_location_error + "')");
+			mWebView.loadUrl("javascript:location_error('" + R.string.snaprkit_error_location_retrieval_failure + "')");
 		}
 		
 		// Close the pending dialog

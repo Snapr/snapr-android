@@ -397,7 +397,7 @@ public class PictureAcquisitionManager
     			if (Global.LOG_MODE) Global.log(Global.TAG, Global.getCurrentMethod() + ": The " + disabledProviders  +" providers are disabled...");
     			
     			// Build message
-    			String title = mFragment.getString(R.string.snaprkit_error_location_retrieval_failure);
+    			String title = mFragment.getString(R.string.snaprkit_error_location_accuracy);
     			String format;
     			if (disabledProviders.contains(mFragment.getString(R.string.snaprkit_and)))
     			{

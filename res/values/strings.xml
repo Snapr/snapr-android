@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <resources>
-    <!-- Snapr App -->
-    <string name="snaprkit_name">Snapr</string>
-    <string name="snaprkit_location_error">Could not retrieve your location!</string>
-    <string name="snaprkit_finish">Finish</string>
     
     <!-- SnaprKit -->
+    <string name="snaprkit_name">Snapr</string>
     <string name="snaprkit_close">Close</string>
     <string name="snaprkit_and">and</string>
     <string name="snaprkit_please_wait">Please wait</string>
@@ -21,7 +18,8 @@
     <string name="snaprkit_error_upload_invalid_login">Upload Error: Invalid login details!</string>
     <string name="snaprkit_error_location_provider_disabled">The %1$s providers is disabled. Would you like to enable them and try to get the location again?</string>
     <string name="snaprkit_error_location_providers_disabled">The %1$s providers are disabled. Would you like to enable it and try to get the location again?</string>
-    <string name="snaprkit_error_location_retrieval_failure">Could not retrieve an accurate location</string>
+    <string name="snaprkit_error_location_accuracy">Could not retrieve an accurate location</string>
+    <string name="snaprkit_error_location_retrieval_failure">Could not retrieve your location!</string>
     <string name="snaprkit_error_image_contents_retrieval_failure">Failed to retrieve picture contents!</string>
     <string name="snaprkit_error_unknown">Unknown error!</string>
     <string name="snaprkit_location_determining">Determining your location&#8230;</string>
