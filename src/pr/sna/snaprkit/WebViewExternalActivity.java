@@ -137,7 +137,7 @@ public class WebViewExternalActivity extends Activity {
 		});
 	}
 	
-	public String getActivityTitle(Integer progress)
+	public String getActivityTitle(int progress)
 	{
 		// Set the title
 		if(progress == 100)
@@ -146,7 +146,7 @@ public class WebViewExternalActivity extends Activity {
 		}
 		else
 		{
-			return "Loading " + progress.toString() + "%...";
+			return getString(R.string.snaprkit_webview_loading, progress);
 		}
 	}
 

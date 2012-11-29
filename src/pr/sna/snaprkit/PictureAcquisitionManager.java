@@ -323,7 +323,7 @@ public class PictureAcquisitionManager
 		if (mImagePath == null)
 		{
 			if (Global.LOG_MODE) Global.log(Global.TAG, Global.getCurrentMethod() + ": Picture NOT acquired...");
-			AlertUtils.showAlert(mFragment.getActivity(), "Failed to retrieve picture contents!", "Error");
+			AlertUtils.showAlert(mFragment.getActivity(), mFragment.getString(R.string.snaprkit_error_image_contents_retrieval_failure), mFragment.getString(R.string.snaprkit_error));
             terminatePictureAcquisition(null);
 		}
 		else
@@ -390,23 +390,24 @@ public class PictureAcquisitionManager
     		mGpsProviderEnabled = GeoUtils.isGpsProviderEnabled(SnaprKitApplication.getInstance());
     		mWifiProviderEnabled = GeoUtils.isWifiProviderEnabled(SnaprKitApplication.getInstance());
     		
-    		String disabledProviders = CameraUtils.getDisabledProvidersString(mNetworkProviderEnabled, mWifiProviderEnabled, mGpsProviderEnabled);
+    		String disabledProviders = CameraUtils.getDisabledProvidersString(mFragment.getActivity(), mNetworkProviderEnabled, mWifiProviderEnabled, mGpsProviderEnabled);
     		
     		if (disabledProviders != null && disabledProviders.length() > 0)
     		{
     			if (Global.LOG_MODE) Global.log(Global.TAG, Global.getCurrentMethod() + ": The " + disabledProviders  +" providers are disabled...");
     			
     			// Build message
-    			String title = "Could not retrieve an accurate location";
-    			String message;
-    			if (disabledProviders.contains("and"))
+    			String title = mFragment.getString(R.string.snaprkit_error_location_retrieval_failure);
+    			String format;
+    			if (disabledProviders.contains(mFragment.getString(R.string.snaprkit_and)))
     			{
-    				message = "The " + disabledProviders  +" providers are disabled. Would you like to enable them and try to get the location again?";
+    				format = mFragment.getString(R.string.snaprkit_error_location_providers_disabled);
     			}
     			else
     			{
-    				message = "The " + disabledProviders  +" provider is disabled. Would you like to enable it and try to get the location again?";
+    				format = mFragment.getString(R.string.snaprkit_error_location_provider_disabled);
     			}
+    			String message = String.format(format, disabledProviders);
     			
     			// Show the location providers disabled dialog
     			showProviderDisabledAlert(title, message);
@@ -632,7 +633,7 @@ public class PictureAcquisitionManager
     	Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
         intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photo));
         mImageUri = Uri.fromFile(photo);
-        mFragment.startActivityForResult(Intent.createChooser(intent, "Select camera"), TAKE_PICTURE);
+        mFragment.startActivityForResult(Intent.createChooser(intent, mFragment.getString(R.string.snaprkit_media_select_camera)), TAKE_PICTURE);
         // store time stamp of request
         mTakePhotoTimestamp = System.currentTimeMillis();
         
@@ -647,7 +648,7 @@ public class PictureAcquisitionManager
     	Intent intent = new Intent();
         intent.setType("image/*"); // cannot use jpeg or jpg here -- no results
         intent.setAction(Intent.ACTION_GET_CONTENT);
-        mFragment.startActivityForResult(Intent.createChooser(intent,"Select Picture"), SELECT_PICTURE);
+        mFragment.startActivityForResult(Intent.createChooser(intent, mFragment.getString(R.string.snaprkit_media_select_picture)), SELECT_PICTURE);
     	
     	if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
     }
@@ -692,7 +693,7 @@ public class PictureAcquisitionManager
     	builder.setMessage(message)  
     		.setCancelable(true)
     		.setTitle(title)
-    		.setPositiveButton("Yes", 
+    		.setPositiveButton(mFragment.getString(android.R.string.yes), 
     			new DialogInterface.OnClickListener()
     			{  
     				public void onClick(DialogInterface dialog, int id)
@@ -719,7 +720,7 @@ public class PictureAcquisitionManager
     					}
     				}  
     			})
-    		.setNegativeButton("No",  
+    		.setNegativeButton(mFragment.getString(android.R.string.no),  
     			new DialogInterface.OnClickListener(){  
 	    			public void onClick(DialogInterface dialog, int id)
 	    			{
@@ -753,7 +754,7 @@ public class PictureAcquisitionManager
     	}
     	
     	mTransitionDialog = new TransitionDialog(mFragment.getActivity());
-    	mTransitionDialog.showTransitionDialog("Determining your location...", "Please wait");
+    	mTransitionDialog.showTransitionDialog(mFragment.getString(R.string.snaprkit_location_determining), mFragment.getString(R.string.snaprkit_please_wait));
 	    
     	if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
     }
@@ -782,7 +783,7 @@ public class PictureAcquisitionManager
     	}
     	
     	mTransitionDialog = new TransitionDialog(mFragment.getActivity());
-    	mTransitionDialog.showTransitionDialog("Processing image...", "Please wait");
+    	mTransitionDialog.showTransitionDialog(mFragment.getString(R.string.snaprkit_media_image_processing), mFragment.getString(R.string.snaprkit_please_wait));
 	    
     	if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
     }

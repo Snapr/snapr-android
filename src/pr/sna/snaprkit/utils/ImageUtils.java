@@ -14,6 +14,10 @@ import android.media.ExifInterface;
 
 public class ImageUtils
 {
+	// Constants
+	private static String EXIF_DATE_FORMAT_1 = "yyyy:MM:dd HH:mm:ss";
+	private static String EXIF_DATE_FORMAT_2 = "yyyy/MM/dd HH:mm:ss";
+	
 	// ------------------------------------------------------------------------
 	// Picture store functions
 	// ------------------------------------------------------------------------
@@ -97,12 +101,12 @@ public class ImageUtils
     	Date returnDate = null;
     	
     	// Get date time - use regular format
-    	returnDate = parseExifDate(jpegMetadata, fieldId, "yyyy:MM:dd HH:mm:ss");
+    	returnDate = parseExifDate(jpegMetadata, fieldId, EXIF_DATE_FORMAT_1);
     	
     	// Get date time - use HTC Sensation erroneous format
     	if (returnDate == null)
     	{
-    		returnDate = parseExifDate(jpegMetadata, fieldId, "yyyy/MM/dd HH:mm:ss");
+    		returnDate = parseExifDate(jpegMetadata, fieldId, EXIF_DATE_FORMAT_2);
     	}
     	
     	// Return
@@ -141,12 +145,12 @@ public class ImageUtils
     	Date returnDate = null;
     	
     	// Get date time - use regular format
-    	returnDate = parseExifDate(exif, fieldId, "yyyy:MM:dd HH:mm:ss");
+    	returnDate = parseExifDate(exif, fieldId, EXIF_DATE_FORMAT_1);
     	
     	// Get date time - use HTC Sensation erroneous format
     	if (returnDate == null)
     	{
-    		returnDate = parseExifDate(exif, fieldId, "yyyy/MM/dd HH:mm:ss");
+    		returnDate = parseExifDate(exif, fieldId, EXIF_DATE_FORMAT_2);
     	}
     	
     	// Return

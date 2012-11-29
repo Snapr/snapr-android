@@ -1,6 +1,7 @@
 package pr.sna.snaprkit.utils;
 
 import pr.sna.snaprkit.Global;
+import pr.sna.snaprkit.R;
 
 import android.content.Context;
 import android.location.Location;
@@ -239,8 +240,10 @@ public class GeoManager implements LocationListener {
     		return;
     	}
     	
+    	String message = mContext.getString(R.string.snaprkit_location_determining);
+    	String title = mContext.getString(R.string.snaprkit_please_wait);
     	mTransitionDialog = new TransitionDialog(mContext);
-    	mTransitionDialog.showTransitionDialog("Determining your location...", "Please wait");
+    	mTransitionDialog.showTransitionDialog(message, title);
 	    
     	if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
     }

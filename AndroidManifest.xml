@@ -47,7 +47,7 @@
         <!-- SnaprKit: Activities, required -->
         <activity android:name="pr.sna.snaprkit.WebViewExternalActivity"
 			android:screenOrientation="portrait" 
-			android:label="Browsing External Site"
+			android:label="@string/snaprkit_webview_browsing"
 			android:configChanges="keyboardHidden|orientation"> 
         </activity> 
         <activity

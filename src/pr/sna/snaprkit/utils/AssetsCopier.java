@@ -1,5 +1,6 @@
 package pr.sna.snaprkit.utils;
 
+import pr.sna.snaprkit.R;
 import android.app.Activity;
 import android.os.AsyncTask;
 
@@ -43,7 +44,7 @@ public class AssetsCopier extends AsyncTask<Void, Void, Void>
 	protected void onPreExecute()
 	{
 		super.onPreExecute();
-		if (mShowDialogs) mTransitionDialog.showTransitionDialog("Loading assets...", null);
+		if (mShowDialogs) mTransitionDialog.showTransitionDialog(mParent.getString(R.string.snaprkit_assets_loading), null);
 	}
 
 	@Override

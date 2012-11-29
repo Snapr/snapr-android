@@ -64,6 +64,8 @@ public class SnaprKitFragment extends Fragment
 {
 	// Constants
 	private static final int ACTION_REQUEST_FEATHER = 100;
+	private static final String UPLOAD_MODE_WIFI_ONLY = "Wi-Fi Only";
+	private static final String UPLOAD_MODE_ON = "On";
 	
 	// Members
 	private View mView;
@@ -588,7 +590,7 @@ public class SnaprKitFragment extends Fragment
 						if (errorType.equals("authentication.authentication_required"))
 						{
 							// Override message 
-							errorMessage = "Upload Error: Invalid login details!";
+							errorMessage = getString(R.string.snaprkit_error_upload_invalid_login);
 							
 							// Show message
 							showUploadError(errorMessage);
@@ -603,7 +605,7 @@ public class SnaprKitFragment extends Fragment
 						else if (errorType.equals("validation.duplicate_upload"))
 						{
 							// Override message
-							errorMessage = "Upload Error: This image has been uploaded before!";
+							errorMessage = getString(R.string.snaprkit_error_upload_duplicate_image);
 							
 							// Show message
 							showUploadError(errorMessage);
@@ -611,7 +613,7 @@ public class SnaprKitFragment extends Fragment
 						else if (errorType.equals("validation.corrupt_file"))
 						{
 							// Override message
-							errorMessage = "Upload Error: Invalid File!";
+							errorMessage = getString(R.string.snaprkit_error_upload_corrupt_image);
 							
 							// Cancel upload
 							Intent launchIntent = new Intent(getContext(), UploadService.class);
@@ -625,7 +627,7 @@ public class SnaprKitFragment extends Fragment
 						else if (errorType.equals("5xx"))
 						{
 							// Override message
-							errorMessage = "Upload Error: Server Error!";
+							errorMessage = getString(R.string.snaprkit_error_upload_server_error);
 							
 							// Set the queue to paused
 							updateQueueSettings(false, mQueueUploadModeWifiOnly);
@@ -935,18 +937,6 @@ public class SnaprKitFragment extends Fragment
 		prefEditor.putBoolean(Global.SNAPR_PREFERENCES_QUEUE_WIFI_ONLY, mQueueUploadModeWifiOnly);
 		prefEditor.commit();
     }
-    
-    /*
-    private void displayLocation(Location location, Integer casenum)
-    {
-    	// Display the location in toast
-    	Double latitude = location.getLatitude();
-    	Double longitude = location.getLongitude();
-    	
-    	// Display
-    	Toast.makeText(getView().getContext(), casenum.toString() + " Location: " + latitude.toString() + ", " + longitude.toString(), Toast.LENGTH_LONG).show();
-    }
-    */
     
     /**
      * Create a SNAPR URL with the required login parameters
@@ -2145,17 +2135,18 @@ public class SnaprKitFragment extends Fragment
 		return exifData.getLocation();
     }
 
-	// Get the wifi setting from the upload mode / setting strin
+	// Get the wifi setting from the upload mode / setting string
+    // Used internally, so do not internatialize
     private String getUploadModeString(boolean wifiOnly)
     {
     	if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Got wifi " + wifiOnly);
     	if (wifiOnly == true)
     	{
-    		return "Wi-Fi Only"; 
+    		return UPLOAD_MODE_WIFI_ONLY; 
     	}
     	else
 		{
-    		return  "On";
+    		return  UPLOAD_MODE_ON;
 		}
     }
 
@@ -2165,11 +2156,11 @@ public class SnaprKitFragment extends Fragment
      */
     private boolean getOnFromUploadMode(String uploadMode)
     {
-    	if("On".equals(uploadMode))
+    	if(UPLOAD_MODE_ON.equals(uploadMode))
     	{
     		return true;
     	}
-    	else if ("Wi-Fi Only".equals(uploadMode))
+    	else if (UPLOAD_MODE_WIFI_ONLY.equals(uploadMode))
     	{
     		return true;
     	}
@@ -2185,11 +2176,11 @@ public class SnaprKitFragment extends Fragment
      */
     private boolean getWifiOnlyFromUploadMode(String uploadMode)
     {
-    	if("On".equals(uploadMode))
+    	if(UPLOAD_MODE_ON.equals(uploadMode))
     	{
     		return false;
     	}
-    	else if ("Wi-Fi Only".equals(uploadMode))
+    	else if (UPLOAD_MODE_WIFI_ONLY.equals(uploadMode))
     	{
     		return true;
     	}
@@ -2447,11 +2438,11 @@ public class SnaprKitFragment extends Fragment
     {
     	Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND); 
         emailIntent.setType("text/plain");
-        emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, new String[]{"snaprandroid@gmail.com"}); 
-        emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Android Device Log"); 
-        emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, "<Please explain the problem here>"); 
+        emailIntent.putExtra(android.content.Intent.EXTRA_EMAIL, new String[]{getString(R.string.snaprkit_log_email_address)}); 
+        emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.snaprkit_log_email_subject)); 
+        emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, getString(R.string.snaprkit_log_email_body_text)); 
         emailIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse("file://"+ logFileName));
-        startActivity(Intent.createChooser(emailIntent, "Send email with log..."));
+        startActivity(Intent.createChooser(emailIntent, getString(R.string.snaprkit_log_email_send)));
     }
     
     // Ask the user to select a log and then send it thru email
@@ -2515,7 +2506,7 @@ public class SnaprKitFragment extends Fragment
 	
 	private void showUploadError(String errorMessage)
 	{
-		AlertUtils.showAlert(getActivity(), errorMessage, "Upload Error");
+		AlertUtils.showAlert(getActivity(), errorMessage, getString(R.string.snaprkit_error_upload));
 	}
 	
     /**
@@ -2528,7 +2519,7 @@ public class SnaprKitFragment extends Fragment
 		
 		// Display alert
 		AlertDialog.Builder builder = new AlertDialog.Builder(SnaprKitFragment.this.getActivity());
-		builder.setTitle("Select a log:");
+		builder.setTitle(getString(R.string.snaprkit_log_select));
 		builder.setItems(files, new DialogInterface.OnClickListener()
 		{
 			public void onClick(DialogInterface dialogInterface, int itemIndex)

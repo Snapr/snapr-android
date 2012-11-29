@@ -14,7 +14,7 @@ public class AlertUtils
 			builder.setMessage(message);
 			builder.setCancelable(true);
 			builder.setTitle(title);
-			builder.setPositiveButton("OK", new DialogInterface.OnClickListener()
+			builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener()
 			{
 				public void onClick(DialogInterface dialog, int id)
 				{

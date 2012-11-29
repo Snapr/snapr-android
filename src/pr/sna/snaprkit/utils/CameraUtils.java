@@ -33,6 +33,7 @@ import org.apache.sanselan.formats.tiff.write.TiffOutputSet;
 
 import pr.sna.snaprkit.ExifData;
 import pr.sna.snaprkit.Global;
+import pr.sna.snaprkit.R;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -57,23 +58,23 @@ public class CameraUtils
     	return Global.IMAGE_NAME_PREFIX + android.text.format.DateFormat.format(Global.IMAGE_NAME_DATE_FORMAT, new java.util.Date()).toString() + ".jpg";
     }
 	
-    public static String getDisabledProvidersString(boolean networkEnabled, boolean wifiEnabled, boolean gpsEnabled)
+    public static String getDisabledProvidersString(Context context, boolean networkEnabled, boolean wifiEnabled, boolean gpsEnabled)
     {	
     	Vector<String> disabledProviders = new Vector<String>();
     	
     	if (!networkEnabled)
     	{
-    		disabledProviders.add("network");
+    		disabledProviders.add(context.getString(R.string.snaprkit_location_provider_network));
     	}
     	
     	if (!wifiEnabled)
     	{
-    		disabledProviders.add("WiFi");
+    		disabledProviders.add(context.getString(R.string.snaprkit_location_provider_wifi));
     	}
     	
     	if (!gpsEnabled)
     	{
-    		disabledProviders.add("GPS");
+    		disabledProviders.add(context.getString(R.string.snaprkit_location_provider_gps));
     	}
     	
     	// Create string
@@ -99,7 +100,7 @@ public class CameraUtils
         	returnString = returnString.substring(0, returnString.length() -2);
         	
         	// Concatenate last element using " and "
-        	returnString = returnString + " and " + disabledProviders.lastElement();
+        	returnString = returnString + " " + context.getString(R.string.snaprkit_and) + " " + disabledProviders.lastElement();
         	
         	// Return
         	return returnString;

@@ -8,7 +8,7 @@
 	<WebView
 		android:id="@+id/snaprkit_webViewExternal"
 		android:layout_width="fill_parent"
-		android:layout_height="fill_parent"
+		android:layout_height="0dip"
 		android:layout_weight="1">
 	</WebView>
 	<RelativeLayout 
@@ -28,7 +28,7 @@
 			android:layout_height="wrap_content"
 			android:layout_centerInParent="true"
 			android:background="@drawable/snaprkit_button_black"
-			android:text="Close"
+			android:text="@string/snaprkit_close"
 			android:textColor="#FFFFFF">
 		</Button>
 	</RelativeLayout>

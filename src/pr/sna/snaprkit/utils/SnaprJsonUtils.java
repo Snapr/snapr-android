@@ -95,7 +95,7 @@ public class SnaprJsonUtils
 			if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Failed to get error message due to error " + e.toString());
 		}
 		
-		return "Unknown";
+		return "";
 	}
 	
 	public static String getOperationErrorType(JSONObject json, String section)
@@ -124,6 +124,6 @@ public class SnaprJsonUtils
 			if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Failed to get error message due to error " + e.toString());
 		}
 		
-		return "Unknown";
+		return "unknown";
 	}
 }
