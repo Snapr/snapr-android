@@ -19,6 +19,7 @@ import pr.sna.snaprkit.utils.AssetUtils;
 import pr.sna.snaprkit.utils.AssetsCopier;
 import pr.sna.snaprkit.utils.AssetsCopier.AssetCopierListener;
 import pr.sna.snaprkit.utils.CameraUtils;
+import pr.sna.snaprkit.utils.LocalizationUtils;
 import pr.sna.snaprkit.utils.UserInfoUtils;
 import pr.sna.snaprkit.utils.FileUtils;
 import pr.sna.snaprkit.utils.GeoManager;
@@ -979,6 +980,7 @@ public class SnaprKitFragment extends Fragment
         params = new Vector<BasicNameValuePair>();
         params.add(new BasicNameValuePair(Global.PARAM_APPMODE, "android"));
         params.add(new BasicNameValuePair(Global.PARAM_ENVIRONMENT, Global.ENVIRONMENT));
+        params.add(new BasicNameValuePair(Global.PARAM_LANGUAGE, LocalizationUtils.getLanguageCode()));
         
         // Customize some parameters based on logged in status
         if(haveUserInfo())

@@ -181,6 +181,7 @@ public class Global
 	public static final String PARAM_OTHER_BUTTON_2_LABEL = "otherButton2";
 	public static final String PARAM_OTHER_BUTTON_3_LABEL = "otherButton3";
 	public static final String PARAM_ACTION_ID = "actionID";
+	public static final String PARAM_LANGUAGE = "language";
 	
 	// Images
 	public static final String IMAGE_NAME_PREFIX = "SNAPR_";
