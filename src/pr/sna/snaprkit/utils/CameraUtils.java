@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
@@ -311,9 +312,11 @@ public class CameraUtils
 				String dateStampString = sdfDate.format(time);
 	
 				// Get the time hours minutes and seconds
-	            final int hour =   time.getHours();
-	            final int minute = time.getMinutes();
-	            final int second = time.getSeconds();
+				Calendar calendar = Calendar.getInstance();
+				calendar.setTime(time);
+	            final int hour =   calendar.get(Calendar.HOUR_OF_DAY);;
+	            final int minute = calendar.get(Calendar.MINUTE);
+	            final int second = calendar.get(Calendar.SECOND);
 	
 	            /*
 	            // Get the altitude and altitude reference

@@ -366,6 +366,7 @@ public class SnaprKitFragment extends Fragment
 			if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod());
 			
 			// Get network info for item that just completed
+			@SuppressWarnings("deprecation")
 			NetworkInfo info = intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
 			
 			// Check result
