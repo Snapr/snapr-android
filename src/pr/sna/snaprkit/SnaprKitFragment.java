@@ -149,6 +149,9 @@ public class SnaprKitFragment extends Fragment
 		
 		outState.putString("mUserData", mPictureAcquisitionManager.getUserData());
 		
+		outState.putString("mmStickerPathPath", mStickerPathPath);
+		outState.putString("mFilterPackPath", mFilterPackPath);
+		
 		// Save the WebView history
 		mWebView.saveState(outState);
 	}	
@@ -2309,6 +2312,9 @@ public class SnaprKitFragment extends Fragment
 			
 			mCurrentUrl = savedInstanceState.getString("mCurrentUrl");
 			if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Restored mCurrentUrl to " + mCurrentUrl);
+			
+			mStickerPathPath = savedInstanceState.getString("mStickerPathPath");
+			mFilterPackPath = savedInstanceState.getString("mFilterPackPath");
 		}
     	
     	// Log
