@@ -32,9 +32,6 @@ public class Global
 	public static final String URL_SERVER_DEV = "http://dev.sna.pr/api/"; // must end in slash
 	public static final String URL_SERVER = getRemoteUrlBase();           // generated based on ENVIRONMENT and URL_SERVER_* values above
 	
-	// Picture editing options
-	public static final boolean USE_PICTURE_EDITOR = false;
-	
 	// Shared Preferences
 	public static final String SNAPR_PREFERENCES = "SnaprPrefs";
 	public static final String SNAPR_PREFERENCES_DISPLAY_USERNAME = "snapr_display_user";
@@ -49,7 +46,8 @@ public class Global
 	public static final String SNAPR_PREFERENCES_MAP_FILTER_LAST_DATE = "map_filter_last_date";
 
 	// Features
-	public static final boolean FEATURE_AVIARY_SDK = false;
+	public static final boolean USE_AVIARY_SDK = false;
+	public static final boolean USE_FX_MODULE = true;
 	
 	// Android SDK versions
 	public static final int     SDK_HONEYCOMB = 11;

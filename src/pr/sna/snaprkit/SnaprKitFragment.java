@@ -105,6 +105,11 @@ public class SnaprKitFragment extends Fragment
 	private String mLastFoursquareVenueId = null;
 	private String mLastLocationName = null;
 	
+	private String mFilterPackPath;		// the location (under assets) where the filter packs will be loaded from
+	private String mStickerPathPath;	// the location (under assets) where the sticker packs will be loaded from
+	
+	private Intent mPendingIntent;
+	
 	@Override
 	public void onSaveInstanceState(Bundle outState)
 	{
@@ -265,10 +270,13 @@ public class SnaprKitFragment extends Fragment
 					if (dataSource == PictureAcquisitionManager.PICTURE_SOURCE_CAMERA)
 					{
 						// Check if we should use a picture editor (FX module or Aviary)
-						if (Global.USE_PICTURE_EDITOR)
+						if (Global.USE_FX_MODULE)
 						{
 							// For camera, we already have a copy of the picture, so edit in place
-							displayPhotoEdit(SnaprKitApplication.getInstance(), fileName, null, timeStamp);
+							SnaprImageEditFragmentActivity.Builder builder = new SnaprImageEditFragmentActivity.Builder(new File(fileName), new File(fileName), true, timeStamp);
+							builder.setStickerPackPath(mStickerPathPath);
+							builder.setFilterPackPath(mFilterPackPath);
+							displayPhotoEdit(getActivity(), builder);
 						}
 						else
 						{
@@ -279,11 +287,14 @@ public class SnaprKitFragment extends Fragment
 					else
 					{
 						// Check if we should use a picture editor (FX module or Aviary)
-						if (Global.USE_PICTURE_EDITOR)
+						if (Global.USE_FX_MODULE)
 						{
 							// For gallery provide output filename so module makes copy of source picture
-							String destinationFileName = FileUtils.getDCIMCameraDirectory() + "/" + CameraUtils.getPictureName();
-							displayPhotoEdit(SnaprKitApplication.getInstance(), fileName, destinationFileName, timeStamp);
+							File outputFile = new File(FileUtils.getDCIMCameraDirectory() + "/" + CameraUtils.getPictureName());
+							SnaprImageEditFragmentActivity.Builder builder = new SnaprImageEditFragmentActivity.Builder(new File(fileName), outputFile);
+							builder.setStickerPackPath(mStickerPathPath);
+							builder.setFilterPackPath(mFilterPackPath);
+							displayPhotoEdit(getActivity(), builder);
 						}
 						else
 						{
@@ -659,10 +670,15 @@ public class SnaprKitFragment extends Fragment
 	/**
      * Function called from onPictureAcquired or after we return from Aviary 
      */
-	private void displayPhotoEdit(Context context, String inputFileName, String outputFileName, long timeStamp)
+	private void displayPhotoEdit(Context context, SnaprImageEditFragmentActivity.Builder builder)
 	{
 		if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod());
-		
+		if (Global.USE_FX_MODULE)
+		{
+			Intent intent = SnaprImageEditFragmentActivity.getIntentForStartActivity(context, builder); 
+			if (getActivity() != null) startActivityForResult(intent, SnaprImageEditFragmentActivity.EDIT_IMAGE);
+			else mPendingIntent = intent;
+		}
 		if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
 	}
 	
@@ -806,10 +822,45 @@ public class SnaprKitFragment extends Fragment
 		    	break;
 		    }
 		    
+		    // FX module photo edit complete
+		    case SnaprImageEditFragmentActivity.EDIT_IMAGE:
+		    {
+		    	if (Global.USE_FX_MODULE)
+		    	{	
+			    	if (resultCode == Activity.RESULT_OK)
+			        {
+				    	// Get the filename
+						String fileName = data.getStringExtra(SnaprImageEditFragmentActivity.EXTRA_FILEPATH);
+						
+						// Get the analytics
+						ArrayList<String> analytics = data.getStringArrayListExtra(SnaprImageEditFragmentActivity.EXTRA_ANALYTICS);
+						
+						// Send analytics data out through listener
+						if (mSnaprKitListener != null && analytics != null)
+						{
+							for (int i = 0; i< analytics.size(); i++)
+							{
+								String url = analytics.get(i);
+								mSnaprKitListener.onSnaprKitParent(url);
+							}
+						}
+						
+						// Display the share options
+						displayPhotoShareOptions(fileName, mLastPictureLatitude, mLastPictureLongitude, mLastDescription, mLastFoursquareVenueId, mLastFoursquareVenueName, mLastLocationName, mPictureAcquisitionManager.getUserData());
+			        }
+			    	else
+			    	{
+			    		if (Global.LOG_MODE) Global.log(Global.TAG, Global.getCurrentMethod() + ": Returned from FX module with a non-OK error code");
+			    		mWebView.loadUrl(getStartupUrl());
+			    	}
+		    	}
+		    	break;
+		    }
+		    
 		    case ACTION_REQUEST_FEATHER:
 		    {
 		    	// Enable Aviary Feather based on settings
-		    	if (Global.FEATURE_AVIARY_SDK)
+		    	if (Global.USE_AVIARY_SDK)
 		    	{
 			    	// Get the URI
 			    	String fileName = null;
@@ -875,28 +926,18 @@ public class SnaprKitFragment extends Fragment
         if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod());
     }
     
-    @Override public void onActivityCreated(Bundle savedInstanceState) {
+    @SuppressWarnings("unused")
+	@Override public void onActivityCreated(Bundle savedInstanceState) {
     	super.onActivityCreated(savedInstanceState);
     	
     	// Init rest of the app
         init(savedInstanceState);
         
-//        Location location = mPictureAcquisitionManager.getLocation();
-//        int callerId = mPictureAcquisitionManager.getCallerId();
-//        if (location == null || callerId == -1) return;
-//        // Proceed based on caller
-//		
-//        if (callerId == Global.GEOLOCATION_CALLER_0)
-//		{
-//			// Go to onPictureTaken2
-//			if (Global.LOG_MODE) Global.log( " -> " + Global.getCurrentMethod() + ": Continuing with onPictureTaken2");
-//			mPictureAcquisitionManager.onPictureAcquired2(mPictureAcquisitionManager.getLocation());
-//		}
-//		else if (callerId == Global.GEOLOCATION_CALLER_1)
-//		{
-//			// Resume with attemptTagging2
-//			mPictureAcquisitionManager.attemptTagging2(location);
-//		}
+        if (Global.USE_FX_MODULE && mPendingIntent != null)
+        {
+        	startActivityForResult(mPendingIntent, SnaprImageEditFragmentActivity.EDIT_IMAGE);
+        	mPendingIntent = null;
+        }
     }
     
 	private boolean onBackPressed()
@@ -1449,7 +1490,7 @@ public class SnaprKitFragment extends Fragment
     	public void run(String url)
     	{
     	    // Enable only if we have Aviary Feather
-    		if (Global.FEATURE_AVIARY_SDK)
+    		if (Global.USE_AVIARY_SDK)
     	    {
 	    		// Log
 	    		if (Global.LOG_MODE) Global.log(Global.TAG, " -> editPhotoAction(): Received URL " + url);
@@ -1805,7 +1846,7 @@ public class SnaprKitFragment extends Fragment
     	mActionMappings.add(new UrlMapping("snapr://photo-library.*", photoGalleryAction));
     	mActionMappings.add(new UrlMapping("snapr://action.*", actionSheetAction));
     	mActionMappings.add(new UrlMapping("snapr://link.*", externalBrowseAction));
-    	if (Global.FEATURE_AVIARY_SDK) mActionMappings.add(new UrlMapping("snapr://aviary.*", editPhotoAction));
+    	if (Global.USE_AVIARY_SDK) mActionMappings.add(new UrlMapping("snapr://aviary.*", editPhotoAction));
 		mActionMappings.add(new UrlMapping("snapr://.*", defaultAction));
 		mActionMappings.add(new UrlMapping("file://.*", defaultAction));
 		mActionMappings.add(new UrlMapping("http://.*", externalBrowseAction));
@@ -2285,7 +2326,7 @@ public class SnaprKitFragment extends Fragment
     	{
     		// Log
         	if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod() + ": Found saved state");
-    		
+        	
         	long photoTimestamp = savedInstanceState.getLong("mPhotoTimestamp");
         	mPictureAcquisitionManager.setPhotoTimestamp(photoTimestamp);
         	if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Restored mPhotoTimestamp to " + photoTimestamp);
@@ -2570,7 +2611,6 @@ public class SnaprKitFragment extends Fragment
 	
 	private Context getContext()
 	{
-		//return SnaprKitApplication.getInstance();
 		return (getActivity()!=null?getActivity():mView.getContext());
 	}
 	
@@ -2809,4 +2849,14 @@ public class SnaprKitFragment extends Fragment
 	    	mAccessToken = userInfo[2];
 		}
 	}
+	
+    public void setFilterPackPath(String path)
+    {
+    	mFilterPackPath = path;
+    }
+
+    public void setStickerPackPath(String path)
+    {
+    	mStickerPathPath = path;
+    }
 }

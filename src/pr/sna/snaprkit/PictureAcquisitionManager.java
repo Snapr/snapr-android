@@ -71,6 +71,14 @@ public class PictureAcquisitionManager
 		super.finalize();
 	}
 	
+    private Context getContext()
+    {
+    	// Returns the context to be used for any UI thread tasks in this class
+    	// Background thread tasks should not use this Context
+    	// Returns null when the fragment is not attached to an activity 
+    	return mFragment.getActivity();
+    }
+    
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		
 		if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod());
@@ -116,9 +124,9 @@ public class PictureAcquisitionManager
 	public void onLocationProviderChangesComplete()
 	{    	
     	// Get location provider states
-    	boolean currentNetworkProviderEnabled = GeoUtils.isNetworkProviderEnabled(SnaprKitApplication.getInstance());
-    	boolean currentWifiProviderEnabled = GeoUtils.isWifiProviderEnabled(SnaprKitApplication.getInstance());
-    	boolean currentGpsProviderEnabled = GeoUtils.isGpsProviderEnabled(SnaprKitApplication.getInstance());
+    	boolean currentNetworkProviderEnabled = GeoUtils.isNetworkProviderEnabled(getContext());
+    	boolean currentWifiProviderEnabled = GeoUtils.isWifiProviderEnabled(getContext());
+    	boolean currentGpsProviderEnabled = GeoUtils.isGpsProviderEnabled(getContext());
     	
     	// Restart geolocation service if the user changed the location provider settings
     	if ((currentNetworkProviderEnabled != mNetworkProviderEnabled) || 
@@ -317,13 +325,13 @@ public class PictureAcquisitionManager
     	if (data != null) mImageUri = data.getData();
     	boolean hasUri = mImageUri != null;
     	boolean isContentUri = hasUri ? mImageUri.getScheme().equalsIgnoreCase("content") : null;
-    	mImagePath = hasUri ? isContentUri ? UrlUtils.getRealPathFromURI(SnaprKitApplication.getInstance(), mImageUri) : UrlUtils.imageUri2Path(mImageUri) : null;
+    	mImagePath = hasUri ? isContentUri ? UrlUtils.getRealPathFromURI(getContext(), mImageUri) : UrlUtils.imageUri2Path(mImageUri) : null;
 		
 		// Check again
 		if (mImagePath == null)
 		{
 			if (Global.LOG_MODE) Global.log(Global.TAG, Global.getCurrentMethod() + ": Picture NOT acquired...");
-			AlertUtils.showAlert(mFragment.getActivity(), mFragment.getString(R.string.snaprkit_error_image_contents_retrieval_failure), mFragment.getString(R.string.snaprkit_error));
+			AlertUtils.showAlert(getContext(), getContext().getString(R.string.snaprkit_error_image_contents_retrieval_failure), mFragment.getString(R.string.snaprkit_error));
             terminatePictureAcquisition(null);
 		}
 		else
@@ -386,11 +394,11 @@ public class PictureAcquisitionManager
     		if (Global.LOG_MODE) Global.log(Global.TAG, Global.getCurrentMethod() + ": Location is NOT acceptable...");
     		
     		// Check if the location providers are on
-    		mNetworkProviderEnabled = GeoUtils.isNetworkProviderEnabled(SnaprKitApplication.getInstance());
-    		mGpsProviderEnabled = GeoUtils.isGpsProviderEnabled(SnaprKitApplication.getInstance());
-    		mWifiProviderEnabled = GeoUtils.isWifiProviderEnabled(SnaprKitApplication.getInstance());
+    		mNetworkProviderEnabled = GeoUtils.isNetworkProviderEnabled(getContext());
+    		mGpsProviderEnabled = GeoUtils.isGpsProviderEnabled(getContext());
+    		mWifiProviderEnabled = GeoUtils.isWifiProviderEnabled(getContext());
     		
-    		String disabledProviders = CameraUtils.getDisabledProvidersString(mFragment.getActivity(), mNetworkProviderEnabled, mWifiProviderEnabled, mGpsProviderEnabled);
+    		String disabledProviders = CameraUtils.getDisabledProvidersString(getContext(), mNetworkProviderEnabled, mWifiProviderEnabled, mGpsProviderEnabled);
     		
     		if (disabledProviders != null && disabledProviders.length() > 0)
     		{
@@ -519,7 +527,7 @@ public class PictureAcquisitionManager
 					if (Global.LOG_MODE) Global.log( " -> " + Global.getCurrentMethod() + ":      accuracy " + accuracy);
 					if (Global.LOG_MODE) Global.log( " -> " + Global.getCurrentMethod() + ":      date " + new Date(dateLong));
 					
-					if (mFragment.getActivity() == null) return;
+					if (getContext() == null) return;
 					
 					// Proceed based on caller
 					if (caller == Global.GEOLOCATION_CALLER_0)
@@ -551,7 +559,7 @@ public class PictureAcquisitionManager
 		// Unregister broadcast receiver
     	if (mGeolocationCallbackReceiver != null && mFragment != null)
     	{
-    		SnaprKitApplication.getInstance().unregisterReceiver(mGeolocationCallbackReceiver);
+    		getContext().unregisterReceiver(mGeolocationCallbackReceiver);
     		mGeolocationCallbackReceiver = null;
     		cancelLocationPendingDialog();
     		return true;
@@ -573,7 +581,7 @@ public class PictureAcquisitionManager
 		// Register broadcast receiver
 		IntentFilter filter = new IntentFilter(Global.INTENT_BROADCAST_LOCATION);
 		filter.addCategory(Intent.CATEGORY_DEFAULT);
-		SnaprKitApplication.getInstance().registerReceiver(mGeolocationCallbackReceiver, filter);
+		getContext().registerReceiver(mGeolocationCallbackReceiver, filter);
     	
     	// Return
     	return true;
@@ -589,10 +597,10 @@ public class PictureAcquisitionManager
     	
     	// Start geolocation in background and retrieve location in multiple ways
     	// Send the information to the upload service via intent
-		Intent intent = new Intent(SnaprKitApplication.getInstance(), GeolocationService.class);
+		Intent intent = new Intent(getContext(), GeolocationService.class);
         intent.putExtra(Global.PARAM_ACTION, Global.ACTION_GEOLOCATION_START);
         intent.putExtra(Global.PARAM_GEOLOCATION_CALLER, caller);
-        SnaprKitApplication.getInstance().startService(intent);
+        getContext().startService(intent);
     	
     	if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
     }
@@ -601,9 +609,9 @@ public class PictureAcquisitionManager
     {
     	// Send message to the service to broadcast location
 		if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod() + ": Retrieving location results");
-		Intent intent = new Intent(SnaprKitApplication.getInstance(), GeolocationService.class);
+		Intent intent = new Intent(getContext(), GeolocationService.class);
         intent.putExtra(Global.PARAM_ACTION, Global.ACTION_GEOLOCATION_BROADCAST);
-        SnaprKitApplication.getInstance().startService(intent);
+        getContext().startService(intent);
     }
     
     public void initCamera()
@@ -689,7 +697,7 @@ public class PictureAcquisitionManager
     private void showProviderDisabledAlert(String title, String message)
     {
 		if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod());
-    	AlertDialog.Builder builder = new AlertDialog.Builder(mFragment.getActivity());  
+    	AlertDialog.Builder builder = new AlertDialog.Builder(getContext());  
     	builder.setMessage(message)  
     		.setCancelable(true)
     		.setTitle(title)
@@ -703,7 +711,7 @@ public class PictureAcquisitionManager
     					// Enable Wifi
     					if (!mWifiProviderEnabled)
     					{
-    						GeoUtils.enableWifiProvider(SnaprKitApplication.getInstance(), true);
+    						GeoUtils.enableWifiProvider(getContext(), true);
     					}
     					
     					// Check if we have to show the dialog
@@ -753,8 +761,8 @@ public class PictureAcquisitionManager
     		return;
     	}
     	
-    	mTransitionDialog = new TransitionDialog(mFragment.getActivity());
-    	mTransitionDialog.showTransitionDialog(mFragment.getString(R.string.snaprkit_location_determining), mFragment.getString(R.string.snaprkit_please_wait));
+    	mTransitionDialog = new TransitionDialog(getContext());
+    	mTransitionDialog.showTransitionDialog(getContext().getString(R.string.snaprkit_location_determining), mFragment.getString(R.string.snaprkit_please_wait));
 	    
     	if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
     }
@@ -782,8 +790,8 @@ public class PictureAcquisitionManager
     		return;
     	}
     	
-    	mTransitionDialog = new TransitionDialog(mFragment.getActivity());
-    	mTransitionDialog.showTransitionDialog(mFragment.getString(R.string.snaprkit_media_image_processing), mFragment.getString(R.string.snaprkit_please_wait));
+    	mTransitionDialog = new TransitionDialog(getContext());
+    	mTransitionDialog.showTransitionDialog(getContext().getString(R.string.snaprkit_media_image_processing), mFragment.getString(R.string.snaprkit_please_wait));
 	    
     	if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
     }
@@ -840,16 +848,16 @@ public class PictureAcquisitionManager
 			mIsActive = false;
 			
             // Ask the media scanner to scan it
-			if (imagePath != null) CameraUtils.scanMedia(mFragment.getActivity(), imagePath);
+			if (imagePath != null) CameraUtils.scanMedia(getContext(), imagePath);
 			
 			cancelRotationFixPendingDialog();
 	        
 			// Send message for the geolocation service to finish
-			Intent intent = new Intent(SnaprKitApplication.getInstance(), GeolocationService.class);
-			SnaprKitApplication.getInstance().stopService(intent);
+			Intent intent = new Intent(getContext(), GeolocationService.class);
+			getContext().stopService(intent);
 			
 	        // Call the picture taken function 
-			mPictureAcquisitionListener.onPictureAcquired(SnaprKitApplication.getInstance(), imagePath, mImageSource, (mLocation != null)?mLocation.getLatitude():0, (mLocation != null)?mLocation.getLongitude():0, mTakePhotoTimestamp);
+			mPictureAcquisitionListener.onPictureAcquired(getContext(), imagePath, mImageSource, (mLocation != null)?mLocation.getLatitude():0, (mLocation != null)?mLocation.getLongitude():0, mTakePhotoTimestamp);
 			
 			if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
 		}
