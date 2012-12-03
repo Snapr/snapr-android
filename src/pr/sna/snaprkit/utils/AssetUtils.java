@@ -16,7 +16,7 @@ public class AssetUtils
 {
 	public void prepareSnaprAssets(Activity activity, AssetCopierListener listener, boolean showDialogs)
 	{
-		if (android.os.Build.VERSION.SDK_INT >= Global.SDK_HONEYCOMB && !AssetUtils.areSnaprAssetsPresent(activity))
+		if (android.os.Build.VERSION.SDK_INT >= Global.SDK_HONEYCOMB && android.os.Build.VERSION.SDK_INT < Global.SDK_JELLYBEAN && !AssetUtils.areSnaprAssetsPresent(activity))
     	{
     		// Copy assets and load			
     		AssetsCopier assetsCopier = new AssetsCopier(activity, listener, showDialogs); 

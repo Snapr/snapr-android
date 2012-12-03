@@ -2731,7 +2731,7 @@ public class SnaprKitFragment extends Fragment
     	// Using HTML files from assets folder does not allow passing parameters or anchor strings 
     	// http://code.google.com/p/android/issues/detail?id=17535
     	// Ensure our assets have been extracted to data partition on Honeycomb and ICS
-    	if (android.os.Build.VERSION.SDK_INT >= Global.SDK_HONEYCOMB && !AssetUtils.areSnaprAssetsPresent(SnaprKitFragment.this.getActivity()))
+    	if (android.os.Build.VERSION.SDK_INT >= Global.SDK_HONEYCOMB && android.os.Build.VERSION.SDK_INT < Global.SDK_JELLYBEAN && !AssetUtils.areSnaprAssetsPresent(SnaprKitFragment.this.getActivity()))
     	{
     		// Copy assets and load
 			PostAssetCopyUrlRedirecter postAssetCopyUrlRedirecter = new PostAssetCopyUrlRedirecter(fullUrl);

@@ -51,6 +51,7 @@ public class Global
 	
 	// Android SDK versions
 	public static final int     SDK_HONEYCOMB = 11;
+	public static final int     SDK_JELLYBEAN = 16;
 	
 	// Directories
 	public static final String DIR_DCIM = Environment.getExternalStorageDirectory().getAbsolutePath() + "/DCIM";
@@ -340,7 +341,7 @@ public class Global
 		}
 		else
 		{
-			if (android.os.Build.VERSION.SDK_INT >= Global.SDK_HONEYCOMB)
+			if (android.os.Build.VERSION.SDK_INT >= Global.SDK_HONEYCOMB && android.os.Build.VERSION.SDK_INT < Global.SDK_JELLYBEAN)
 			{
 				// Special workaround for Honeycomb
 				return "file://" + AssetUtils.getSnaprAssetsDirectory(activity);
