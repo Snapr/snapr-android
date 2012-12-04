@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
 import java.util.Vector;
 
@@ -26,6 +27,7 @@ import pr.sna.snaprkit.utils.GeoManager;
 import pr.sna.snaprkit.utils.GeoManager.GeoListener;
 import pr.sna.snaprkit.utils.NetworkUtils;
 import pr.sna.snaprkit.utils.UrlUtils;
+import pr.sna.snaprkit.SnaprEffect.EffectConfig;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -108,6 +110,7 @@ public class SnaprKitFragment extends Fragment
 	private String mFilterPackPath;		// the location (under assets) where the filter packs will be loaded from
 	private String mStickerPathPath;	// the location (under assets) where the sticker packs will be loaded from
 	
+	private List<EffectConfig> mEffectConfigs;
 	private Intent mPendingIntent;
 	
 	@Override
@@ -279,6 +282,7 @@ public class SnaprKitFragment extends Fragment
 							SnaprImageEditFragmentActivity.Builder builder = new SnaprImageEditFragmentActivity.Builder(new File(fileName), new File(fileName), true, timeStamp);
 							builder.setStickerPackPath(mStickerPathPath);
 							builder.setFilterPackPath(mFilterPackPath);
+							builder.setEffectConfigs(mEffectConfigs);
 							displayPhotoEdit(getActivity(), builder);
 						}
 						else
@@ -929,7 +933,6 @@ public class SnaprKitFragment extends Fragment
         if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod());
     }
     
-    @SuppressWarnings("unused")
 	@Override public void onActivityCreated(Bundle savedInstanceState) {
     	super.onActivityCreated(savedInstanceState);
     	
@@ -2865,4 +2868,22 @@ public class SnaprKitFragment extends Fragment
     {
     	mStickerPathPath = path;
     }
+    
+	/**
+	 * Gets the full collection of configurations for effects
+	 * @param config The configuration to set.
+	 */
+	public List<EffectConfig> getEffectConfigurations()
+	{
+		return mEffectConfigs;
+	}
+	
+	/**
+	 * Sets the full collection of configurations for effects, clearing out any existing entries.
+	 * @param config The configuration to set.
+	 */
+	public void setEffectConfigurations(List<EffectConfig> configs)
+	{
+		mEffectConfigs = configs;
+	}
 }
