@@ -129,7 +129,14 @@ public class WebViewExternalActivity extends Activity {
 		exitButton.setOnClickListener(new View.OnClickListener() {
 			
 			@Override
-			public void onClick(View v) {
+			public void onClick(View v)
+			{
+				// Remove the redirect_url param from the URL's set of params
+				String redirectUrl=UrlUtils.createRedirectUrlFromSnaprRedirectUrl(getRedirectUrl(), "error=Linking%20Closed");
+		    	
+				Intent resultIntent = new Intent();
+				resultIntent.putExtra(Global.PARAM_URL, redirectUrl);
+				setResult(Activity.RESULT_OK, resultIntent);
 				
 				// Terminate the activity
 				WebViewExternalActivity.this.finish();
@@ -174,9 +181,12 @@ public class WebViewExternalActivity extends Activity {
 				// Check if we are at the exit url
 				if (mBareExitUrl != null && bareUrl != null && bareUrl.equals(mBareExitUrl))
 				{
+					// Put together the redirect url
+					String redirectUrl = UrlUtils.createRedirectUrlFromSnaprRedirectUrl(url, null);
+					
 					// Close the activity and return redirect url
 					Intent resultIntent = new Intent();
-					resultIntent.putExtra(Global.PARAM_URL, url);
+					resultIntent.putExtra(Global.PARAM_URL, redirectUrl);
 					setResult(Activity.RESULT_OK, resultIntent);
 					finish();
 				}
@@ -418,7 +428,7 @@ public class WebViewExternalActivity extends Activity {
     	// Return
     	return null;
     }
-	
+    
     public void init(Bundle savedInstanceState)
     {
     	// Log

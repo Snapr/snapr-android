@@ -448,4 +448,39 @@ public class UrlUtils
 			existingParams.add(new BasicNameValuePair(paramName, paramValue));
 		}
     }
+    
+    /**
+     * Takes an URL in the form snapr://redirect?redirect_url=encoded_url&param1=x&param2=y
+     * and transforms it into an url like decode(encoded_url)&param1=x&param2=y
+     * @param snaprRedirectUrl - The full snapr://redirect URL
+     * @param additionalParams - Additional parameters to append in addition to supplied params in the url
+     * @return The redirect url
+     */
+    public static String createRedirectUrlFromSnaprRedirectUrl(String snaprRedirectUrl, String additionalParams)
+    {
+    	// Remove the redirect_url param from the URL's set of params
+    	Uri uri = Uri.parse(snaprRedirectUrl);
+    	
+    	if (uri == null || uri.getScheme() == null || !uri.getScheme().equals(Global.SCHEME_SNAPR)) return null;
+    	
+    	String encodedQuery = uri.getEncodedQuery();
+    	String encodedQuery2 = UrlUtils.removeParamValuePairFromEncodedQuery(Global.PARAM_REDIRECT_URL, encodedQuery);
+	
+    	// Set the url to the embedded parameter
+    	String redirectUrl = UrlUtils.getQueryParameter(uri, Global.PARAM_REDIRECT_URL);
+    	if (encodedQuery2.length() > 0)
+    	{
+    		redirectUrl = redirectUrl + "&" + encodedQuery2;
+    		if (!redirectUrl.endsWith("?")) redirectUrl += "&";
+    	}
+    	
+    	// Add the additional params
+    	if (additionalParams != null && additionalParams.length() > 0)
+    	{
+    		if (!redirectUrl.endsWith("?")) redirectUrl += "&";
+    		redirectUrl += additionalParams;
+    	}
+    	
+    	return redirectUrl;
+    }
 }
