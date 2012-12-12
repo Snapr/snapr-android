@@ -47,6 +47,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -115,6 +116,18 @@ public class SnaprKitFragment extends Fragment
 	
 	private List<EffectConfig> mEffectConfigs;
 	private Intent mPendingIntent;
+	
+	private Handler mHandler = new Handler();
+	
+	private Runnable mUpdateQueueSettings = new Runnable()
+	{
+		@Override
+		public void run()
+		{
+			mWebView.loadUrl("javascript:queue_settings('" + getUploadModeString(mQueueUploadModeWifiOnly) + "', " + (!mQueueUploadModeOn) + ");");
+	    	if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": UpdateQueueSettingsRunnable set JavaScript queue settings to Wifi-only " + mQueueUploadModeWifiOnly + " and upload mode on " + (!mQueueUploadModeOn));
+		}
+	};
 	
 	@Override
 	public void onSaveInstanceState(Bundle outState)
@@ -1958,9 +1971,11 @@ public class SnaprKitFragment extends Fragment
 					// Change flag
 					mMenuInitDone = true;
 				
-					// Set queue settings
-					mWebView.loadUrl("javascript:queue_settings('" + getUploadModeString(mQueueUploadModeWifiOnly) + "', " + (!mQueueUploadModeOn) + ");");
-			    	if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Set JavaScript queue settings to Wifi-only " + mQueueUploadModeWifiOnly + " and upload mode on " + (!mQueueUploadModeOn));
+					// Set queue settings using one second delay
+					//mWebView.loadUrl("javascript:queue_settings('" + getUploadModeString(mQueueUploadModeWifiOnly) + "', " + (!mQueueUploadModeOn) + ");");
+			    	//if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Set JavaScript queue settings to Wifi-only " + mQueueUploadModeWifiOnly + " and upload mode on " + (!mQueueUploadModeOn));
+					
+					mHandler.postDelayed(mUpdateQueueSettings, 1000);
 				}
 				
 				// Dismiss the camera transition dialog
