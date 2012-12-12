@@ -1,5 +1,6 @@
 package pr.sna.snaprkit;
 
+import android.annotation.SuppressLint;
 import java.io.File;
 import java.net.URI;
 import java.nio.charset.Charset;
@@ -21,6 +22,7 @@ import pr.sna.snaprkit.utils.SnaprJsonUtils;
 import pr.sna.snaprkit.utils.CountingMultipartEntity;
 import pr.sna.snaprkit.utils.CountingMultipartEntity.ProgressListener;
 
+@SuppressLint("UseValueOf")
 public class Uploader
 {	
 	// ------------------------------------------------------------------------
@@ -192,6 +194,11 @@ public class Uploader
 		
 		// Create the client
 		DefaultHttpClient client = new DefaultHttpClient();
+		
+		// Set client timeouts
+		client.getParams().setParameter("http.socket.timeout", Global.UPLOAD_TIMEOUT * 1000);
+		client.getParams().setParameter("http.connection-manager.timeout", new Long(Global.UPLOAD_TIMEOUT * 1000));
+		client.getParams().setParameter("http.protocol.head-body-timeout", Global.UPLOAD_TIMEOUT * 1000);
 		
 		try
 		{

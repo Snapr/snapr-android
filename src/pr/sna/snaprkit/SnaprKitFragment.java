@@ -1,6 +1,7 @@
 package pr.sna.snaprkit;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -9,6 +10,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.Vector;
 
+import org.apache.http.client.HttpResponseException;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -601,65 +604,108 @@ public class SnaprKitFragment extends Fragment
 				{
 					// Extract params
 					String localId = intent.getStringExtra(Global.PARAM_LOCAL_ID);
-					String errorType = intent.getStringExtra(Global.PARAM_ERROR_TYPE);
-					String errorMessage = intent.getStringExtra(Global.PARAM_ERROR_MESSAGE);
+					Exception exception = (Exception) intent.getSerializableExtra(Global.PARAM_EXCEPTION);
 					
-					// Take action
-					if (errorType != null)
+					// Take action based on exception type
+					if (exception instanceof SnaprApiException)
 					{
-						if (errorType.equals("authentication.authentication_required"))
+						String errorType = ((SnaprApiException) exception).getType();
+						String errorMessage = ((SnaprApiException) exception).getMessage();
+						
+						if (errorType != null)
 						{
-							// Override message 
-							errorMessage = getString(R.string.snaprkit_error_upload_invalid_login);
-							
-							// Show message
-							showUploadError(errorMessage);
-							
-							// Invalidate credentials
-							clearUserInfo();
-							
-							// Redirect to root
-							String url = getStartupUrl();
-							mWebView.loadUrl(url);
+							if (errorType.equals("authentication.authentication_required"))
+							{
+								// Override message 
+								errorMessage = getString(R.string.snaprkit_error_upload_invalid_login);
+								
+								// Show message
+								showUploadError(errorMessage);
+								
+								// Invalidate credentials
+								clearUserInfo();
+								
+								// Redirect to root
+								String url = getStartupUrl();
+								mWebView.loadUrl(url);
+							}
+							else if (errorType.equals("validation.duplicate_upload"))
+							{
+								// Override message
+								errorMessage = getString(R.string.snaprkit_error_upload_duplicate_image);
+								
+								// Show message
+								showUploadError(errorMessage);
+							}
+							else if (errorType.equals("validation.corrupt_file"))
+							{
+								// Override message
+								errorMessage = getString(R.string.snaprkit_error_upload_corrupt_image);
+								
+								// Cancel upload
+								Intent launchIntent = new Intent(getContext(), UploadService.class);
+								launchIntent.putExtra(Global.PARAM_ACTION, Global.ACTION_QUEUE_REMOVE);
+								launchIntent.putExtra(Global.PARAM_LOCAL_ID, localId);
+						        getContext().startService(intent);
+						        
+								// Show message
+								showUploadError(errorMessage);
+							}
+							else
+							{
+								// Display alert dialog
+								showUploadError(errorMessage);
+							}
 						}
-						else if (errorType.equals("validation.duplicate_upload"))
-						{
-							// Override message
-							errorMessage = getString(R.string.snaprkit_error_upload_duplicate_image);
-							
-							// Show message
-							showUploadError(errorMessage);
-						}
-						else if (errorType.equals("validation.corrupt_file"))
-						{
-							// Override message
-							errorMessage = getString(R.string.snaprkit_error_upload_corrupt_image);
-							
-							// Cancel upload
-							Intent launchIntent = new Intent(getContext(), UploadService.class);
-							launchIntent.putExtra(Global.PARAM_ACTION, Global.ACTION_QUEUE_REMOVE);
-							launchIntent.putExtra(Global.PARAM_LOCAL_ID, localId);
-					        getContext().startService(intent);
-					        
-							// Show message
-							showUploadError(errorMessage);
-						}
-						else if (errorType.equals("5xx"))
-						{
-							// Override message
-							errorMessage = getString(R.string.snaprkit_error_upload_server_error);
-							
-							// Set the queue to paused
-							updateQueueSettings(false, mQueueUploadModeWifiOnly);
-							
-							// Show message
-							showUploadError(errorMessage);
-						}
-						else
-						{
-							// Display alert dialog
-							showUploadError(errorMessage);
-						}
+					}
+					else if (exception instanceof HttpResponseException)
+					{
+						int httpStatusCode = ((HttpResponseException) exception).getStatusCode(); 
+						
+						// Override message
+						String errorMessage = (httpStatusCode >= 500)?getString(R.string.snaprkit_error_upload_server_error):
+								getString(R.string.snaprkit_error_upload_connect);
+						
+						// Set the queue to paused
+						updateQueueSettings(false, mQueueUploadModeWifiOnly);
+						
+						// Show message
+						showUploadError(errorMessage);
+					}
+					else if (exception instanceof ConnectTimeoutException)
+					{
+						// Override message
+						String errorMessage = getString(R.string.snaprkit_error_upload_connect_timeout);
+						
+						// Set the queue to paused
+						updateQueueSettings(false, mQueueUploadModeWifiOnly);
+						
+						// Show message
+						showUploadError(errorMessage);
+					}
+					else if (exception instanceof IOException)
+					{
+						// Other types of IOExceptions (HttpResponseException and ConnectionTimeOutException) handled above
+						String errorMessage = getString(R.string.snaprkit_error_upload_connect);
+						
+						// Set the queue to paused
+						updateQueueSettings(false, mQueueUploadModeWifiOnly);
+						
+						// Show message
+						showUploadError(errorMessage);
+					}
+					else
+					{
+						// Another type of error
+						
+						// Get error message
+						String errorMessage = getString(R.string.snaprkit_error_upload);
+						
+						// Set the queue to paused
+						updateQueueSettings(false, mQueueUploadModeWifiOnly);
+						
+						// Show message
+						showUploadError(errorMessage);
 					}
 				}
 				else

@@ -181,6 +181,7 @@ public class Global
 	public static final String PARAM_OTHER_BUTTON_3_LABEL = "otherButton3";
 	public static final String PARAM_ACTION_ID = "actionID";
 	public static final String PARAM_LANGUAGE = "language";
+	public static final String PARAM_EXCEPTION = "exception";
 	
 	// Images
 	public static final String IMAGE_NAME_PREFIX = "SNAPR_";
@@ -207,6 +208,9 @@ public class Global
 	public static final int    BROADCAST_UPLOAD_COMPLETED = 4;
 	public static final int    BROADCAST_UPLOAD_STATUS = 5;
 	public static final int    BROADCAST_UPLOAD_ERROR = 6;
+	
+	// Upload timeout (seconds)
+	public static final int    UPLOAD_TIMEOUT = 30; 
 	
 	// Upload modes
 	public static final int    UPLOAD_MODE_ON = 0;

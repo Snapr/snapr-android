@@ -1,5 +1,6 @@
 package pr.sna.snaprkit;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -17,10 +18,9 @@ import pr.sna.snaprkit.utils.NetworkUtils;
 
 import android.app.Service;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
-
-import org.apache.http.client.HttpResponseException;
 
 public class UploadService extends Service
 {
@@ -306,24 +306,25 @@ public class UploadService extends Service
 		{
 			try
 			{
-				if (e instanceof SnaprApiException || (e instanceof HttpResponseException && (((HttpResponseException) e).getStatusCode() >= 500)))
-				{
-					// Broadcast error
-					Intent intent = new Intent();
-					intent.setAction(Global.INTENT_BROADCAST_UPLOAD);
-					intent.addCategory(Intent.CATEGORY_DEFAULT);
-					intent.putExtra(Global.PARAM_ACTION,
-							Global.BROADCAST_UPLOAD_ERROR);
-					intent.putExtra(Global.PARAM_LOCAL_ID, localId);
-					intent.putExtra(Global.PARAM_ERROR_TYPE, ((SnaprApiException)e).getType());
-					intent.putExtra(Global.PARAM_ERROR_MESSAGE, e.getMessage());
-					UploadService.this.sendBroadcast(intent);
-				}
+				// Broadcast error
+				Intent intent = new Intent();
+				intent.setAction(Global.INTENT_BROADCAST_UPLOAD);
+				intent.addCategory(Intent.CATEGORY_DEFAULT);
+				intent.putExtra(Global.PARAM_ACTION,
+						Global.BROADCAST_UPLOAD_ERROR);
+				intent.putExtra(Global.PARAM_LOCAL_ID, localId);
+				Bundle extraException = new Bundle();
+				extraException.putSerializable(Global.PARAM_EXCEPTION, (Serializable) e);
+				intent.putExtras(extraException);
+				
+				// Send the broadcast
+				UploadService.this.sendBroadcast(intent);
 				
 				// Wait 3 seconds after failed upload
 				Thread.sleep(3000);
 				
-			} catch (Exception ex)
+			}
+			catch (Exception ex)
 			{
 			}
 		}
