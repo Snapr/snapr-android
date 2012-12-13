@@ -458,6 +458,9 @@ public class UrlUtils
      */
     public static String createRedirectUrlFromSnaprRedirectUrl(String snaprRedirectUrl, String additionalParams)
     {
+    	// Check params
+    	if (snaprRedirectUrl == null) return null;
+    	
     	// Remove the redirect_url param from the URL's set of params
     	Uri uri = Uri.parse(snaprRedirectUrl);
     	

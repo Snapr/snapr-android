@@ -878,8 +878,11 @@ public class SnaprKitFragment extends Fragment
 		        	if (Global.LOG_MODE) Global.log(Global.TAG, Global.getCurrentMethod() + ": Returned from external URL display with redirect URL " + url);
 		        	
 		        	// Navigate to page
-		        	Action action = getActionForUrl(url);
-					action.run(url);
+		        	if (url != null)
+		        	{
+		        		Action action = getActionForUrl(url);
+		        		action.run(url);
+		        	}
 		        }
 		    	else
 		    	{
