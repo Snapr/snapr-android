@@ -181,6 +181,7 @@ public class Global
 	public static final String PARAM_OTHER_BUTTON_3_LABEL = "otherButton3";
 	public static final String PARAM_ACTION_ID = "actionID";
 	public static final String PARAM_LANGUAGE = "language";
+	public static final String PARAM_LOCALE = "locale";
 	public static final String PARAM_EXCEPTION = "exception";
 	
 	// Images

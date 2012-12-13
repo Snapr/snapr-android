@@ -1091,6 +1091,7 @@ public class SnaprKitFragment extends Fragment
         params.add(new BasicNameValuePair(Global.PARAM_APPMODE, "android"));
         params.add(new BasicNameValuePair(Global.PARAM_ENVIRONMENT, Global.ENVIRONMENT));
         params.add(new BasicNameValuePair(Global.PARAM_LANGUAGE, LocalizationUtils.getLanguageCode()));
+        params.add(new BasicNameValuePair(Global.PARAM_LOCALE, LocalizationUtils.getLocaleCode()));
         
         // Customize some parameters based on logged in status
         if(haveUserInfo())
