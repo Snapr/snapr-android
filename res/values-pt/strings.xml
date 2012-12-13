@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<resources>
+	
+    <!-- SnaprKit -->
+    <string name="snaprkit_name">Snapr</string>
+    <string name="snaprkit_close">Fechar</string>
+    <string name="snaprkit_and">e</string>
+    <string name="snaprkit_please_wait">Aguarde por favor</string>
+    <string name="snaprkit_assets_loading">Ativos de carga&#8230;</string>
+    <string name="snaprkit_media_select_camera">Selecionar a câmera</string>
+    <string name="snaprkit_media_select_picture">Selecionar a foto</string>
+    <string name="snaprkit_media_image_processing">Processamento de foto&#8230;</string>
+    <string name="snaprkit_error">Erro</string>
+    <string name="snaprkit_error_upload">Upload de erro</string>
+    <string name="snaprkit_error_upload_corrupt_image">Upload Error: Invalid File!</string>
+    <string name="snaprkit_error_upload_duplicate_image">Upload Error: This image has been uploaded before!</string>
+    <string name="snaprkit_error_upload_server_error">Carregar Erro: Arquivo Inválido!</string>
+    <string name="snaprkit_error_upload_connect_timeout">Carregar Erro: O tempo limite de upload. Por favor, tente novamente mais tarde.</string>
+    <string name="snaprkit_error_upload_connect">Carregar Erro: Ocorreu um erro de conexão. Por favor, tente novamente mais tarde.</string>
+    <string name="snaprkit_error_upload_invalid_login">Carregar erro: detalhes de login inválidas!</string>
+    <string name="snaprkit_error_location_provider_disabled">Os prestadores de localização está desativado. Gostaria de habilitá-los e tentar obter a localização de novo?</string>
+    <string name="snaprkit_error_location_providers_disabled">The location providers are disabled. Would you like to enable it and try to get the location again?</string>
+    <string name="snaprkit_error_location_accuracy">Não foi possível obter uma localização precisa</string>
+    <string name="snaprkit_error_location_retrieval_failure">Não foi possível recuperar a sua localização!</string>
+    <string name="snaprkit_error_image_contents_retrieval_failure">Falha ao recuperar o conteúdo de imagem!</string>
+    <string name="snaprkit_error_unknown">Erro desconhecido!</string>
+    <string name="snaprkit_location_determining">Determinar a sua localização&#8230;</string>
+    <string name="snaprkit_location_provider_network">rede</string>
+    <string name="snaprkit_location_provider_gps">GPS</string>
+    <string name="snaprkit_location_provider_wifi">WiFi</string>
+    <string name="snaprkit_webview_loading">Carregamento %1$d%%&#8230;</string>
+    <string name="snaprkit_webview_browsing">Navegando site externo</string>
+    <string name="snaprkit_log_select">Selecionar um log:</string>
+    <string name="snaprkit_log_clear">Limpar logs</string>
+    <string name="snaprkit_log_send">Enviar Log Sessão Atual</string>
+    <string name="snaprkit_log_send_previous">Enviar Log Sessão Anterior</string>
+    <string name="snaprkit_log_email_address">snaprandroid@gmail.com</string>
+    <string name="snaprkit_log_email_subject">Android Log Dispositivo</string>
+    <string name="snaprkit_log_email_body_text">&lt;Por favor, explique o problema aqui&gt;</string>
+    <string name="snaprkit_log_email_send">Enviar email com log&#8230;</string>
+    
+</resources>
