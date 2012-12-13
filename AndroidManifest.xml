@@ -51,9 +51,10 @@
 			android:configChanges="keyboardHidden|orientation"> 
         </activity> 
         <activity
-            android:name="pr.sna.snaprkit.SnaprImageEditFragmentActivity"
-            android:screenOrientation="portrait"
-            android:configChanges="keyboardHidden|orientation">
+			android:name="pr.sna.snaprkit.SnaprImageEditFragmentActivity"
+			android:configChanges="keyboardHidden|orientation"
+			android:screenOrientation="portrait"
+			android:theme="@style/Application.Theme.NoTitleBar">
         </activity>
         <!-- SnaprKit: Activities for Aviary Feather integration, optional 
              Double-check with latest Aviary instructions
