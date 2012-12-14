@@ -1457,13 +1457,14 @@ public class SnaprKitFragment extends Fragment
 			if (redirectUrl == null || redirectUrl.length() == 0)
 			{
 				redirectUrl = getSnaprUrl(UrlUtils.getFullLocalUrl(Global.URL_UPLOAD));
-				if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Found redirect URL " + redirectUrl);
 				if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Original URL was " + url);
+				if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": No redirect URL in original URL ");
+				if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Adding default redirect URL " + redirectUrl);
 			}
 			else
 			{
-				if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": No redirect URL in original URL ");
 				if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Original URL was " + url);
+				if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Found redirect URL " + redirectUrl);
 			}
 			
 			// Create the localId if blank
@@ -1471,9 +1472,6 @@ public class SnaprKitFragment extends Fragment
 			{
 				localId = getUploadLocalId();
 			}
-			
-			// Log the description
-			if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": step Received description as " + description);
 			
 			// Send the information to the upload service via intent
 			Intent uploadIntent = new Intent(getContext(), UploadService.class);

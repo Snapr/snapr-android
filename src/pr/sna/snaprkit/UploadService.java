@@ -881,7 +881,9 @@ public class UploadService extends Service
 			if (existingUploadInfo == null)
 			{
 				if (Global.LOG_MODE)
-					Global.log("File with localId " + localId + " does not exist ");
+				{
+					Global.log("Adding file with localId " + localId + " to queue...");
+				}
 
 				// Create upload object
 				UploadInfo uploadInfo = new UploadInfo();
