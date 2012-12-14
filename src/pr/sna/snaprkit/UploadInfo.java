@@ -332,7 +332,7 @@ public class UploadInfo
 			URI uri = URI.create("snapr://upload?" + getUploadParams());
 			List<NameValuePair> params = URLEncodedUtils.parse(uri, "UTF-8");
 			
-			// Loop the list and add each parameter to the POST
+			// Loop the list and add each parameter to the JSON
 			for (int i=0; i<params.size(); i++)
 			{
 				// Extract the GET param
@@ -344,7 +344,10 @@ public class UploadInfo
 				if (paramValue == null) paramValue = "";
 				
 				// Add the new JSON param
-				jsonUpload.put(paramName, paramValue);
+				if (isUploadDisplayParam(paramName))
+				{
+					jsonUpload.put(paramName, paramValue);
+				}
 			}
 		}
 		catch (Exception e)
@@ -354,6 +357,37 @@ public class UploadInfo
 		
 		return jsonUpload;
     }
+    
+    /**
+	 * Determines whether a certain parameter should be added to the upload JSON used for display purposes
+	 * @param paramName Parameter name
+	 * @return Boolean indicating whether parameter should be added to upload JSON
+	 */
+	public boolean isUploadDisplayParam(String paramName)
+	{
+		String[] excludedParams = {"redirect_url","back_url"};
+		
+		return !isInStringArray(paramName, excludedParams);
+	}
+	
+	/**
+	 * Determines whether string is in string array
+	 * @param item - String to find
+	 * @param items - Array of strings
+	 * @return True if present, false otherwise
+	 */
+	private boolean isInStringArray(String item, String[] items)
+	{
+		for (int i=0; i<items.length; i++)
+		{
+			if (items[i] != null && items[i].equals(item))
+			{
+				return true;
+			}
+		}
+	
+		return false;
+	}
     
 	// ------------------------------------------------------------------------
 	// Constructors and Destructor

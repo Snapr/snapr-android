@@ -2,6 +2,7 @@ package pr.sna.snaprkit;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -1431,7 +1432,7 @@ public class SnaprKitFragment extends Fragment
 				latitude = "" + geoLocation.getLatitude();
 				longitude = "" + geoLocation.getLongitude();
 			}
-			else
+			else if (mLastPictureLatitude != 0 && mLastPictureLongitude != 0)
 			{
 				latitude = "" + mLastPictureLatitude;
 				longitude = "" + mLastPictureLongitude;
@@ -1448,11 +1449,15 @@ public class SnaprKitFragment extends Fragment
 			else if (modifyDateTime != null && modifyDateTime.length() != 0)
 			{
 				date = modifyDateTime;
-				
+			}
+			else if (mLastPictureDate != null)
+			{
+				SimpleDateFormat sdf = new SimpleDateFormat(Global.DATE_FORMAT_API); 
+				date = sdf.format(mLastPictureDate);
 			}
 			else
 			{
-				date = "" + mLastPictureDate;
+				date = "";
 			}
 			
 			// Set the location

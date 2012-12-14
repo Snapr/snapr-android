@@ -170,7 +170,7 @@ public class Uploader
 				if (paramValue == null) paramValue = "";
 				
 				// Add the new POST param
-				if (isUploadParam(paramName))
+				if (isUploadRequestParam(paramName))
 				{
 					entity.addPart(paramName, new StringBody(paramValue, "text/plain", Charset.forName( "UTF-8" )));
 					if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Added param " + paramName + " to web request as " + paramValue);
@@ -274,19 +274,30 @@ public class Uploader
 	 * @param paramName Parameter name
 	 * @return Boolean indicating whether parameter should be added to upload request
 	 */
-	public boolean isUploadParam(String paramName)
+	private boolean isUploadRequestParam(String paramName)
 	{
-		String[] excludedParams = {"snapr_user","display_username","local_id","redirect_url","photo"};
+		String[] excludedParams = {"snapr_user","display_username","local_id","redirect_url","photo","back_url"};
 		
-		for (int i=0; i<excludedParams.length; i++)
+		return !isInStringArray(paramName, excludedParams);
+	}
+	
+	/**
+	 * Determines whether string is in string array
+	 * @param item - String to find
+	 * @param items - Array of strings
+	 * @return True if present, false otherwise
+	 */
+	private boolean isInStringArray(String item, String[] items)
+	{
+		for (int i=0; i<items.length; i++)
 		{
-			if (excludedParams[i].equals(paramName))
+			if (items[i] != null && items[i].equals(item))
 			{
-				return false;
+				return true;
 			}
 		}
 	
-		return true;
+		return false;
 	}
     
     /**
