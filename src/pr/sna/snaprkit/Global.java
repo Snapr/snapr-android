@@ -21,7 +21,7 @@ public class Global
     public static final boolean LOG_MODE = true;
     
 	// HTML debugging and local URL base
-    public static final boolean HTML_DEBUG = false;
+    public static final boolean HTML_DEBUG = true;
 	public static final String URL_BASE_SDCARD_HTML = "file://" + Environment.getExternalStorageDirectory().getAbsolutePath() + "/snaprkit_html/";  // must end in slash
 	public static final String URL_BASE_ASSETS_HTML = "file:///android_asset/snaprkit_html/"; // must end in slash
 	public static String URL_BASE = "";              // generated based on HTML_DEBUG and URL_BASE_* values above, overwritten from start flows in Honeycomb+

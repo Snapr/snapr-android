@@ -1397,6 +1397,26 @@ public class SnaprKitFragment extends Fragment
 			String publicGroup = UrlUtils.getQueryParameter(uri, Global.PARAM_PUBLIC_GROUP);
 			String uploadParams = uri.getEncodedQuery();
 			
+			if (Global.LOG_MODE)
+			{
+				Global.log("Extracted the following params from the snapr://upload URL:");
+				Global.log("localId: " + localId);
+				Global.log("description: " + description);
+				Global.log("status: " + status);
+				Global.log("tweet: " + tweet);
+				Global.log("facebookFeed: " + facebookFeed);
+				Global.log("facebookAlbum: " + facebookAlbum);
+				Global.log("facebookAlbumName: " + facebookAlbumName);
+				Global.log("tumblr: " + tumblr);
+				Global.log("foursquareCheckin: " + foursquareCheckin);
+				Global.log("photo: " + photo);
+				Global.log("redirectUrl: " + redirectUrl);
+				Global.log("foursquareVenueId: " + foursquareVenueId);
+				Global.log("appGroup: " + appGroup);
+				Global.log("publicGroup: " + publicGroup);
+				Global.log("uploadParams: " + uploadParams);
+			}
+			
 			// Fix filename
 			photo = photo.replace(":////", ":///");
 			if (Global.LOG_MODE) Global.log(Global.TAG, Global.getCurrentMethod() + ": Filename is  " + photo);
@@ -1978,7 +1998,7 @@ public class SnaprKitFragment extends Fragment
 					//mWebView.loadUrl("javascript:queue_settings('" + getUploadModeString(mQueueUploadModeWifiOnly) + "', " + (!mQueueUploadModeOn) + ");");
 			    	//if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Set JavaScript queue settings to Wifi-only " + mQueueUploadModeWifiOnly + " and upload mode on " + (!mQueueUploadModeOn));
 					
-					mHandler.postDelayed(mUpdateQueueSettings, 1000);
+					mHandler.postDelayed(mUpdateQueueSettings, 2000);
 				}
 				
 				// Dismiss the camera transition dialog
