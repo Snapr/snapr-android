@@ -1421,7 +1421,7 @@ public class SnaprKitFragment extends Fragment
 			photo = photo.replace(":////", ":///");
 			if (Global.LOG_MODE) Global.log(Global.TAG, Global.getCurrentMethod() + ": Filename is  " + photo);
 			
-			// Get the picture latitude / longitude from EXIF
+			// Get the picture latitude / longitude from EXIF, or fallback to last latitude / longitude if EXIF writing failed
 			String latitude = "";
 			String longitude = "";
 			ExifData exifData = CameraUtils.getExifData(UrlUtils.urlToFileName(photo));
@@ -1430,6 +1430,11 @@ public class SnaprKitFragment extends Fragment
 			{
 				latitude = "" + geoLocation.getLatitude();
 				longitude = "" + geoLocation.getLongitude();
+			}
+			else
+			{
+				latitude = "" + mLastPictureLatitude;
+				longitude = "" + mLastPictureLongitude;
 			}
 			
 			// Get the picture date
