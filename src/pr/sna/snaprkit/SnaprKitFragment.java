@@ -1452,7 +1452,7 @@ public class SnaprKitFragment extends Fragment
 			}
 			else
 			{
-				date = "";
+				date = "" + mLastPictureDate;
 			}
 			
 			// Set the location
