@@ -32,7 +32,7 @@ public class UrlUtils
 	// A regular URL is file://mnt/sdcard/snaprkit_html/page.html?a=x&b=y
 	// An AJAX URL with menu base: file://mnt/sdcard/snaprkit_html/index.html#/page.html?a=x&b=y
 	// An AJAX URL without menu base: file://mnt/sdcard/snaprkit_html/page.html#?a=x&b=y
-	public static String ajaxUrl(String url, boolean useMenuPage)
+	public static String ajaxUrl(String url)
 	{
 		// Parse the URL
 		Uri uri = Uri.parse(url);
@@ -40,21 +40,9 @@ public class UrlUtils
 		// Get the page
 		String page = uri.getLastPathSegment();
 		
-		// Check URL for special situation
-		if (page.endsWith("/")) useMenuPage = false;
-		
-		// Perform page replace
-		if (!useMenuPage)
-		{
-			// No page to enter after #
-			url = url.replace(page, page + "#");
-		}
-		else
-		{
-			// Change to index.html#/page.html
-			url = url.replaceFirst(page, "index.html" + "#/" + page);
-			url = url.replace("#/index.html", "#/"); // Avoid index.html#.index.html
-		}
+		// Change to index.html#/page.html
+		url = url.replaceFirst(page, "index.html" + "#/" + page);
+		url = url.replace("#/index.html", "#/"); // Avoid index.html#.index.html
 		
 		// Return
 		return url;

@@ -761,7 +761,7 @@ public class SnaprKitFragment extends Fragment
 		
 		if (Global.LOG_MODE) Global.log(Global.TAG, Global.getCurrentMethod() + ": Got extraParams " + extraParams);
 		
-		String redirectUrl = getSnaprUrl(UrlUtils.getFullLocalUrl(Global.URL_UPLOAD), true);
+		String redirectUrl = getSnaprUrl(UrlUtils.getFullLocalUrl(Global.URL_UPLOAD));
 		String url = getSharePictureUrl(fileName, latitude, longitude, redirectUrl, description, foursquareVenueId, foursquareVenueName, locationName, extraParams);
 		if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Redirecting to " + url);
 		mWebView.loadUrl(url);
@@ -1052,13 +1052,10 @@ public class SnaprKitFragment extends Fragment
     /**
      * Create a SNAPR URL with the required login parameters
      * @param baseUrl Base page URL
-     * @param useMenuPageForAjax Flag that indicates whether to 
-     * ajaxify URL using the menu page as the base page (otherwise
-     * we use the baseUrl page as the base page)
      * @return Returns an URL based on the base URL and containing 
      * the login parameters
      */
-    private String getSnaprUrl(String baseUrl, boolean useMenuPageForAjax)
+    private String getSnaprUrl(String baseUrl)
     {
     	// Declare
         String url;
@@ -1073,7 +1070,7 @@ public class SnaprKitFragment extends Fragment
         url = UrlUtils.createUrl(baseUrl, params, false);
         
         // Convert to AJAX URL and return
-        return UrlUtils.ajaxUrl(url, useMenuPageForAjax);
+        return UrlUtils.ajaxUrl(url);
     }
     
     /**
@@ -1110,8 +1107,10 @@ public class SnaprKitFragment extends Fragment
         // Create the URL
         url = UrlUtils.createUrl(UrlUtils.getFullLocalUrl(Global.URL_MENU), params, false);
         
+        if (Global.LOG_MODE) Global.log("URL1 is " + url + " and URL2 is " + UrlUtils.ajaxUrl(url));
+        
         // Convert to AJAX URL and return
-        return UrlUtils.ajaxUrl(url, false);
+        return UrlUtils.ajaxUrl(url);
     }
     
     /**
@@ -1201,7 +1200,7 @@ public class SnaprKitFragment extends Fragment
         url = UrlUtils.createUrl(val, params, false);
         
         // Convert to AJAX URL and return
-        return UrlUtils.ajaxUrl(url, true);
+        return UrlUtils.ajaxUrl(url);
     }
     
     /**
@@ -1252,7 +1251,7 @@ public class SnaprKitFragment extends Fragment
         url = UrlUtils.createUrl(UrlUtils.getFullLocalUrl(Global.URL_LINKED_SERVICES), params, true);
         
         // Convert to AJAX URL and return
-        return UrlUtils.ajaxUrl(url, true);
+        return UrlUtils.ajaxUrl(url);
     }
     
     // The action performed for snaprkit-parent:// URLs
@@ -1437,7 +1436,7 @@ public class SnaprKitFragment extends Fragment
 			// If the redirect URL does not exist, use default
 			if (redirectUrl == null || redirectUrl.length() == 0)
 			{
-				redirectUrl = getSnaprUrl(UrlUtils.getFullLocalUrl(Global.URL_UPLOAD), false);
+				redirectUrl = getSnaprUrl(UrlUtils.getFullLocalUrl(Global.URL_UPLOAD));
 				if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Found redirect URL " + redirectUrl);
 				if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Original URL was " + url);
 			}
