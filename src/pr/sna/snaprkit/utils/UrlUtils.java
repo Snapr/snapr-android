@@ -474,4 +474,15 @@ public class UrlUtils
     	
     	return redirectUrl;
     }
+    
+    /**
+     * Takes a string to be entered into the webview URL as a javascript: call and sanitizes it by escaping
+     * apostrophes. Apostrophes are transformed into their corresponding HTML code (&#39)
+     * @param js String containing JavaScript
+     * @return Escaped JavaScript string
+     */
+    public static String jsEscape(String js)
+    {
+    	return js.replace("'", "&#39;");
+    }
 }

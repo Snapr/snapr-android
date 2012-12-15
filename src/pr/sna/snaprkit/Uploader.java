@@ -68,7 +68,7 @@ public class Uploader
 				if (
 						(percent == 0 && lastPercent != 0) ||	    /* first time we hit 0% */
 						(percent == 100 && lastPercent != 100) ||	/* first time we hit 100% */
-						(lastPercent != percent && currentDate.getTime() > lastDate.getTime() + 500) /* any time we changed percentage and it's been at least half second since last update */
+						(lastPercent != percent && currentDate.getTime() >= lastDate.getTime() + 200) /* any time we changed percentage and it's been at least a fifth of a second since last update */
 					)
 				{
 					mUploadListener.onUploadProgress(mUploadInfo.getLocalId(), percent);

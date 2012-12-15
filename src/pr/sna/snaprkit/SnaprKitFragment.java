@@ -562,8 +562,13 @@ public class SnaprKitFragment extends Fragment
 							// Call JavaScript
 							if (numUploads > 0)
 							{
-								if (Global.LOG_MODE) Global.log( " -> " + Global.getCurrentMethod() + ": Outputting progress JSON..." + jsonData);
-								mWebView.loadUrl("javascript:upload_progress('" + jsonData + "','json_text');");
+								if (Global.LOG_MODE)
+								{
+									Global.log( " -> " + Global.getCurrentMethod() + ": Outputting progress JSON...");
+									Global.log( " -> " + Global.getCurrentMethod() + ": javascript:upload_progress('" + UrlUtils.jsEscape(jsonData) + "', 'json_text');");
+								}
+								
+								mWebView.loadUrl("javascript:upload_progress('" + UrlUtils.jsEscape(jsonData) + "','json_text');");
 							}
 						}
 						catch(Exception e)
