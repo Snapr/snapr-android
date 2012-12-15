@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import java.io.File;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.http.NameValuePair;
@@ -42,7 +43,8 @@ public class Uploader
     private ProgressListener mProgressListener = new ProgressListener()
     {
 
-    	int last_percent = 100;
+    	int lastPercent = 100;
+    	Date lastDate = new Date(0);
     	
 		@Override
 		public void transferred(long num)
@@ -59,10 +61,19 @@ public class Uploader
 				// leading to percentages greater than 100
 				if (percent > 100) percent = 100;
 				
-				if (last_percent != percent)
+				// Set last date
+				Date currentDate = new Date();
+				
+				// Update only under certain conditions
+				if (
+						(percent == 0 && lastPercent != 0) ||	    /* first time we hit 0% */
+						(percent == 100 && lastPercent != 100) ||	/* first time we hit 100% */
+						(lastPercent != percent && currentDate.getTime() > lastDate.getTime() + 500) /* any time we changed percentage and it's been at least half second since last update */
+					)
 				{
 					mUploadListener.onUploadProgress(mUploadInfo.getLocalId(), percent);
-					last_percent = percent;
+					lastPercent = percent;
+					lastDate = currentDate;
 				}
 			}
 		}
