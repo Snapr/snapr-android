@@ -65,6 +65,7 @@ public class Global
 	public static final long   LOG_MAX_SIZE       =  1 * 1024 * 1024;  //  1 MB
 	public static final String LOG_NAME_PREFIX = "snapr_";
 	public static final File   FILE_LOG = FileUtils.openLogFile();
+	public static final boolean LOG_ASSET_COPY = false;
 	
 	// Schemes
 	public static final String SCHEME_SNAPR = "snapr";

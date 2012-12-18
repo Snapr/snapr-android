@@ -2774,6 +2774,7 @@ public class SnaprKitFragment extends Fragment
 		@Override
 		public void onComplete()
 		{
+			if (Global.LOG_MODE) Global.log("PostAssetCopyUrlRedirecter.onComplete: Redirecting to URL " + mUrl);
 			if (mUrl != null)
 			{
 				mWebView.loadUrl(mUrl);
@@ -2813,6 +2814,8 @@ public class SnaprKitFragment extends Fragment
     	// Ensure our assets have been extracted to data partition on Honeycomb and ICS
     	if (android.os.Build.VERSION.SDK_INT >= Global.SDK_HONEYCOMB && android.os.Build.VERSION.SDK_INT < Global.SDK_JELLYBEAN && !AssetUtils.areSnaprAssetsPresent(SnaprKitFragment.this.getActivity()))
     	{
+    		if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Preparing ICS assets...");
+    		
     		// Copy assets and load
 			PostAssetCopyUrlRedirecter postAssetCopyUrlRedirecter = new PostAssetCopyUrlRedirecter(fullUrl);
     		AssetsCopier assetsCopier = new AssetsCopier(getActivity(), postAssetCopyUrlRedirecter); 

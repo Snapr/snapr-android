@@ -12,10 +12,12 @@ import pr.sna.snaprkit.utils.AssetsCopier.AssetCopierListener;
 import android.app.Activity;
 import android.content.res.AssetManager;
 
+@SuppressWarnings("unused")
 public class AssetUtils
-{
+{	
 	public void prepareSnaprAssets(Activity activity, AssetCopierListener listener, boolean showDialogs)
 	{
+		if (Global.LOG_MODE && Global.LOG_ASSET_COPY) Global.log("AssetUtils.prepareSnaprAssets: " + pr.sna.snaprkit.utils.FileUtils.isDirectoryPresent(getSnaprAssetsDirectory(activity)));
 		if (android.os.Build.VERSION.SDK_INT >= Global.SDK_HONEYCOMB && android.os.Build.VERSION.SDK_INT < Global.SDK_JELLYBEAN && !AssetUtils.areSnaprAssetsPresent(activity))
     	{
     		// Copy assets and load			
@@ -26,27 +28,31 @@ public class AssetUtils
 	
 	public static void copyAssetsToCache(Activity activity)
 	{
+		if (Global.LOG_MODE && Global.LOG_ASSET_COPY) Global.log("AssetsUtils.copyAssetsToCache: called...");
 		copyFileOrDir(activity, "snaprkit_html");
 	}
 	
 	public static boolean areSnaprAssetsPresent(Activity activity)
 	{
-		 
+		if (Global.LOG_MODE && Global.LOG_ASSET_COPY) Global.log("AssetsUtils.areSnaprAssetsPresent: returning " + pr.sna.snaprkit.utils.FileUtils.isDirectoryPresent(getSnaprAssetsDirectory(activity)));
 		return pr.sna.snaprkit.utils.FileUtils.isDirectoryPresent(getSnaprAssetsDirectory(activity));
 	}
 	
 	public static String getSnaprDataDirectory(Activity activity)
 	{
+		if (Global.LOG_MODE && Global.LOG_ASSET_COPY) Global.log("AssetsUtils.getSnaprDataDirectory: returning " + "/data/data/" + activity.getPackageName() + "/");
 		return "/data/data/" + activity.getPackageName() + "/"; // must end in slash
 	}
 	
 	public static String getSnaprAssetsDirectory(Activity activity)
 	{
+		if (Global.LOG_MODE && Global.LOG_ASSET_COPY) Global.log("AssetsUtils.getSnaprDataDirectory: returning " + getSnaprDataDirectory(activity) + "snaprkit_html/");
 		return getSnaprDataDirectory(activity) + "snaprkit_html/"; // must end in slash
 	}
 	
 	private static void copyFileOrDir(Activity activity, String path)
 	{
+		if (Global.LOG_MODE && Global.LOG_ASSET_COPY) Global.log("AssetsUtils.copyFileOrDir: started with path " + path + "...");
 		AssetManager assetManager = activity.getAssets();
 		String assets[] = null;
 		try
@@ -54,18 +60,23 @@ public class AssetUtils
 			assets = assetManager.list(path);
 			if (assets.length == 0)
 			{
+				if (Global.LOG_MODE && Global.LOG_ASSET_COPY) Global.log("AssetsUtils.copyFileOrDir: no file results found for path, must be file, copying file " + path + "...");
 				copyFile(activity, path);
 			}
 			else
 			{
+				if (Global.LOG_MODE && Global.LOG_ASSET_COPY) Global.log("AssetsUtils.copyFileOrDir: assets found...");
 				String fullPath = getSnaprDataDirectory(activity) + path;
+				if (Global.LOG_MODE && Global.LOG_ASSET_COPY) Global.log("AssetsUtils.copyFileOrDir: full path is " + fullPath + "...");
 				File dir = new File(fullPath);
 				if (!dir.exists())
 				{
+					if (Global.LOG_MODE && Global.LOG_ASSET_COPY) Global.log("AssetsUtils.copyFileOrDir: full path did not exist creating " + fullPath + "...");
 					dir.mkdir();
 				}
 				for (int i = 0; i < assets.length; ++i)
 				{
+					if (Global.LOG_MODE && Global.LOG_ASSET_COPY) Global.log("AssetsUtils.copyFileOrDir: recursing using path " + path + "/" + assets[i] + "...");
 					copyFileOrDir(activity, path + "/" + assets[i]);
 				}
             }
@@ -78,6 +89,8 @@ public class AssetUtils
 
 	private static void copyFile(Activity activity, String filename)
 	{
+		if (Global.LOG_MODE && Global.LOG_ASSET_COPY) Global.log("AssetsUtils.copyFile: copying file with filename " + filename + "...");
+		
 		AssetManager assetManager = activity.getAssets();
 
 		InputStream in = null;
@@ -86,6 +99,7 @@ public class AssetUtils
 		{
 			in = assetManager.open(filename);
 			String newFileName = "/data/data/" + activity.getPackageName() + "/" + filename;
+			if (Global.LOG_MODE && Global.LOG_ASSET_COPY) Global.log("AssetsUtils.copyFile: using newFileName " + newFileName + "...");
 			out = new FileOutputStream(newFileName);
 
 			byte[] buffer = new byte[1024];
@@ -102,7 +116,7 @@ public class AssetUtils
 		}
 		catch (Exception e)
 		{
-			if (Global.LOG_MODE) Global.log( e.getMessage());
+			if (Global.LOG_MODE) Global.log("AssetsUtils.copyFile: failed with exception..." + e);
 		}
 	}
 }
