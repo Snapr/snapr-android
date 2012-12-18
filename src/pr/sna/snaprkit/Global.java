@@ -72,6 +72,7 @@ public class Global
 	
 	// Pages
 	public static final String URL_MENU = "index.html";
+	public static final String URL_HOME = "home/";
 	public static final String URL_UPLOAD = "upload/";
 	public static final String URL_LINKED_SERVICES = "connect/";
 	public static final String URL_FEED = "feed/";

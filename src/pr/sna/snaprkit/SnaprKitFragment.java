@@ -47,8 +47,6 @@ import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.os.Build;
-import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
@@ -403,7 +401,6 @@ public class SnaprKitFragment extends Fragment
 			if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod());
 			
 			// Get network info for item that just completed
-			@SuppressWarnings("deprecation")
 			NetworkInfo info = intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
 			
 			// Check result
@@ -2026,9 +2023,13 @@ public class SnaprKitFragment extends Fragment
 				*/
 				
 				// Clear the history every time we hit index.html
-				if(normalUrl.contains(UrlUtils.getFullLocalUrl(Global.URL_MENU)))
+				if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": URL is " + url);
+				if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": AJAX URL is " + UrlUtils.ajaxUrl(Global.URL_HOME));
+				
+				if(url.startsWith(UrlUtils.ajaxUrl(Global.URL_HOME)))
 				{
 					// Clear the history
+					if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Clearing history because we hit home page!");
 					mWebView.clearHistory();
 				}
 				
@@ -2150,12 +2151,6 @@ public class SnaprKitFragment extends Fragment
         
         // Make sure that the webview does not allocate blank space on the side for the scrollbars
         mWebView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
-        
-        // On Android 4.1 and later, set cross domain policy
-        if (Build.VERSION.SDK_INT >= VERSION_CODES.JELLY_BEAN)
-        {
-        	mWebView.getSettings().setAllowUniversalAccessFromFileURLs(true);
-        }
         
         // Restore the webview history
         // Must be done before using the webview, otherwise the restore fails
