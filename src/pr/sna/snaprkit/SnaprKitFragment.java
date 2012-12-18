@@ -2007,26 +2007,15 @@ public class SnaprKitFragment extends Fragment
 					// Change flag
 					mMenuInitDone = true;
 				
-					// Set queue settings using one second delay
-					//mWebView.loadUrl("javascript:queue_settings('" + getUploadModeString(mQueueUploadModeWifiOnly) + "', " + (!mQueueUploadModeOn) + ");");
-			    	//if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Set JavaScript queue settings to Wifi-only " + mQueueUploadModeWifiOnly + " and upload mode on " + (!mQueueUploadModeOn));
-					
+					// Set queue settings using two second delay
 					mHandler.postDelayed(mUpdateQueueSettings, 2000);
 				}
 				
-				// Dismiss the camera transition dialog
-				/*
-				if (mTransitionDialog != null)
-				{
-					mTransitionDialog.cancelTransitionDialog();
-				}
-				*/
-				
-				// Clear the history every time we hit index.html
-				if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": URL is " + url);
-				if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": AJAX URL is " + UrlUtils.ajaxUrl(Global.URL_HOME));
-				
-				if(url.startsWith(UrlUtils.ajaxUrl(Global.URL_HOME)))
+				// Clear the history every time we hit index.html				
+				if(url != null && (
+					url.startsWith(UrlUtils.getFullLocalUrl(UrlUtils.ajaxUrl(Global.URL_HOME))) ||
+					url.startsWith(UrlUtils.getFullLocalUrl(UrlUtils.ajaxUrl(Global.URL_MENU)) + "?") || 
+					url.equals(UrlUtils.getFullLocalUrl(UrlUtils.ajaxUrl(Global.URL_MENU)))))
 				{
 					// Clear the history
 					if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Clearing history because we hit home page!");
