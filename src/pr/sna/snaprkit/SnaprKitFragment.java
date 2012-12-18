@@ -47,6 +47,8 @@ import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Build;
+import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
@@ -1943,7 +1945,7 @@ public class SnaprKitFragment extends Fragment
     
     // Set webview settings and display startup page
 	// mWebView global should have been prepopulated
-    @SuppressLint("SetJavaScriptEnabled")
+    @SuppressLint({ "SetJavaScriptEnabled", "NewApi" })
 	private void initWebView(View view, Bundle savedInstanceState)
     {
     	// Declare
@@ -2147,6 +2149,12 @@ public class SnaprKitFragment extends Fragment
         
         // Make sure that the webview does not allocate blank space on the side for the scrollbars
         mWebView.setScrollBarStyle(View.SCROLLBARS_INSIDE_OVERLAY);
+        
+        // On Android 4.1 and later, set cross domain policy
+        if (Build.VERSION.SDK_INT >= VERSION_CODES.JELLY_BEAN)
+        {
+        	mWebView.getSettings().setAllowUniversalAccessFromFileURLs(true);
+        }
         
         // Restore the webview history
         // Must be done before using the webview, otherwise the restore fails
