@@ -1920,7 +1920,8 @@ public class SnaprKitFragment extends Fragment
 
     private void initActionMap()
     {
-    	mActionMappings.add(new UrlMapping("snaprkit-parent://.*", snaprKitParentAction));
+		mActionMappings.add(new UrlMapping("snaprkit-parent://.*", snaprKitParentAction));
+		mActionMappings.add(new UrlMapping("snaprkit://.*", snaprKitParentAction));
 		mActionMappings.add(new UrlMapping("snapr://login.*", loginAction));
 		mActionMappings.add(new UrlMapping("snapr://logout.*", logoutAction));
 		mActionMappings.add(new UrlMapping("snapr://get_location.*", getLocationAction));
