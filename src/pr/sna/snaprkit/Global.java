@@ -20,7 +20,7 @@ public class Global
 	public static final String TAG = "SNAPRKIT";
 	
 	// Java debugging
-    public static final boolean LOG_MODE = true;
+    public static final boolean LOG_MODE = false;
     
 	// HTML debugging and local URL base
     public static final boolean HTML_DEBUG = false;
@@ -29,7 +29,7 @@ public class Global
 	public static String URL_BASE = "";              // generated based on HTML_DEBUG and URL_BASE_* values above, overwritten from start flows in Honeycomb+
 	
 	// Remote environment and remote URL base
-	public static final String ENVIRONMENT = "dev";                       // either dev, dev-android, live, live-android
+	public static final String ENVIRONMENT = "live";                       // either dev, dev-android, live, live-android
 	public static final String URL_SERVER_PROD = "https://api.sna.pr/";   // must end in slash
 	public static final String URL_SERVER_DEV = "http://dev.sna.pr/api/"; // must end in slash
 	public static final String URL_SERVER = getRemoteUrlBase();           // generated based on ENVIRONMENT and URL_SERVER_* values above
@@ -50,10 +50,6 @@ public class Global
 	// Features
 	public static final boolean USE_AVIARY_SDK = false;
 	public static final boolean USE_FX_MODULE = true;
-	
-	// Android SDK versions
-	public static final int     SDK_HONEYCOMB = 11;
-	public static final int     SDK_JELLYBEAN = 16;
 	
 	// Directories
 	public static final String DIR_DCIM = Environment.getExternalStorageDirectory().getAbsolutePath() + "/DCIM";

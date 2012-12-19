@@ -142,7 +142,7 @@ public class GeolocationService extends Service
 		if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod());
 		
 		// Terminate
-		mGeoManager.terminate();
+		if (mGeoManager != null) mGeoManager.terminate();
 		
 		// Perform other cleanup
 		super.onDestroy();
