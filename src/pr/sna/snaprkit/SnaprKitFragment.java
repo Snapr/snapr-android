@@ -17,12 +17,12 @@ import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import com.bricolsoftconsulting.webview.WebViewClientEx;
+import com.bricolsoftconsulting.webview.WebViewEx;
+
 import pr.sna.snaprkit.PictureAcquisitionManager.PictureAcquisitionListener;
 import pr.sna.snaprkit.dummy.FeatherActivity;
 import pr.sna.snaprkit.utils.AlertUtils;
-import pr.sna.snaprkit.utils.AssetUtils;
-import pr.sna.snaprkit.utils.AssetsCopier;
-import pr.sna.snaprkit.utils.AssetsCopier.AssetCopierListener;
 import pr.sna.snaprkit.utils.CameraUtils;
 import pr.sna.snaprkit.utils.LocalizationUtils;
 import pr.sna.snaprkit.utils.UserInfoUtils;
@@ -64,7 +64,6 @@ import android.webkit.JsResult;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.webkit.WebViewClient;
 //import com.aviary.android.feather.FeatherActivity;
 import android.widget.Button;
 
@@ -79,7 +78,7 @@ public class SnaprKitFragment extends Fragment
 	private View mView;
 	private boolean mQueueUploadModeWifiOnly = false;
 	private boolean mQueueUploadModeOn = true;
-	private WebView mWebView;
+	private WebViewEx mWebView;
 	private ArrayList<UrlMapping> mActionMappings = new ArrayList<UrlMapping>();
 	private String  mSnaprUserName;
 	private String  mAccessToken;
@@ -1953,10 +1952,10 @@ public class SnaprKitFragment extends Fragment
     	if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod());
         
     	// Get the webview control
-        mWebView = (WebView) view.findViewById(R.id.webview);
+        mWebView = (WebViewEx) view.findViewById(R.id.webview);
         
         // Override clicks
-        mWebView.setWebViewClient(new WebViewClient() {
+        mWebView.setWebViewClient(new WebViewClientEx(getActivity(), Global.LOG_MODE) {
 
 			@Override
 			public boolean shouldOverrideUrlLoading(WebView view, String url)
@@ -2761,27 +2760,6 @@ public class SnaprKitFragment extends Fragment
 		startNormalFlow(null);
 	}
 	
-	private class PostAssetCopyUrlRedirecter implements AssetCopierListener
-	{
-		// Members
-		String mUrl;
-		
-		public PostAssetCopyUrlRedirecter(String url)
-		{
-			mUrl = url;
-		}
-
-		@Override
-		public void onComplete()
-		{
-			if (Global.LOG_MODE) Global.log("PostAssetCopyUrlRedirecter.onComplete: Redirecting to URL " + mUrl);
-			if (mUrl != null)
-			{
-				mWebView.loadUrl(mUrl);
-			}
-		}
-	}
-	
 	// Start via the normal flow with custom page
 	public void startNormalFlow(String pageUrl)
 	{
@@ -2808,26 +2786,10 @@ public class SnaprKitFragment extends Fragment
 		
     	if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Loading url " + pageUrl);
     	
-		// Workaround for bug 17535:
-    	// Using HTML files from assets folder does not allow passing parameters or anchor strings 
-    	// http://code.google.com/p/android/issues/detail?id=17535
-    	// Ensure our assets have been extracted to data partition on Honeycomb and ICS
-    	if (android.os.Build.VERSION.SDK_INT >= Global.SDK_HONEYCOMB && android.os.Build.VERSION.SDK_INT < Global.SDK_JELLYBEAN && !AssetUtils.areSnaprAssetsPresent(SnaprKitFragment.this.getActivity()))
+    	// Load it
+    	if (fullUrl!=null)
     	{
-    		if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Preparing ICS assets...");
-    		
-    		// Copy assets and load
-			PostAssetCopyUrlRedirecter postAssetCopyUrlRedirecter = new PostAssetCopyUrlRedirecter(fullUrl);
-    		AssetsCopier assetsCopier = new AssetsCopier(getActivity(), postAssetCopyUrlRedirecter); 
-    		assetsCopier.execute();
-    	}
-    	else
-    	{
-        	// Load it
-        	if (fullUrl!=null)
-        	{
-        		mWebView.loadUrl(fullUrl);
-        	}
+    		mWebView.loadUrl(fullUrl);
     	}
 	}
 	

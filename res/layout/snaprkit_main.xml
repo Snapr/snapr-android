@@ -5,11 +5,11 @@
 	android:layout_width="fill_parent"
 	android:orientation="vertical">
 
-    <WebView
+    <com.bricolsoftconsulting.webview.WebViewEx
 		android:id="@+id/webview"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent">
-	</WebView>
+	</com.bricolsoftconsulting.webview.WebViewEx>
     
     <!-- Dummy button to register context menu -->
     <LinearLayout 
