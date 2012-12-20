@@ -636,8 +636,8 @@ public class SnaprKitFragment extends Fragment
 								// Clear queue
 								clearQueue();
 								
-								// Set the queue to paused
-								updateQueueSettings(false, mQueueUploadModeWifiOnly);
+								// Update the status
+								updateQueueStatus();
 								
 								// Invalidate credentials
 								clearUserInfo();
@@ -655,6 +655,7 @@ public class SnaprKitFragment extends Fragment
 							{
 								// Cancel the upload
 								cancelUpload(localId);
+								updateQueueStatus();
 								
 								// Override message
 								errorMessage = getString(R.string.snaprkit_error_upload_duplicate_image);
@@ -666,6 +667,7 @@ public class SnaprKitFragment extends Fragment
 							{
 								// Cancel the upload
 								cancelUpload(localId);
+								updateQueueStatus();
 								
 								// Override message
 								errorMessage = getString(R.string.snaprkit_error_upload_corrupt_image);
@@ -1536,15 +1538,21 @@ public class SnaprKitFragment extends Fragment
     	{			
 			if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod() + ": Received URL " + url);		
 		
-			if (Global.LOG_MODE) Global.log(Global.TAG, Global.getCurrentMethod() + ": Requesting queue status update");
-			Intent uploadIntent = new Intent(getContext(), UploadService.class);
-			uploadIntent.putExtra(Global.PARAM_ACTION, Global.ACTION_QUEUE_UPDATE_STATUS);
-			getContext().startService(uploadIntent);
+			// Update the queue status
+			updateQueueStatus();
 			
 	        // Logs
 	        if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
     	}
     };
+    
+    private void updateQueueStatus()
+    {
+    	if (Global.LOG_MODE) Global.log(Global.TAG, Global.getCurrentMethod() + ": Requesting queue status update");
+		Intent uploadIntent = new Intent(getContext(), UploadService.class);
+		uploadIntent.putExtra(Global.PARAM_ACTION, Global.ACTION_QUEUE_UPDATE_STATUS);
+		getContext().startService(uploadIntent);
+    }
 
     // The action performed for snapr://get_location
     private Action getLocationAction = new Action()
