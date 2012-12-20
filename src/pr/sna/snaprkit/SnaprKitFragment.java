@@ -630,24 +630,32 @@ public class SnaprKitFragment extends Fragment
 						String errorMessage = ((SnaprApiException) exception).getMessage();
 						
 						if (errorType != null)
-						{
+						{							
 							if (errorType.equals("authentication.authentication_required"))
 							{
+								// Clear queue
+								clearQueue();
+								
+								// Set the queue to paused
+								updateQueueSettings(false, mQueueUploadModeWifiOnly);
+								
+								// Invalidate credentials
+								clearUserInfo();
+								
+								// Logout
+								mWebView.loadUrl("javascript:logout();");
+								
 								// Override message 
 								errorMessage = getString(R.string.snaprkit_error_upload_invalid_login);
 								
 								// Show message
 								showUploadError(errorMessage);
-								
-								// Invalidate credentials
-								clearUserInfo();
-								
-								// Redirect to root
-								String url = getStartupUrl();
-								mWebView.loadUrl(url);
 							}
 							else if (errorType.equals("validation.duplicate_upload"))
 							{
+								// Cancel the upload
+								cancelUpload(localId);
+								
 								// Override message
 								errorMessage = getString(R.string.snaprkit_error_upload_duplicate_image);
 								
@@ -656,20 +664,20 @@ public class SnaprKitFragment extends Fragment
 							}
 							else if (errorType.equals("validation.corrupt_file"))
 							{
+								// Cancel the upload
+								cancelUpload(localId);
+								
 								// Override message
 								errorMessage = getString(R.string.snaprkit_error_upload_corrupt_image);
-								
-								// Cancel upload
-								Intent launchIntent = new Intent(getContext(), UploadService.class);
-								launchIntent.putExtra(Global.PARAM_ACTION, Global.ACTION_QUEUE_REMOVE);
-								launchIntent.putExtra(Global.PARAM_LOCAL_ID, localId);
-						        getContext().startService(intent);
 						        
 								// Show message
 								showUploadError(errorMessage);
 							}
 							else
 							{
+								// Set the queue to paused
+								updateQueueSettings(false, mQueueUploadModeWifiOnly);
+								
 								// Display alert dialog
 								showUploadError(errorMessage);
 							}
@@ -677,36 +685,37 @@ public class SnaprKitFragment extends Fragment
 					}
 					else if (exception instanceof HttpResponseException)
 					{
+						// Set the queue to paused
+						updateQueueSettings(false, mQueueUploadModeWifiOnly);
+						
+						// Get the status code
 						int httpStatusCode = ((HttpResponseException) exception).getStatusCode(); 
 						
 						// Override message
 						String errorMessage = (httpStatusCode >= 500)?getString(R.string.snaprkit_error_upload_server_error):
 								getString(R.string.snaprkit_error_upload_connect);
 						
-						// Set the queue to paused
-						updateQueueSettings(false, mQueueUploadModeWifiOnly);
-						
 						// Show message
 						showUploadError(errorMessage);
 					}
 					else if (exception instanceof ConnectTimeoutException)
 					{
-						// Override message
-						String errorMessage = getString(R.string.snaprkit_error_upload_connect_timeout);
-						
 						// Set the queue to paused
 						updateQueueSettings(false, mQueueUploadModeWifiOnly);
+						
+						// Override message
+						String errorMessage = getString(R.string.snaprkit_error_upload_connect_timeout);
 						
 						// Show message
 						showUploadError(errorMessage);
 					}
 					else if (exception instanceof IOException)
 					{
-						// Other types of IOExceptions (HttpResponseException and ConnectionTimeOutException) handled above
-						String errorMessage = getString(R.string.snaprkit_error_upload_connect);
-						
 						// Set the queue to paused
 						updateQueueSettings(false, mQueueUploadModeWifiOnly);
+						
+						// Other types of IOExceptions (HttpResponseException and ConnectionTimeOutException) handled above
+						String errorMessage = getString(R.string.snaprkit_error_upload_connect);
 						
 						// Show message
 						showUploadError(errorMessage);
@@ -715,11 +724,11 @@ public class SnaprKitFragment extends Fragment
 					{
 						// Another type of error
 						
-						// Get error message
-						String errorMessage = getString(R.string.snaprkit_error_upload);
-						
 						// Set the queue to paused
 						updateQueueSettings(false, mQueueUploadModeWifiOnly);
+						
+						// Get error message
+						String errorMessage = getString(R.string.snaprkit_error_upload);
 						
 						// Show message
 						showUploadError(errorMessage);
@@ -1806,15 +1815,21 @@ public class SnaprKitFragment extends Fragment
     		// Log
     		if (Global.LOG_MODE) Global.log(Global.TAG, " -> queueClearAction: Received URL " + url);
     		
-    		// Send the information to the upload service via intent
-			Intent intent = new Intent(getContext(), UploadService.class);
-	        intent.putExtra(Global.PARAM_ACTION, Global.ACTION_QUEUE_CLEAR);
-	        getContext().startService(intent);
+    		// Clear the queue
+    		clearQueue();
 	        
 	        // Log
 	        if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
     	}
     };
+    
+    private void clearQueue()
+    {
+    	// Send the information to the upload service via intent
+		Intent intent = new Intent(getContext(), UploadService.class);
+        intent.putExtra(Global.PARAM_ACTION, Global.ACTION_QUEUE_CLEAR);
+        getContext().startService(intent);
+    }
 
     // The action performed for snapr://upload?cancel=id
     private Action queueCancelAction = new Action()
@@ -1830,18 +1845,22 @@ public class SnaprKitFragment extends Fragment
     		String localId = UrlUtils.getQueryParameter(uri, Global.PARAM_CANCEL);
     		if (Global.LOG_MODE) Global.log(Global.TAG, " -> queueCancelAction: Got cancel for localId " + localId);
     		
-    		// Send the information to the upload service via intent
-			Intent intent = new Intent(getContext(), UploadService.class);
-	        intent.putExtra(Global.PARAM_ACTION, Global.ACTION_QUEUE_REMOVE);
-	        intent.putExtra(Global.PARAM_LOCAL_ID, localId);
-	        if (Global.LOG_MODE) Global.log(Global.TAG, " -> queueCancelAction: Before call to service");
-	        getContext().startService(intent);
-	        if (Global.LOG_MODE) Global.log(Global.TAG, " -> queueCancelAction: After call to service");
+    		// Cancel the upload
+    		cancelUpload(localId);
 	        
 	        // Log
 	        if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
     	}
     };
+    
+    private void cancelUpload(String localId)
+    {
+    	// Cancel upload
+		Intent launchIntent = new Intent(getContext(), UploadService.class);
+		launchIntent.putExtra(Global.PARAM_ACTION, Global.ACTION_QUEUE_REMOVE);
+		launchIntent.putExtra(Global.PARAM_LOCAL_ID, localId);
+        getContext().startService(launchIntent);
+    }
     
     // The action performed when browsing an external site
     private Action externalBrowseAction = new Action() {
