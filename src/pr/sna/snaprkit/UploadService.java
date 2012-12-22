@@ -785,19 +785,31 @@ public class UploadService extends Service
 	{
 		if (Global.LOG_MODE)
 			Global.log(" -> " + Global.getCurrentMethod());
-		mUploadThreadRunning = false; // Set flag to cause thread loop to quit
-		if (mUploader != null)
+
+		// Run the stopping code on a separate thread, since it needs to interact
+		// with network components running on the network thread and that could stall
+		// the UI thread for too long
+		new Thread(new Runnable()
 		{
-			if (Global.LOG_MODE)
-				Global.log(Global.getCurrentMethod()
-						+ ": Stopping upload thread");
-			mUploader.stopUpload(); // Stop the upload so it hits flag sooner
-		} else
-		{
-			if (Global.LOG_MODE)
-				Global.log(Global.getCurrentMethod()
-						+ ": Could not find upload manager!");
-		}
+			public void run()
+		    {
+				mUploadThreadRunning = false; // Set flag to cause thread loop to quit
+				if (mUploader != null)
+				{
+					if (Global.LOG_MODE)
+						Global.log(Global.getCurrentMethod()
+								+ ": Stopping upload thread");
+					mUploader.stopUpload(); // Stop the upload so it hits flag sooner
+				}
+				else
+				{
+					if (Global.LOG_MODE)
+						Global.log(Global.getCurrentMethod()
+								+ ": Could not find upload manager!");
+				}				
+		    }
+		}).start();
+
 		if (Global.LOG_MODE)
 			Global.log(" <- " + Global.getCurrentMethod());
 	}
@@ -825,7 +837,8 @@ public class UploadService extends Service
 
 			// Start the queue
 			startQueue();
-		} else if (action == Global.ACTION_QUEUE_STOP)
+		}
+		else if (action == Global.ACTION_QUEUE_STOP)
 		{
 			// Set queue upload mode
 			mQueueUploadModeOn = intent.getBooleanExtra(
@@ -835,7 +848,8 @@ public class UploadService extends Service
 
 			// Stop the queue
 			stopQueue();
-		} else if (action == Global.ACTION_QUEUE_CLEAR)
+		}
+		else if (action == Global.ACTION_QUEUE_CLEAR)
 		{
 			// Pause queue upload thread and then clear all data
 			// Use synchronized block for thread safety
@@ -844,7 +858,8 @@ public class UploadService extends Service
 			{
 				mQueue.clear();
 			}
-		} else if (action == Global.ACTION_QUEUE_ADD)
+		}
+		else if (action == Global.ACTION_QUEUE_ADD)
 		{
 			// Retrieve all upload parameters
 			String accessToken = intent
@@ -978,12 +993,14 @@ public class UploadService extends Service
 				{
 					startQueue();
 				}
-			} else
+			}
+			else
 			{
 				if (Global.LOG_MODE)
 					Global.log("File with localId " + localId + " already EXISTS!!! ");
 			}
-		} else if (action == Global.ACTION_QUEUE_REMOVE)
+		}
+		else if (action == Global.ACTION_QUEUE_REMOVE)
 		{
 			// Retrieve file localId parameter
 			String localId = intent.getStringExtra(Global.PARAM_LOCAL_ID);
@@ -1005,7 +1022,18 @@ public class UploadService extends Service
 					if (Global.LOG_MODE)
 						Global.log(Global.getCurrentMethod()
 								+ ": Cancelling ongoing upload");
-					mUploader.cancelUpload();
+
+					// Run the cancellation of the download on a separate thread, since this 
+					// operation may require interacting with the network thread, and that 
+					// could stall the UI thread
+					new Thread(new Runnable()
+					{
+						@Override
+						public void run()
+						{
+							mUploader.cancelUpload();
+						}
+					}).start();
 
 					if (Global.LOG_MODE)
 						Global.log(Global.getCurrentMethod()
@@ -1014,7 +1042,8 @@ public class UploadService extends Service
 					{
 						mQueue.remove(uploadInfo);
 					}
-				} else
+				}
+				else
 				{
 					if (Global.LOG_MODE)
 						Global.log(Global.getCurrentMethod()
@@ -1035,7 +1064,8 @@ public class UploadService extends Service
 					Global.log(Global.getCurrentMethod()
 							+ ": Removing upload from disk");
 				FileUtils.removeDiskFile(uploadInfo.getFileName());
-			} else
+			}
+			else
 			{
 				if (Global.LOG_MODE)
 					Global.log(Global.getCurrentMethod()
@@ -1048,7 +1078,8 @@ public class UploadService extends Service
 				sendQueueItemCanceled(localId);
 				
 			}
-		} else if (action == Global.ACTION_QUEUE_UPLOAD_MODE)
+		}
+		else if (action == Global.ACTION_QUEUE_UPLOAD_MODE)
 		{
 			// Change queue upload mode
 			mQueueUploadModeOn = intent.getBooleanExtra(
@@ -1067,10 +1098,12 @@ public class UploadService extends Service
 				Global.log(Global.getCurrentMethod()
 						+ "queueUploadModeWifiOnly = "
 						+ mQueueUploadModeWifiOnly);
-		} else if (action == Global.ACTION_QUEUE_UPDATE_STATUS)
+		}
+		else if (action == Global.ACTION_QUEUE_UPDATE_STATUS)
 		{
 			sendQueueStatus();
-		} else if (action == -1)
+		}
+		else if (action == -1)
 		{
 			// Do nothing
 		}
