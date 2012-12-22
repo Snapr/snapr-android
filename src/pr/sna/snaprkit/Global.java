@@ -9,7 +9,6 @@ import com.bricolsoftconsulting.webview.WebViewEx;
 
 import pr.sna.snaprkit.utils.FileUtils;
 import android.app.Activity;
-import android.os.Build;
 import android.os.Environment;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -345,7 +344,7 @@ public class Global
 		}
 		else
 		{
-			if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB && android.os.Build.VERSION.SDK_INT < 16 /*Build.VERSION_CODES.JELLYBEAN */)
+			if (WebViewEx.isAffectedOsVersion())
 			{
 				// Special workaround for Honeycomb
 				return "file://" + WebViewEx.getDefaultCacheRootPath(activity);

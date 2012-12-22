@@ -109,9 +109,14 @@ public class WebViewEx extends WebView
 		}
 	}
 
-	public boolean isAffectedUrl(String url)
+	public static boolean isAffectedUrl(String url)
 	{
-		return (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB && android.os.Build.VERSION.SDK_INT < 16 /*Build.VERSION_CODES.JELLYBEAN */ && URLUtil.isAssetUrl(url));
+		return (isAffectedOsVersion() && URLUtil.isAssetUrl(url));
+	}
+
+	public static boolean isAffectedOsVersion()
+	{
+		return android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB && android.os.Build.VERSION.SDK_INT < 16 /*Build.VERSION_CODES.JELLYBEAN */ ;
 	}
 	
 	public String getCacheUrlFromAssetUrl(String url)

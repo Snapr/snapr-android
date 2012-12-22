@@ -1982,7 +1982,7 @@ public class SnaprKitFragment extends Fragment
         mWebView = (WebViewEx) view.findViewById(R.id.webview);
         
         // Override clicks
-        mWebView.setWebViewClient(new WebViewClientEx(getActivity(), Global.LOG_MODE) {
+        mWebView.setWebViewClient(new WebViewClientEx(getActivity()) {
 
 			@Override
 			public boolean shouldOverrideUrlLoading(WebView view, String url)
