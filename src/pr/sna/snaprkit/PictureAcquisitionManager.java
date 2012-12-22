@@ -324,7 +324,7 @@ public class PictureAcquisitionManager
 //    	if (mImageUri == null && data != null) mImageUri = data.getData();
     	if (data != null) mImageUri = data.getData();
     	boolean hasUri = mImageUri != null;
-    	boolean isContentUri = hasUri ? mImageUri.getScheme().equalsIgnoreCase("content") : null;
+    	boolean isContentUri = hasUri ? (mImageUri.getScheme() != null && mImageUri.getScheme().equalsIgnoreCase("content")) : false;
     	mImagePath = hasUri ? isContentUri ? UrlUtils.getRealPathFromURI(getContext(), mImageUri) : UrlUtils.imageUri2Path(mImageUri) : null;
 		
 		// Check again
