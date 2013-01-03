@@ -17,9 +17,6 @@ import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.bricolsoftconsulting.webview.WebViewClientEx;
-import com.bricolsoftconsulting.webview.WebViewEx;
-
 import pr.sna.snaprkit.PictureAcquisitionManager.PictureAcquisitionListener;
 import pr.sna.snaprkit.dummy.FeatherActivity;
 import pr.sna.snaprkit.utils.AlertUtils;
@@ -31,6 +28,7 @@ import pr.sna.snaprkit.utils.GeoManager;
 import pr.sna.snaprkit.utils.GeoManager.GeoListener;
 import pr.sna.snaprkit.utils.NetworkUtils;
 import pr.sna.snaprkit.utils.UrlUtils;
+import pr.sna.snaprkit.utils.webview.WebViewClientEx;
 import pr.sna.snaprkitfx.SnaprEffect.EffectConfig;
 import pr.sna.snaprkitfx.SnaprImageEditFragmentActivity;
 import android.annotation.SuppressLint;
@@ -79,7 +77,7 @@ public class SnaprKitFragment extends Fragment
 	private View mView;
 	private boolean mQueueUploadModeWifiOnly = false;
 	private boolean mQueueUploadModeOn = true;
-	private WebViewEx mWebView;
+	private WebView mWebView;
 	private ArrayList<UrlMapping> mActionMappings = new ArrayList<UrlMapping>();
 	private String  mSnaprUserName;
 	private String  mAccessToken;
@@ -1390,7 +1388,8 @@ public class SnaprKitFragment extends Fragment
 
     // The action performed for snapr://upload
     private Action uploadAction = new Action() {
-    	@Override
+    	@SuppressLint("SimpleDateFormat")
+		@Override
     	public void run(String url)
     	{			
 			if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod() + ": Received URL " + url);
@@ -1980,7 +1979,7 @@ public class SnaprKitFragment extends Fragment
     	if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod());
         
     	// Get the webview control
-        mWebView = (WebViewEx) view.findViewById(R.id.webview);
+        mWebView = (WebView) view.findViewById(R.id.webview);
         
         // Override clicks
         mWebView.setWebViewClient(new WebViewClientEx(getActivity()) {

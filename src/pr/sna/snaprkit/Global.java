@@ -5,8 +5,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import com.bricolsoftconsulting.webview.WebViewEx;
-
 import pr.sna.snaprkit.utils.FileUtils;
 import android.app.Activity;
 import android.os.Environment;
@@ -19,7 +17,7 @@ public class Global
 	public static final String TAG = "SNAPRKIT";
 	
 	// Java debugging
-    public static final boolean LOG_MODE = false;
+    public static final boolean LOG_MODE = true;
     
 	// HTML debugging and local URL base
     public static final boolean HTML_DEBUG = false;
@@ -344,15 +342,7 @@ public class Global
 		}
 		else
 		{
-			if (WebViewEx.isAffectedOsVersion())
-			{
-				// Special workaround for Honeycomb
-				return "file://" + WebViewEx.getDefaultCacheRootPath(activity);
-			}
-			else
-			{
-				return URL_BASE_ASSETS_HTML;
-			}
+			return URL_BASE_ASSETS_HTML;
 		}
 	}
 	
