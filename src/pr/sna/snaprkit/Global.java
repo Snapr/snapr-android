@@ -17,7 +17,7 @@ public class Global
 	public static final String TAG = "SNAPRKIT";
 	
 	// Java debugging
-    public static final boolean LOG_MODE = true;
+    public static final boolean LOG_MODE = false;
     
 	// HTML debugging and local URL base
     public static final boolean HTML_DEBUG = false;
