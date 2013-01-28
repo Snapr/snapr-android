@@ -29,8 +29,8 @@ import pr.sna.snaprkit.utils.GeoManager.GeoListener;
 import pr.sna.snaprkit.utils.NetworkUtils;
 import pr.sna.snaprkit.utils.UrlUtils;
 import pr.sna.snaprkit.utils.webview.WebViewClientEx;
-import pr.sna.snaprkitfx.SnaprEffect.EffectConfig;
-import pr.sna.snaprkitfx.SnaprImageEditFragmentActivity;
+import pr.sna.snaprkit.SnaprEffect.EffectConfig;
+import pr.sna.snaprkit.SnaprImageEditFragmentActivity;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -2040,7 +2040,8 @@ public class SnaprKitFragment extends Fragment
 				// Clear the history every time we hit index.html				
 				if(url != null && (
 					url.startsWith(UrlUtils.getFullLocalUrl(UrlUtils.ajaxUrl(Global.URL_HOME))) ||
-					url.startsWith(UrlUtils.getFullLocalUrl(UrlUtils.ajaxUrl(Global.URL_MENU)) + "?") || 
+					url.startsWith(UrlUtils.getFullLocalUrl(UrlUtils.ajaxUrl(Global.URL_MENU)) + "?") ||
+					url.equals(UrlUtils.getFullLocalUrl(Global.URL_MENU) + "#") ||
 					url.equals(UrlUtils.getFullLocalUrl(UrlUtils.ajaxUrl(Global.URL_MENU)))))
 				{
 					// Clear the history
