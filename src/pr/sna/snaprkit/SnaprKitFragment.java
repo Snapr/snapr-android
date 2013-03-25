@@ -39,8 +39,8 @@ import pr.sna.snaprkit.utils.GeoManager.GeoListener;
 import pr.sna.snaprkit.utils.NetworkUtils;
 import pr.sna.snaprkit.utils.UrlUtils;
 import pr.sna.snaprkit.utils.webview.WebViewClientEx;
-import pr.sna.snaprkit.SnaprEffect.EffectConfig;
-import pr.sna.snaprkit.SnaprImageEditFragmentActivity;
+import pr.sna.snaprkitfx.SnaprEffect.EffectConfig;
+import pr.sna.snaprkitfx.SnaprImageEditFragmentActivity;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -311,7 +311,7 @@ public class SnaprKitFragment extends Fragment
 							SnaprImageEditFragmentActivity.Builder builder = new SnaprImageEditFragmentActivity.Builder(new File(fileName), new File(fileName), true, timeStamp);
 							builder.setStickerPackPath(mStickerPathPath);
 							builder.setFilterPackPath(mFilterPackPath);
-							builder.setEffectConfigs(mEffectConfigs);
+							//builder.setEffectConfigs(mEffectConfigs);
 							displayPhotoEdit(getActivity(), builder);
 						}
 						else
@@ -2862,6 +2862,7 @@ public class SnaprKitFragment extends Fragment
 	private class FacebookSessionStatusListener implements Session.StatusCallback, OnFacebookAccessListener
 	{
 		// Members
+		@SuppressWarnings("unused")
 		public String mRedirectUrl = null;
 		
 		// Overridden method
