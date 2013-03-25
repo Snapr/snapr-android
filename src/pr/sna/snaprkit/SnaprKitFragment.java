@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -16,6 +17,15 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import com.facebook.LoggingBehavior;
+import com.facebook.Request;
+import com.facebook.Request.GraphUserCallback;
+import com.facebook.Response;
+import com.facebook.Session;
+import com.facebook.SessionState;
+import com.facebook.Settings;
+import com.facebook.model.GraphUser;
 
 import pr.sna.snaprkit.PictureAcquisitionManager.PictureAcquisitionListener;
 import pr.sna.snaprkit.dummy.FeatherActivity;
@@ -169,6 +179,10 @@ public class SnaprKitFragment extends Fragment
 		
 		outState.putString("mmStickerPathPath", mStickerPathPath);
 		outState.putString("mFilterPackPath", mFilterPackPath);
+		
+		// Facebook session
+		Session session = Session.getActiveSession();
+        Session.saveSession(session, outState);
 		
 		// Save the WebView history
 		mWebView.saveState(outState);
@@ -853,6 +867,9 @@ public class SnaprKitFragment extends Fragment
 		
 		super.onActivityResult(requestCode, resultCode, data);
 		
+		// Facebook processing
+		Session.getActiveSession().onActivityResult(getActivity(), requestCode, resultCode, data);
+		
 		switch (requestCode)
 		{
 		    case PictureAcquisitionManager.TAKE_PICTURE:
@@ -1004,6 +1021,22 @@ public class SnaprKitFragment extends Fragment
     	
     	// Retain instance
     	setRetainInstance(true);
+    	
+    	// Set Facebook session
+    	Settings.addLoggingBehavior(LoggingBehavior.INCLUDE_ACCESS_TOKENS);
+        Session session = Session.getActiveSession();
+        if (session == null)
+        {
+            if (savedInstanceState != null)
+            {
+                session = Session.restoreSession(getActivity(), null, mStatusListener, savedInstanceState);
+            }
+            if (session == null)
+            {
+                session = new Session(getActivity());
+            }
+            Session.setActiveSession(session);
+        }
     	
         // Log
         if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod());
@@ -2757,6 +2790,119 @@ public class SnaprKitFragment extends Fragment
         if (mContextMenuOtherItem2Label != null) menu.add(0, 2, 0, mContextMenuOtherItem2Label);
         if (mContextMenuOtherItem3Label != null) menu.add(0, 3, 0, mContextMenuOtherItem3Label);
         if (mContextMenuCancelItemLabel != null) menu.add(0, 0, 0, mContextMenuCancelItemLabel); // always last
+	}
+
+	// ------------------------------------------------------------------------
+	// Native Facebook integration
+	// ------------------------------------------------------------------------
+	
+	private FacebookSessionStatusListener mStatusListener = new FacebookSessionStatusListener();
+	
+	public void getFacebookReadAccess(FacebookSessionStatusListener listener)
+	{
+		List<String> permissions = Arrays.asList("basic_info", "email");
+		getFacebookReadAccess(listener, permissions);
+	}
+	
+	public void getFacebookReadAccess(FacebookSessionStatusListener listener, List<String> permissions)
+	{
+		Session session = Session.getActiveSession();
+		
+        if (!session.isOpened() && !session.isClosed())
+        {
+            session.openForRead(new Session.OpenRequest(this).setCallback(mStatusListener).setPermissions(permissions));
+        }
+        else
+        {
+            Session.openActiveSession(getActivity(), true, mStatusListener);
+        }
+	}
+	
+	public void getFacebookPublishAccess(FacebookSessionStatusListener listener)
+	{
+		List<String> permissions = Arrays.asList("publish_actions");
+		getFacebookPublishAccess(listener, permissions);
+	}
+	
+	public void getFacebookPublishAccess(FacebookSessionStatusListener listener, List<String> publishPermissions)
+	{
+		// Get the current session
+		Session session = Session.getActiveSession();
+		
+		// Check for publish permissions
+        List<String> permissions = session.getPermissions();
+        if (!isSubsetOf(publishPermissions, permissions))
+        {
+            Session.NewPermissionsRequest newPermissionsRequest = new Session.NewPermissionsRequest(this, publishPermissions);
+            session.requestNewPublishPermissions(newPermissionsRequest);
+            return;
+        }
+        else
+        {
+        	// Return Facebook access token
+        	listener.onFacebookAccess(session.getAccessToken());
+        	return;
+        }
+	}
+	
+	private boolean isSubsetOf(Collection<String> subset, Collection<String> superset)
+	{
+	    for (String string : subset)
+	    {
+	        if (!superset.contains(string))
+	        {
+	            return false;
+	        }
+	    }
+	    return true;
+	}
+	
+	private class FacebookSessionStatusListener implements Session.StatusCallback, OnFacebookAccessListener
+	{
+		// Overridden method
+		@Override
+        public void call(Session session, SessionState state, Exception exception)
+        {
+        	if (state == SessionState.OPENED)
+        	{
+        		// Return read token here
+        		onFacebookAccess(Session.getActiveSession().getAccessToken());
+
+        		// If debugging, get the user info
+        		if (Global.LOG_MODE)
+                {
+	                Request.executeMeRequestAsync(session, new GraphUserCallback()
+	                {
+	                    @Override
+	                    public void onCompleted(GraphUser user, Response response)
+	                    {
+                        	if (user != null)
+                        	{
+                        		Global.log("Got Facebook user id: " + user.getId());
+                        		Global.log("Got Facebook email:" + user.asMap().get("email"));
+                        		Global.log("Got Facebook bday: " + user.getBirthday());
+                        	}
+	                    }
+	                });
+                }
+        	}
+        	else if(state == SessionState.OPENED_TOKEN_UPDATED)
+            {
+                // Return publishing token here
+        		onFacebookAccess(session.getAccessToken());
+            }
+        }
+		
+		@Override
+		public void onFacebookAccess(String accessToken)
+		{
+			// TODO: Send access token back to Snapr
+		}	
+	}
+	
+	interface OnFacebookAccessListener
+	{
+		public void onFacebookAccess(String accessToken);
 	}
 	
 	// ------------------------------------------------------------------------
