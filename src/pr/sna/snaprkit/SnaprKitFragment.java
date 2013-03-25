@@ -1995,6 +1995,8 @@ public class SnaprKitFragment extends Fragment
     	mActionMappings.add(new UrlMapping("snapr://link.*", externalBrowseAction));
     	if (Global.USE_AVIARY_SDK) mActionMappings.add(new UrlMapping("snapr://aviary.*", editPhotoAction));
 		mActionMappings.add(new UrlMapping("snapr://.*", defaultAction));
+		mActionMappings.add(new UrlMapping("https://sna.pr/api/linked_services/facebook/signin/.*redirect=.*", facebookLoginAction));
+		mActionMappings.add(new UrlMapping("https://sna.pr/api/linked_services/facebook/oauth/.*redirect=.*", facebookPublishAction));
 		mActionMappings.add(new UrlMapping("file://.*", defaultAction));
 		mActionMappings.add(new UrlMapping("http://.*", externalBrowseAction));
 		mActionMappings.add(new UrlMapping("https://.*", externalBrowseAction));
@@ -2859,6 +2861,9 @@ public class SnaprKitFragment extends Fragment
 	
 	private class FacebookSessionStatusListener implements Session.StatusCallback, OnFacebookAccessListener
 	{
+		// Members
+		public String mRedirectUrl = null;
+		
 		// Overridden method
 		@Override
         public void call(Session session, SessionState state, Exception exception)
@@ -2896,14 +2901,62 @@ public class SnaprKitFragment extends Fragment
 		@Override
 		public void onFacebookAccess(String accessToken)
 		{
-			// TODO: Send access token back to Snapr
-		}	
+			// TODO: Send access token back to Snapr and redirect to url
+		}
+		
+		public void setRedirectUrl(String redirectUrl)
+		{
+			mRedirectUrl = redirectUrl;
+		}
+		
 	}
 	
 	interface OnFacebookAccessListener
 	{
 		public void onFacebookAccess(String accessToken);
 	}
+	
+    // The action performed when logging in via Facebook
+    private Action facebookLoginAction = new Action() {
+    	@Override
+    	public void run(String url)
+    	{
+    		// Log
+    		if (Global.LOG_MODE) Global.log(Global.TAG, " -> facebookLoginAction: Received URL " + url);
+    		
+    		// Parse redirect URL and add it to Facebook status listener
+    		Uri uri = Uri.parse(url);
+    		String redirectUrl = UrlUtils.getQueryParameter(uri, Global.PARAM_REDIRECT);
+    		mStatusListener.setRedirectUrl(redirectUrl);
+    		
+    		// Request read access
+    		getFacebookReadAccess(mStatusListener);
+			
+			// Log
+			if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
+    	}
+    };
+    
+    // The action performed when publishing in via Facebook
+    private Action facebookPublishAction = new Action() {
+    	@Override
+    	public void run(String url)
+    	{
+    		// Log
+    		if (Global.LOG_MODE) Global.log(Global.TAG, " -> facebookPublishAction: Received URL " + url);
+    		
+    		// Parse redirect URL and add it to Facebook status listener
+    		Uri uri = Uri.parse(url);
+    		String redirectUrl = UrlUtils.getQueryParameter(uri, Global.PARAM_REDIRECT);
+    		mStatusListener.setRedirectUrl(redirectUrl);
+    		
+    		// Request publish access
+    		getFacebookPublishAccess(mStatusListener);
+			
+			// Log
+			if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
+    	}
+    };
 	
 	// ------------------------------------------------------------------------
 	// Library interface
