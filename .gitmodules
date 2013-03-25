@@ -1,3 +1,6 @@
 [submodule "android_libs/FacebookSDK"]
 	path = android_libs/FacebookSDK
 	url = git@github.com:Snapr/android-facebook-sdk.git
+[submodule "android_libs/SnaprKitFX"]
+	path = android_libs/SnaprKitFX
+	url = git@github.com:Snapr/android-fx.git
