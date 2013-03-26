@@ -3144,7 +3144,7 @@ public class SnaprKitFragment extends Fragment
 	 * Gets the full collection of configurations for effects
 	 * @param config The configuration to set.
 	 */
-	public Map<String, SnaprSetting> getEffectConfigurations()
+	public Map<String, SnaprSetting> getFxSettings()
 	{
 		return mSettings;
 	}
@@ -3153,7 +3153,7 @@ public class SnaprKitFragment extends Fragment
 	 * Sets the full collection of configurations for effects, clearing out any existing entries.
 	 * @param config The configuration to set.
 	 */
-	public void setEffectConfigurations(Map<String, SnaprSetting> settings)
+	public void setFxSettings(Map<String, SnaprSetting> settings)
 	{
 		mSettings = settings;
 	}
