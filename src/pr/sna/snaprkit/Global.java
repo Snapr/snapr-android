@@ -179,6 +179,7 @@ public class Global
 	public static final String PARAM_LANGUAGE = "language";
 	public static final String PARAM_LOCALE = "locale";
 	public static final String PARAM_EXCEPTION = "exception";
+	public static final String PARAM_MIN_AGE = "min_age";
 	
 	// Images
 	public static final String IMAGE_NAME_PREFIX = "SNAPR_";

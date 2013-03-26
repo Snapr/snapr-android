@@ -2811,10 +2811,22 @@ public class SnaprKitFragment extends Fragment
 	
 	private FacebookSessionStatusListener mStatusListener = new FacebookSessionStatusListener();
 	
-	public void getFacebookReadAccess(FacebookSessionStatusListener listener)
+	public void getFacebookReadAccess(FacebookSessionStatusListener listener, boolean retrieveUserBirthday)
 	{
-		List<String> permissions = Arrays.asList("basic_info", "email");
+		List<String> permissions = getRequiredPermissions(retrieveUserBirthday);
 		getFacebookReadAccess(listener, permissions);
+	}
+	
+	public List<String> getRequiredPermissions(boolean retrieveUserBirthday)
+	{
+		if (retrieveUserBirthday)
+		{
+			return Arrays.asList("email", "user_birthday");
+		}
+		else
+		{
+			return Arrays.asList("email");
+		}
 	}
 	
 	public void getFacebookReadAccess(FacebookSessionStatusListener listener, List<String> permissions)
@@ -2929,7 +2941,8 @@ public class SnaprKitFragment extends Fragment
 	}
 	
     // The action performed when logging in via Facebook
-    private Action facebookLoginAction = new Action() {
+    private Action facebookLoginAction = new Action()
+    {
     	@Override
     	public void run(String url)
     	{
@@ -2939,10 +2952,11 @@ public class SnaprKitFragment extends Fragment
     		// Parse redirect URL and add it to Facebook status listener
     		Uri uri = Uri.parse(url);
     		String redirectUrl = UrlUtils.getQueryParameter(uri, Global.PARAM_REDIRECT);
+    		String minAge = UrlUtils.getQueryParameter(uri, Global.PARAM_MIN_AGE);
     		mStatusListener.setRedirectUrl(redirectUrl);
     		
     		// Request read access
-    		getFacebookReadAccess(mStatusListener);
+    		getFacebookReadAccess(mStatusListener, (minAge != null && minAge.length() > 0));
 			
 			// Log
 			if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
