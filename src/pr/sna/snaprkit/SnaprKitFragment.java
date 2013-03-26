@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
@@ -1918,6 +1919,15 @@ public class SnaprKitFragment extends Fragment
     			// Set the url to the embedded parameter
     			url = UrlUtils.getQueryParameter(uri, Global.PARAM_URL);
 			}
+    		
+    		// Check if this is a Facebook link
+    		// TODO: Also check if we have the Facebook applicationId
+    		if (url.contains("://dev.sna.pr/api/linked_services/facebook/signin/"))
+    		{
+    			// Move this to Facebook native flow
+    			facebookLoginAction.run(url);
+    			return;
+    		}
     		
     		if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Starting external webview with URL " + url);
     		
