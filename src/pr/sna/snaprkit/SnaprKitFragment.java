@@ -7,7 +7,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
 
@@ -29,8 +30,8 @@ import pr.sna.snaprkit.utils.GeoManager.GeoListener;
 import pr.sna.snaprkit.utils.NetworkUtils;
 import pr.sna.snaprkit.utils.UrlUtils;
 import pr.sna.snaprkit.utils.webview.WebViewClientEx;
-import pr.sna.snaprkitfx.SnaprEffect.EffectConfig;
 import pr.sna.snaprkitfx.SnaprImageEditFragmentActivity;
+import pr.sna.snaprkitfx.SnaprSetting;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -83,7 +84,6 @@ public class SnaprKitFragment extends Fragment
 	private String  mAccessToken;
 	private String  mDisplayUserName;
 	private PictureAcquisitionManager mPictureAcquisitionManager;
-	//private TransitionDialog mTransitionDialog;
 	private GeoManager mGeoManager; // Used for snapr://get_location
 	private ConnectivityBroadcastReceiver mConnectivityReceiver;
 	private UploadBroadcastReceiver mServiceCallbackReceiver;
@@ -113,7 +113,7 @@ public class SnaprKitFragment extends Fragment
 	private String mFilterPackPath;		// the location (under assets) where the filter packs will be loaded from
 	private String mStickerPathPath;	// the location (under assets) where the sticker packs will be loaded from
 	
-	private List<EffectConfig> mEffectConfigs;
+	private Map<String, SnaprSetting> mSettings = new HashMap<String, SnaprSetting>();
 	private Intent mPendingIntent;
 	
 	private Handler mHandler = new Handler();
@@ -297,7 +297,7 @@ public class SnaprKitFragment extends Fragment
 							SnaprImageEditFragmentActivity.Builder builder = new SnaprImageEditFragmentActivity.Builder(new File(fileName), new File(fileName), true, timeStamp);
 							builder.setStickerPackPath(mStickerPathPath);
 							builder.setFilterPackPath(mFilterPackPath);
-							//builder.setEffectConfigs(mEffectConfigs);
+							builder.setSettings(mSettings);
 							displayPhotoEdit(getActivity(), builder);
 						}
 						else
@@ -316,6 +316,7 @@ public class SnaprKitFragment extends Fragment
 							SnaprImageEditFragmentActivity.Builder builder = new SnaprImageEditFragmentActivity.Builder(new File(fileName), outputFile);
 							builder.setStickerPackPath(mStickerPathPath);
 							builder.setFilterPackPath(mFilterPackPath);
+							builder.setSettings(mSettings);
 							displayPhotoEdit(getActivity(), builder);
 						}
 						else
@@ -1968,7 +1969,7 @@ public class SnaprKitFragment extends Fragment
     
     // Set webview settings and display startup page
 	// mWebView global should have been prepopulated
-    @SuppressLint({ "SetJavaScriptEnabled", "NewApi" })
+    @SuppressLint({ "SetJavaScriptEnabled", "NewApi", "SdCardPath" })
 	private void initWebView(View view, Bundle savedInstanceState)
     {
     	// Declare
@@ -2942,17 +2943,17 @@ public class SnaprKitFragment extends Fragment
 	 * Gets the full collection of configurations for effects
 	 * @param config The configuration to set.
 	 */
-	public List<EffectConfig> getEffectConfigurations()
+	public Map<String, SnaprSetting> getEffectConfigurations()
 	{
-		return mEffectConfigs;
+		return mSettings;
 	}
 	
 	/**
 	 * Sets the full collection of configurations for effects, clearing out any existing entries.
 	 * @param config The configuration to set.
 	 */
-	public void setEffectConfigurations(List<EffectConfig> configs)
+	public void setEffectConfigurations(Map<String, SnaprSetting> settings)
 	{
-		mEffectConfigs = configs;
+		mSettings = settings;
 	}
 }
