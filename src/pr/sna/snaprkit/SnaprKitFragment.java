@@ -132,6 +132,8 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 	
 	private Handler mHandler = new Handler();
 	
+	private Session mFacebookSession = null;
+	
 	private Runnable mUpdateQueueSettings = new Runnable()
 	{
 		@Override
@@ -185,8 +187,10 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		outState.putString("mFilterPackPath", mFilterPackPath);
 		
 		// Facebook session
-		Session session = Session.getActiveSession();
-        Session.saveSession(session, outState);
+        Session.saveSession(mFacebookSession, outState);
+        
+        // Facebook status listener
+        mStatusListener.saveStatus(outState);
 		
 		// Save the WebView history
 		mWebView.saveState(outState);
@@ -197,6 +201,22 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		closeBroadcastReceivers();
 	}
 	
+	
+	
+	@Override
+	public void onStart()
+	{
+		super.onStart();
+		mFacebookSession.addCallback(mStatusListener);
+	}
+
+	@Override
+	public void onStop()
+	{
+		super.onStop();
+		mFacebookSession.removeCallback(mStatusListener);
+	}
+
 	@Override
 	public void onPause()
 	{
@@ -873,7 +893,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		super.onActivityResult(requestCode, resultCode, data);
 		
 		// Facebook processing
-		Session.getActiveSession().onActivityResult(getActivity(), requestCode, resultCode, data);
+		mFacebookSession.onActivityResult(getActivity(), requestCode, resultCode, data);
 		
 		switch (requestCode)
 		{
@@ -1011,7 +1031,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		super.onConfigurationChanged(newConfig);
 	}
 	
-    /** Called when the activity is first created. */
+    /** Called when the fragment is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
@@ -1027,25 +1047,11 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
     	// Retain instance
     	setRetainInstance(true);
     	
-    	// Set Facebook session
-    	Settings.addLoggingBehavior(LoggingBehavior.INCLUDE_ACCESS_TOKENS);
-        Session session = Session.getActiveSession();
-        if (session == null)
-        {
-            if (savedInstanceState != null)
-            {
-                session = Session.restoreSession(getActivity(), null, mStatusListener, savedInstanceState);
-            }
-            if (session == null)
-            {
-                session = new Session(getActivity());
-            }
-            Session.setActiveSession(session);
-        }
-    	
         // Log
         if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod());
     }
+    
+    
     
 	@Override public void onActivityCreated(Bundle savedInstanceState) {
     	super.onActivityCreated(savedInstanceState);
@@ -1925,10 +1931,16 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
     		
     		// Check if this is a Facebook link
     		// TODO: Also check if we have the Facebook applicationId
-    		if (url.contains("://dev.sna.pr/api/linked_services/facebook/signin/"))
+    		if (url.contains(Global.URL_FACEBOOK_LOGIN.substring(4)))
     		{
     			// Move this to Facebook native flow
     			facebookLoginAction.run(url);
+    			return;
+    		}
+    		else if (url.contains(Global.URL_FACEBOOK_PUBLISH.substring(4)))
+    		{
+    			// Move this to Facebook native flow
+    			facebookPublishAction.run(url);
     			return;
     		}
     		
@@ -2134,7 +2146,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 			@Override  
             public boolean onJsAlert(WebView view, String url, String message, final android.webkit.JsResult result)  
             {
-				if (!SnaprKitFragment.this.getActivity().isFinishing()) // Need check to avoid random crashes when we are in the backgroound
+				if (SnaprKitFragment.this.getActivity() != null && !SnaprKitFragment.this.getActivity().isFinishing()) // Need check to avoid random crashes when we are in the backgroound
 				{
 	                new AlertDialog.Builder(getActivity())  
 	                    .setTitle(R.string.snaprkit_name)  
@@ -2705,6 +2717,9 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
     	
     	// Set action map
     	initActionMap();
+    	
+    	// Set the Facebok native objects
+    	initFacebookNative(savedInstanceState);
         
         // Log
         if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod());
@@ -2814,6 +2829,28 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 	
 	private FacebookSessionStatusListener mStatusListener = new FacebookSessionStatusListener();
 	
+	public void initFacebookNative(Bundle savedInstanceState)
+	{
+		// Set Facebook session
+    	Settings.addLoggingBehavior(LoggingBehavior.INCLUDE_ACCESS_TOKENS);
+        mFacebookSession = Session.getActiveSession();
+        if (mFacebookSession == null)
+        {
+            if (savedInstanceState != null)
+            {
+            	mFacebookSession = Session.restoreSession(getActivity(), null, mStatusListener, savedInstanceState);
+            }
+            if (mFacebookSession == null)
+            {
+            	mFacebookSession = new Session(getActivity());
+            }
+            Session.setActiveSession(mFacebookSession);
+        }
+        
+        // Restore Facebook status
+        mStatusListener.restoreStatus(savedInstanceState);
+	}
+	
 	public void getFacebookReadAccess(FacebookSessionStatusListener listener, boolean retrieveUserBirthday)
 	{
 		List<String> permissions = getRequiredReadPermissions(retrieveUserBirthday);
@@ -2833,16 +2870,15 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 	}
 	
 	public void getFacebookReadAccess(FacebookSessionStatusListener listener, List<String> permissions)
-	{
-		Session session = Session.getActiveSession();
-		
-        if (!session.isOpened() && !session.isClosed())
+	{		
+        if (!mFacebookSession.isOpened() && !mFacebookSession.isClosed())
         {
-            session.openForRead(new Session.OpenRequest(this).setCallback(mStatusListener).setPermissions(permissions));
+        	mFacebookSession.openForRead(new Session.OpenRequest(this).setCallback(mStatusListener).setPermissions(permissions));
         }
         else
         {
-            Session.openActiveSession(getActivity(), true, mStatusListener);
+        	mFacebookSession = new Session(getActivity());
+        	Session.setActiveSession(mFacebookSession);
         }
 	}
 	
@@ -2852,29 +2888,31 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 	}
 	
 	public void getFacebookPublishAccess(FacebookSessionStatusListener listener, List<String> publishPermissions)
-	{
-		// Get the current session
-		Session session = Session.getActiveSession();
-		
+	{		
 		// Check for publish permissions
         
-        if (!session.isOpened() && !session.isClosed())
+        if (!mFacebookSession.isOpened() && !mFacebookSession.isClosed())
         {
-            session.openForPublish(new Session.OpenRequest(this).setCallback(mStatusListener).setPermissions(publishPermissions));
+        	mFacebookSession.openForPublish(new Session.OpenRequest(this).setCallback(mStatusListener).setPermissions(publishPermissions));
+        }
+        else if (mFacebookSession.isClosed())
+        {
+        	mFacebookSession = new Session(getActivity());
+        	Session.setActiveSession(mFacebookSession);
         }
         else
         {
-        	List<String> permissions = session.getPermissions();
+        	List<String> permissions = mFacebookSession.getPermissions();
         	if (!isSubsetOf(publishPermissions, permissions))
 	        {
 	            Session.NewPermissionsRequest newPermissionsRequest = new Session.NewPermissionsRequest(this, publishPermissions);
-	            session.requestNewPublishPermissions(newPermissionsRequest);
+	            mFacebookSession.requestNewPublishPermissions(newPermissionsRequest);
 	            return;
 	        }
 	        else
 	        {
 	        	// Return Facebook access token
-	        	listener.onFacebookAccess(session.getAccessToken(), session.getExpirationDate(), session.getPermissions());
+	        	listener.onFacebookAccess(mFacebookSession.getAccessToken(), mFacebookSession.getExpirationDate(), mFacebookSession.getPermissions());
 	        	return;
 	        }
         }
@@ -2895,8 +2933,29 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 	private class FacebookSessionStatusListener implements Session.StatusCallback, OnFacebookAccessListener
 	{
 		// Members
-		public String mOriginalUrl = null;
-		public boolean mRequestedPublishPermissions = false;
+		private String mOriginalUrl = null;
+		private boolean mRequestedPublishPermissions = false;
+		
+		public FacebookSessionStatusListener()
+		{
+			mOriginalUrl = null;
+			mRequestedPublishPermissions = false;
+		}
+		
+		public void saveStatus(Bundle outState)
+		{
+			outState.putString("mOriginalUrl", mOriginalUrl);
+			outState.putBoolean("mRequestedPublishPermissions", mRequestedPublishPermissions);
+		}
+		
+		public void restoreStatus(Bundle savedInstanceState)
+		{
+			if (savedInstanceState != null && !savedInstanceState.isEmpty())
+			{
+				mOriginalUrl = savedInstanceState.getString("mOriginalUrl");
+				mRequestedPublishPermissions = savedInstanceState.getBoolean("mRequestedPublishPermissions");
+			}
+		}
 		
 		// Overridden method
 		@Override
@@ -2952,15 +3011,16 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 			}
 			else
 			{
-				FacebookLoginInfo loginInfo = new FacebookLoginInfo();
+				FacebookPublishInfo publishInfo = new FacebookPublishInfo();
 				Uri uri = Uri.parse(mOriginalUrl);
-	    		loginInfo.mRedirectUrl = UrlUtils.getQueryParameter(uri, Global.PARAM_REDIRECT);
-	    		loginInfo.mToken = accessToken;
-	    		loginInfo.mTokenExpirationDate = expirationDate;
-	    		loginInfo.mTokenPermissions = permissions;
+	    		publishInfo.mRedirectUrl = UrlUtils.getQueryParameter(uri, Global.PARAM_REDIRECT);
+	    		publishInfo.mSnaprToken = UrlUtils.getQueryParameter(uri, Global.PARAM_ACCESS_TOKEN);
+	    		publishInfo.mToken = accessToken;
+	    		publishInfo.mTokenExpirationDate = expirationDate;
+	    		publishInfo.mTokenPermissions = permissions;
 	    		
-	    		FacebookLoginAsyncTask facebookLoginTask = new FacebookLoginAsyncTask(SnaprKitFragment.this);
-	    		facebookLoginTask.execute(loginInfo);
+	    		FacebookPublishAsyncTask facebookPublishTask = new FacebookPublishAsyncTask(SnaprKitFragment.this);
+	    		facebookPublishTask.execute(publishInfo);
 			}
 		}
 		
@@ -2995,6 +3055,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
     		List<String> permissions = getRequiredReadPermissions((minAge != null && minAge.length() > 0));
     		
     		// Add items
+    		//mStatusListener = new FacebookSessionStatusListener();
     		mStatusListener.setOriginalUrl(url);
     		mStatusListener.setRequestedPublishPermissions(false);
     		
@@ -3016,6 +3077,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
     		
     		// Parse redirect URL and add it to Facebook status listener
     		List<String> permissions = getRequiredPublishPermissions();
+    		//mStatusListener = new FacebookSessionStatusListener();
     		mStatusListener.setOriginalUrl(url);
     		mStatusListener.setRequestedPublishPermissions(true);
     		
@@ -3033,6 +3095,14 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		// Log
 		if (Global.LOG_MODE) Global.log(Global.TAG, " -> onSnaprLogin: Received redirect URL " + redirectUrl);
 		
+		// Check if the redirect url starts with snapr://redirect
+		boolean isSnaprRedirect = redirectUrl.startsWith(Global.URL_SNAPR_REDIRECT);
+		if (isSnaprRedirect)
+		{
+			Uri redirectUri = Uri.parse(redirectUrl);
+			redirectUrl = redirectUri.getQueryParameter(Global.PARAM_REDIRECT_URL);
+		}
+		
 		// Create redirect url
 		HashMap<String, String> params = new HashMap<String, String>();
 		params.put("access_token", userInfo.mAccessToken);
@@ -3040,9 +3110,25 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		params.put("snapr_user", userInfo.mSnaprUserName);
 		redirectUrl = UrlUtils.appendParamsToUrl(redirectUrl, params);
 		
+		// Add snapr://redirect back in
+		if (isSnaprRedirect)
+		{
+			Vector<BasicNameValuePair> snaprRedirectParams = new Vector<BasicNameValuePair>();
+			snaprRedirectParams.add(new BasicNameValuePair(Global.PARAM_REDIRECT_URL, redirectUrl));
+			redirectUrl = UrlUtils.createUrl(Global.URL_SNAPR_REDIRECT, snaprRedirectParams, false);
+		}
+		
 		// Redirect
 		if (Global.LOG_MODE) Global.log(Global.TAG, " -> Redirecting to " + redirectUrl);
-		mWebView.loadUrl(redirectUrl);
+		if (!isSnaprRedirect)
+		{
+			mWebView.loadUrl(redirectUrl);
+		}
+		else
+		{
+			Action action = getActionForUrl(redirectUrl);
+			action.run(redirectUrl);
+		}
 		
 		// Log
 		if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
@@ -3076,7 +3162,16 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		
 		// Redirect
 		if (Global.LOG_MODE) Global.log(Global.TAG, " -> Redirecting to " + redirectUrl);
-		mWebView.loadUrl(redirectUrl);
+		boolean isSnaprRedirect = redirectUrl.startsWith(Global.URL_SNAPR_REDIRECT);
+		if (!isSnaprRedirect)
+		{
+			mWebView.loadUrl(redirectUrl);
+		}
+		else
+		{
+			Action action = getActionForUrl(redirectUrl);
+			action.run(redirectUrl);
+		}
 		
 		// Log
 		if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());

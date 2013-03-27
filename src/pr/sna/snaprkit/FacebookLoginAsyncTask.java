@@ -39,14 +39,13 @@ public class FacebookLoginAsyncTask extends AbstractErrorHandlingAsyncTask<Faceb
 		// Parse result
 		JSONObject json = new JSONObject(jsonString);
 		JSONObject response = json.getJSONObject("response");
-		boolean success = response.getBoolean("success");
+		boolean success = json.getBoolean("success");
 		UserInfo userInfo = null;
 		if (success)
 		{
-			JSONObject response2 = response.getJSONObject("response");
-			String accessToken = response2.getString("access_token");
-			String displayUserName = response2.getString("display_username");
-			String snaprUser = response2.getString("snapr_user");
+			String accessToken = response.getString("access_token");
+			String displayUserName = response.getString("display_username");
+			String snaprUser = response.getString("snapr_user");
 			
 			userInfo = new UserInfo();
 			userInfo.mAccessToken = accessToken;
@@ -94,7 +93,7 @@ public class FacebookLoginAsyncTask extends AbstractErrorHandlingAsyncTask<Faceb
     	params.add(new BasicNameValuePair(Global.PARAM_CLIENT_ID, clientId));
     	params.add(new BasicNameValuePair(Global.PARAM_CREATE, create));
     	params.add(new BasicNameValuePair(Global.PARAM_MIN_AGE, minAge));
-    	long tokenExpires = (new Date().getTime() - expirationDate.getTime()) / 1000;
+    	long tokenExpires = (expirationDate.getTime() - new Date().getTime()) / 1000;
     	params.add(new BasicNameValuePair(Global.PARAM_TOKEN_EXPIRES, tokenExpires+""));
     	String tokenPermissions = ListToString(permissions); 
     	params.add(new BasicNameValuePair(Global.PARAM_TOKEN_PERMISSIONS, tokenPermissions));
@@ -112,9 +111,16 @@ public class FacebookLoginAsyncTask extends AbstractErrorHandlingAsyncTask<Faceb
 		
 		for (String s: in)
 		{
-			out += s;
+			out = out + "," + s;
 		}
 		
-		return out;
+		if (out.length() > 0)
+		{
+			return out.substring(1);
+		}
+		else
+		{
+			return out;
+		}
 	}
 }

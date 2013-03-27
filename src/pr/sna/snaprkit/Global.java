@@ -80,13 +80,14 @@ public class Global
 	public static final String URL_SNAPR_GET_LOCATION = "snapr://get_location";
 	public static final String URL_SNAPR_UPLOAD = "snapr://upload";
 	public static final String URL_SNAPR_UPLOAD_PROGRESS = "snapr://upload_progress";
+	public static final String URL_SNAPR_REDIRECT = "snapr://redirect";
 	
 	public static final String URL_UPLOAD_LOCATION = getRemoteUrlBase() + "upload/";
 	public static final String URL_SEARCH_LOCATION = getRemoteUrlBase() + "search/";
 	public static final String URL_MAPS_GEOCODE = "http://maps.googleapis.com/maps/api/geocode/json";
 	
-	public static final String URL_FACEBOOK_LOGIN = "https://sna.pr/api/linked_services/facebook/signin/";
-	public static final String URL_FACEBOOK_PUBLISH = "https://sna.pr/api/linked_services/facebook/oauth/";
+	public static final String URL_FACEBOOK_LOGIN = getRemoteUrlBase() + "linked_services/facebook/signin/";
+	public static final String URL_FACEBOOK_PUBLISH = getRemoteUrlBase() + "linked_services/facebook/oauth/";
 	
 	// Parameters
 	public static final String PARAM_USERNAME = "username";
