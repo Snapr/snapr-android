@@ -1937,7 +1937,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
     			facebookLoginAction.run(url);
     			return;
     		}
-    		else if (url.contains(Global.URL_FACEBOOK_PUBLISH.substring(4)))
+    		else if (url.contains(Global.URL_FACEBOOK_OAUTH.substring(4)))
     		{
     			// Move this to Facebook native flow
     			facebookPublishAction.run(url);

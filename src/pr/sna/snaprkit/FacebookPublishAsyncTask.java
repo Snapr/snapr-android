@@ -8,9 +8,8 @@ import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import pr.sna.snaprkit.utils.UrlUtils;
-import pr.sna.snaprkit.utils.http.HttpRetriever;
-import pr.sna.snaprkit.utils.http.HttpRetrieverException;
+import pr.sna.snaprkit.utils.http.HttpPoster;
+import pr.sna.snaprkit.utils.http.HttpPosterException;
 
 public class FacebookPublishAsyncTask extends AbstractErrorHandlingAsyncTask<FacebookPublishInfo, Void, Void>
 {
@@ -24,17 +23,17 @@ public class FacebookPublishAsyncTask extends AbstractErrorHandlingAsyncTask<Fac
 	}
 	
 	@Override
-	protected Void computeResult(FacebookPublishInfo... params) throws HttpRetrieverException, JSONException
+	protected Void computeResult(FacebookPublishInfo... params) throws HttpPosterException, JSONException
 	{
 		// Extract the data
 		FacebookPublishInfo publishInfo = mPublishInfo = params[0];
 		
 		// Get URL for post to endpoint
-		String url = getFacebookPublishUrl(publishInfo.mToken, publishInfo.mSnaprToken, publishInfo.mTokenExpirationDate, publishInfo.mTokenPermissions);
+		Vector<BasicNameValuePair> postParams = getFacebookPublishParams(publishInfo.mToken, publishInfo.mSnaprToken, publishInfo.mTokenExpirationDate, publishInfo.mTokenPermissions);
 		
 		// Post to endpoint and get result
-		HttpRetriever retriever = new HttpRetriever();
-		String jsonString = retriever.retrieve(url);
+		HttpPoster poster = new HttpPoster();
+		String jsonString = poster.post(Global.URL_FACEBOOK_PUBLISH, postParams);
 		
 		// Parse result
 		JSONObject json = new JSONObject(jsonString);
@@ -70,10 +69,9 @@ public class FacebookPublishAsyncTask extends AbstractErrorHandlingAsyncTask<Fac
 		public void onSnaprFacebookPublishError(Throwable e, String redirectUrl);
 	}
 	
-	public static String getFacebookPublishUrl(String token, String snaprToken, Date expirationDate, List<String> permissions)
+	public static Vector<BasicNameValuePair> getFacebookPublishParams(String token, String snaprToken, Date expirationDate, List<String> permissions)
 	{
     	// Declare
-        String url;
     	Vector<BasicNameValuePair> params;
         
         // Add login parameters
@@ -85,10 +83,7 @@ public class FacebookPublishAsyncTask extends AbstractErrorHandlingAsyncTask<Fac
     	String tokenPermissions = FacebookLoginAsyncTask.ListToString(permissions); 
     	params.add(new BasicNameValuePair(Global.PARAM_TOKEN_PERMISSIONS, tokenPermissions));
         
-        // Create the URL
-        url = UrlUtils.createUrl(Global.URL_FACEBOOK_PUBLISH, params, false);
-        
         // Return
-        return url;
+        return params;
 	}
 }

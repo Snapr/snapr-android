@@ -87,7 +87,8 @@ public class Global
 	public static final String URL_MAPS_GEOCODE = "http://maps.googleapis.com/maps/api/geocode/json";
 	
 	public static final String URL_FACEBOOK_LOGIN = getRemoteUrlBase() + "linked_services/facebook/signin/";
-	public static final String URL_FACEBOOK_PUBLISH = getRemoteUrlBase() + "linked_services/facebook/oauth/";
+	public static final String URL_FACEBOOK_OAUTH = getRemoteUrlBase() + "linked_services/facebook/oauth/";
+	public static final String URL_FACEBOOK_PUBLISH = getRemoteUrlBase() + "linked_services/facebook/";
 	
 	// Parameters
 	public static final String PARAM_USERNAME = "username";
