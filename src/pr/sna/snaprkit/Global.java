@@ -85,6 +85,9 @@ public class Global
 	public static final String URL_SEARCH_LOCATION = getRemoteUrlBase() + "search/";
 	public static final String URL_MAPS_GEOCODE = "http://maps.googleapis.com/maps/api/geocode/json";
 	
+	public static final String URL_FACEBOOK_LOGIN = "https://sna.pr/api/linked_services/facebook/signin/";
+	public static final String URL_FACEBOOK_PUBLISH = "https://sna.pr/api/linked_services/facebook/oauth/";
+	
 	// Parameters
 	public static final String PARAM_USERNAME = "username";
 	public static final String PARAM_DISPLAY_USERNAME = "display_username";
@@ -180,6 +183,11 @@ public class Global
 	public static final String PARAM_LOCALE = "locale";
 	public static final String PARAM_EXCEPTION = "exception";
 	public static final String PARAM_MIN_AGE = "min_age";
+	public static final String PARAM_CREATE = "create";
+	public static final String PARAM_TOKEN = "token";
+	public static final String PARAM_TOKEN_EXPIRES = "token_expires";
+	public static final String PARAM_TOKEN_PERMISSIONS = "token_permissions";
+	
 	
 	// Images
 	public static final String IMAGE_NAME_PREFIX = "SNAPR_";

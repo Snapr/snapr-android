@@ -1,7 +1,9 @@
 package pr.sna.snaprkit.utils;
 
 import java.io.File;
+import java.net.URLEncoder;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -484,5 +486,19 @@ public class UrlUtils
     public static String jsEscape(String js)
     {
     	return js.replace("'", "&#39;");
+    }
+    
+    public static String appendParamsToUrl(String baseUrl, HashMap<String, String> params)
+    {
+    	// Declare
+    	String returnUrl = baseUrl;
+    	
+    	// Check ending
+    	for (String s: params.keySet())
+    	{
+    		returnUrl = returnUrl + "&" + URLEncoder.encode(s) + "=" + URLEncoder.encode(params.get(s));
+    	}
+    	
+    	return returnUrl;
     }
 }

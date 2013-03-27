@@ -29,10 +29,13 @@ import com.facebook.SessionState;
 import com.facebook.Settings;
 import com.facebook.model.GraphUser;
 
+import pr.sna.snaprkit.FacebookLoginAsyncTask.OnSnaprFacebookLoginListener;
+import pr.sna.snaprkit.FacebookPublishAsyncTask.OnSnaprFacebookPublishListener;
 import pr.sna.snaprkit.PictureAcquisitionManager.PictureAcquisitionListener;
 import pr.sna.snaprkit.dummy.FeatherActivity;
 import pr.sna.snaprkit.utils.AlertUtils;
 import pr.sna.snaprkit.utils.CameraUtils;
+import pr.sna.snaprkit.utils.ExceptionUtils;
 import pr.sna.snaprkit.utils.LocalizationUtils;
 import pr.sna.snaprkit.utils.UserInfoUtils;
 import pr.sna.snaprkit.utils.FileUtils;
@@ -78,7 +81,7 @@ import android.webkit.WebView;
 //import com.aviary.android.feather.FeatherActivity;
 import android.widget.Button;
 
-public class SnaprKitFragment extends Fragment
+public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginListener, OnSnaprFacebookPublishListener
 {
 	// Constants
 	private static final int ACTION_REQUEST_FEATHER = 100;
@@ -2813,11 +2816,11 @@ public class SnaprKitFragment extends Fragment
 	
 	public void getFacebookReadAccess(FacebookSessionStatusListener listener, boolean retrieveUserBirthday)
 	{
-		List<String> permissions = getRequiredPermissions(retrieveUserBirthday);
+		List<String> permissions = getRequiredReadPermissions(retrieveUserBirthday);
 		getFacebookReadAccess(listener, permissions);
 	}
 	
-	public List<String> getRequiredPermissions(boolean retrieveUserBirthday)
+	public List<String> getRequiredReadPermissions(boolean retrieveUserBirthday)
 	{
 		if (retrieveUserBirthday)
 		{
@@ -2843,10 +2846,9 @@ public class SnaprKitFragment extends Fragment
         }
 	}
 	
-	public void getFacebookPublishAccess(FacebookSessionStatusListener listener)
+	public List<String> getRequiredPublishPermissions()
 	{
-		List<String> permissions = Arrays.asList("publish_actions");
-		getFacebookPublishAccess(listener, permissions);
+		return Arrays.asList("publish_stream");
 	}
 	
 	public void getFacebookPublishAccess(FacebookSessionStatusListener listener, List<String> publishPermissions)
@@ -2855,18 +2857,26 @@ public class SnaprKitFragment extends Fragment
 		Session session = Session.getActiveSession();
 		
 		// Check for publish permissions
-        List<String> permissions = session.getPermissions();
-        if (!isSubsetOf(publishPermissions, permissions))
+        
+        if (!session.isOpened() && !session.isClosed())
         {
-            Session.NewPermissionsRequest newPermissionsRequest = new Session.NewPermissionsRequest(this, publishPermissions);
-            session.requestNewPublishPermissions(newPermissionsRequest);
-            return;
+            session.openForPublish(new Session.OpenRequest(this).setCallback(mStatusListener).setPermissions(publishPermissions));
         }
         else
         {
-        	// Return Facebook access token
-        	listener.onFacebookAccess(session.getAccessToken());
-        	return;
+        	List<String> permissions = session.getPermissions();
+        	if (!isSubsetOf(publishPermissions, permissions))
+	        {
+	            Session.NewPermissionsRequest newPermissionsRequest = new Session.NewPermissionsRequest(this, publishPermissions);
+	            session.requestNewPublishPermissions(newPermissionsRequest);
+	            return;
+	        }
+	        else
+	        {
+	        	// Return Facebook access token
+	        	listener.onFacebookAccess(session.getAccessToken(), session.getExpirationDate(), session.getPermissions());
+	        	return;
+	        }
         }
 	}
 	
@@ -2885,8 +2895,8 @@ public class SnaprKitFragment extends Fragment
 	private class FacebookSessionStatusListener implements Session.StatusCallback, OnFacebookAccessListener
 	{
 		// Members
-		@SuppressWarnings("unused")
-		public String mRedirectUrl = null;
+		public String mOriginalUrl = null;
+		public boolean mRequestedPublishPermissions = false;
 		
 		// Overridden method
 		@Override
@@ -2895,7 +2905,7 @@ public class SnaprKitFragment extends Fragment
         	if (state == SessionState.OPENED)
         	{
         		// Return read token here
-        		onFacebookAccess(Session.getActiveSession().getAccessToken());
+        		onFacebookAccess(session.getAccessToken(), session.getExpirationDate(), session.getPermissions());
 
         		// If debugging, get the user info
         		if (Global.LOG_MODE)
@@ -2918,26 +2928,56 @@ public class SnaprKitFragment extends Fragment
         	else if(state == SessionState.OPENED_TOKEN_UPDATED)
             {
                 // Return publishing token here
-        		onFacebookAccess(session.getAccessToken());
+        		onFacebookAccess(session.getAccessToken(), session.getExpirationDate(), session.getPermissions());
             }
         }
 		
 		@Override
-		public void onFacebookAccess(String accessToken)
+		public void onFacebookAccess(String accessToken, Date expirationDate, List<String> permissions)
 		{
-			// TODO: Send access token back to Snapr and redirect to url
+			if (!mRequestedPublishPermissions)
+			{
+				FacebookLoginInfo loginInfo = new FacebookLoginInfo();
+				Uri uri = Uri.parse(mOriginalUrl);
+	    		loginInfo.mRedirectUrl = UrlUtils.getQueryParameter(uri, Global.PARAM_REDIRECT);
+	    		loginInfo.mClientId = UrlUtils.getQueryParameter(uri, Global.PARAM_CLIENT_ID);
+	    		loginInfo.mCreate = UrlUtils.getQueryParameter(uri, Global.PARAM_CREATE);
+	    		loginInfo.mMinAge = UrlUtils.getQueryParameter(uri, Global.PARAM_MIN_AGE);
+	    		loginInfo.mToken = accessToken;
+	    		loginInfo.mTokenExpirationDate = expirationDate;
+	    		loginInfo.mTokenPermissions = permissions;
+	    		
+	    		FacebookLoginAsyncTask facebookLoginTask = new FacebookLoginAsyncTask(SnaprKitFragment.this);
+	    		facebookLoginTask.execute(loginInfo);
+			}
+			else
+			{
+				FacebookLoginInfo loginInfo = new FacebookLoginInfo();
+				Uri uri = Uri.parse(mOriginalUrl);
+	    		loginInfo.mRedirectUrl = UrlUtils.getQueryParameter(uri, Global.PARAM_REDIRECT);
+	    		loginInfo.mToken = accessToken;
+	    		loginInfo.mTokenExpirationDate = expirationDate;
+	    		loginInfo.mTokenPermissions = permissions;
+	    		
+	    		FacebookLoginAsyncTask facebookLoginTask = new FacebookLoginAsyncTask(SnaprKitFragment.this);
+	    		facebookLoginTask.execute(loginInfo);
+			}
 		}
 		
-		public void setRedirectUrl(String redirectUrl)
+		public void setOriginalUrl(String originalUrl)
 		{
-			mRedirectUrl = redirectUrl;
+			mOriginalUrl = originalUrl;
 		}
 		
+		public void setRequestedPublishPermissions(boolean requestedPublishPermissions)
+		{
+			mRequestedPublishPermissions = requestedPublishPermissions;
+		}
 	}
 	
 	interface OnFacebookAccessListener
 	{
-		public void onFacebookAccess(String accessToken);
+		public void onFacebookAccess(String accessToken, Date expirationDate, List<String> permissions);
 	}
 	
     // The action performed when logging in via Facebook
@@ -2951,12 +2991,15 @@ public class SnaprKitFragment extends Fragment
     		
     		// Parse redirect URL and add it to Facebook status listener
     		Uri uri = Uri.parse(url);
-    		String redirectUrl = UrlUtils.getQueryParameter(uri, Global.PARAM_REDIRECT);
     		String minAge = UrlUtils.getQueryParameter(uri, Global.PARAM_MIN_AGE);
-    		mStatusListener.setRedirectUrl(redirectUrl);
+    		List<String> permissions = getRequiredReadPermissions((minAge != null && minAge.length() > 0));
+    		
+    		// Add items
+    		mStatusListener.setOriginalUrl(url);
+    		mStatusListener.setRequestedPublishPermissions(false);
     		
     		// Request read access
-    		getFacebookReadAccess(mStatusListener, (minAge != null && minAge.length() > 0));
+    		getFacebookReadAccess(mStatusListener, permissions);
 			
 			// Log
 			if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
@@ -2972,17 +3015,92 @@ public class SnaprKitFragment extends Fragment
     		if (Global.LOG_MODE) Global.log(Global.TAG, " -> facebookPublishAction: Received URL " + url);
     		
     		// Parse redirect URL and add it to Facebook status listener
-    		Uri uri = Uri.parse(url);
-    		String redirectUrl = UrlUtils.getQueryParameter(uri, Global.PARAM_REDIRECT);
-    		mStatusListener.setRedirectUrl(redirectUrl);
+    		List<String> permissions = getRequiredPublishPermissions();
+    		mStatusListener.setOriginalUrl(url);
+    		mStatusListener.setRequestedPublishPermissions(true);
     		
     		// Request publish access
-    		getFacebookPublishAccess(mStatusListener);
+    		getFacebookPublishAccess(mStatusListener, permissions);
 			
 			// Log
 			if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
     	}
     };
+    
+	@Override
+	public void onSnaprFacebookLogin(UserInfo userInfo, String redirectUrl)
+	{
+		// Log
+		if (Global.LOG_MODE) Global.log(Global.TAG, " -> onSnaprLogin: Received redirect URL " + redirectUrl);
+		
+		// Create redirect url
+		HashMap<String, String> params = new HashMap<String, String>();
+		params.put("access_token", userInfo.mAccessToken);
+		params.put("display_username", userInfo.mDisplayUserName);
+		params.put("snapr_user", userInfo.mSnaprUserName);
+		redirectUrl = UrlUtils.appendParamsToUrl(redirectUrl, params);
+		
+		// Redirect
+		if (Global.LOG_MODE) Global.log(Global.TAG, " -> Redirecting to " + redirectUrl);
+		mWebView.loadUrl(redirectUrl);
+		
+		// Log
+		if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
+	}
+	
+	@Override
+	public void onSnaprFacebookLoginError(Throwable e, String redirectUrl)
+	{
+		// Log
+		if (Global.LOG_MODE) Global.log(Global.TAG, " -> onSnaprLoginError: Received redirect URL " + redirectUrl + " and error");		
+		if (Global.LOG_MODE) Global.log(ExceptionUtils.getExceptionStackString(e));
+		
+		// Create redirect url
+		HashMap<String, String> params = new HashMap<String, String>();
+		params.put("error", e.getMessage());
+		redirectUrl = UrlUtils.appendParamsToUrl(redirectUrl, params);
+		
+		// Redirect
+		if (Global.LOG_MODE) Global.log(Global.TAG, " -> Redirecting to " + redirectUrl);
+		mWebView.loadUrl(redirectUrl);
+		
+		// Log
+		if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
+	}
+	
+	@Override
+	public void onSnaprFacebookPublish(String redirectUrl)
+	{
+		// Log
+		if (Global.LOG_MODE) Global.log(Global.TAG, " -> onSnaprFacebookPublish: Received redirect URL " + redirectUrl);
+		
+		// Redirect
+		if (Global.LOG_MODE) Global.log(Global.TAG, " -> Redirecting to " + redirectUrl);
+		mWebView.loadUrl(redirectUrl);
+		
+		// Log
+		if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
+	}
+
+	@Override
+	public void onSnaprFacebookPublishError(Throwable e, String redirectUrl)
+	{
+		// Log
+		if (Global.LOG_MODE) Global.log(Global.TAG, " -> onSnaprFacebookPublishError: Received redirect URL " + redirectUrl + " and error");		
+		if (Global.LOG_MODE) Global.log(ExceptionUtils.getExceptionStackString(e));
+		
+		// Create redirect url
+		HashMap<String, String> params = new HashMap<String, String>();
+		params.put("error", e.getMessage());
+		redirectUrl = UrlUtils.appendParamsToUrl(redirectUrl, params);
+		
+		// Redirect
+		if (Global.LOG_MODE) Global.log(Global.TAG, " -> Redirecting to " + redirectUrl);
+		mWebView.loadUrl(redirectUrl);
+		
+		// Log
+		if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
+	}
 	
 	// ------------------------------------------------------------------------
 	// Library interface
