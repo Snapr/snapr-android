@@ -18,6 +18,7 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.facebook.LoggingBehavior;
@@ -549,29 +550,12 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 						// Call upload_completed JS
 						String localId = intent.getStringExtra(Global.PARAM_LOCAL_ID);
 						String snaprId = intent.getStringExtra(Global.PARAM_SNAPR_ID);
-						if (Global.LOG_MODE) Global.log( " -> " + Global.getCurrentMethod() + ": Sending upload_completed('" + localId + "', '"  + snaprId + "')");
-						mWebView.loadUrl("javascript:upload_completed('" + localId + "', '"  + snaprId + "')");
-						
-						// Log
-						if (Global.LOG_MODE) Global.log( " -> " + Global.getCurrentMethod() + ": Determining signups needed");
-						
 						String signupsNeeded = intent.getStringExtra(Global.PARAM_SIGNUPS_NEEDED);
-						String redirectUrl = "";
-						if (signupsNeeded != null && signupsNeeded.length() != 0)
-						{
-							// Log
-							if (Global.LOG_MODE) Global.log( " -> " + Global.getCurrentMethod() + ": Need signups for " + signupsNeeded);
-							
-							// Get the needed signups URL and load it
-							String url = getSignupsNeededUrl(snaprId, signupsNeeded, redirectUrl);
-							if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Signups URL is " + url);
-							mWebView.loadUrl(url);
-						}
-						else
-						{
-							// Log
-							if (Global.LOG_MODE) Global.log( " -> " + Global.getCurrentMethod() + ": No signups needed");
-						}
+						String uploadCompletedParams = buildUploadCompletedParameters(localId, snaprId, signupsNeeded);
+						//String uploadCompletedParams = "{localId:'" + localId + "', snapr_id:'" + snaprId + "', to_link:['facebook']}";
+						
+						if (Global.LOG_MODE) Global.log( " -> " + Global.getCurrentMethod() + ": Sending upload_completed(" + UrlUtils.jsEscape(uploadCompletedParams) + ")");
+						mWebView.loadUrl("javascript:upload_completed(" + UrlUtils.jsEscape(uploadCompletedParams) + ")");
 					}
 				}
 				else if (broadcast == Global.BROADCAST_UPLOAD_PROGRESS)
@@ -784,6 +768,31 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 			// Log
 			if (Global.LOG_MODE) Global.log( " <- " + Global.getCurrentMethod());
 		}
+	}
+	
+	private String buildUploadCompletedParameters(String localId, String snaprId, String signupsNeeded)
+	{
+		String[] signups = signupsNeeded.split(",");
+		
+		JSONObject uploadCompletedParameters = new JSONObject();
+		try
+		{
+			uploadCompletedParameters.put(Global.PARAM_LOCAL_ID, localId);
+			uploadCompletedParameters.put(Global.PARAM_SNAPR_ID, snaprId);
+			JSONArray signupsArray = new JSONArray();
+			for (String s: signups)
+			{
+				signupsArray.put(s);
+			}
+			uploadCompletedParameters.put(Global.PARAM_TO_LINK, signupsArray);
+		}
+		catch (JSONException e)
+		{
+			e.printStackTrace();
+			return "";
+		}
+
+		return uploadCompletedParameters.toString();
 	}
 	
 	/**
@@ -1259,59 +1268,8 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
         
         // Convert to AJAX URL and return
         return UrlUtils.ajaxUrl(url);
-    }
-    
-    /**
-     * Build the signups for shared services URL 
-     * @return Returns the signups URL
-     */
-    private String getSignupsNeededUrl(String localId, String signupsNeeded, String redirectUrl)
-    {
-        // Declare
-        String url;
-    	Vector<BasicNameValuePair> params;
-        
-    	// Add appmode = android every time
-        params = new Vector<BasicNameValuePair>();
-        params.add(new BasicNameValuePair(Global.PARAM_APPMODE, "android"));
-        params.add(new BasicNameValuePair(Global.PARAM_ENVIRONMENT, Global.ENVIRONMENT));
-        
-        // Customize some parameters based on logged in status
-        if(haveUserInfo())
-		{
-        	// We have user info, so create URL that performs login
-        	params.add(new BasicNameValuePair(Global.PARAM_DISPLAY_USERNAME, mDisplayUserName));
-        	params.add(new BasicNameValuePair(Global.PARAM_SNAPR_USER, mSnaprUserName));
-        	params.add(new BasicNameValuePair(Global.PARAM_ACCESS_TOKEN, mAccessToken));
-		}
-        else
-        {
-        	// We have no username and password, so create URL that indicates new user
-        	params.add(new BasicNameValuePair(Global.PARAM_NEW_USER, "true"));
-        }
-        
-        // Pass the image id
-        params.add(new BasicNameValuePair(Global.PARAM_PHOTO_ID, localId));
-        
-        // Pass the signups needed
-        params.add(new BasicNameValuePair(Global.PARAM_TO_LINK, signupsNeeded));
-        
-        // Pass in a blank shared param
-        params.add(new BasicNameValuePair(Global.PARAM_SHARED, ""));
-        
-        // Pass the redirect url
-        if ((redirectUrl != null) && (redirectUrl.length() > 0))
-        {
-        	params.add(new BasicNameValuePair(Global.PARAM_REDIRECT_URL, redirectUrl));
-        }
-        
-        // Create the URL
-        url = UrlUtils.createUrl(UrlUtils.getFullLocalUrl(Global.URL_LINKED_SERVICES), params, true);
-        
-        // Convert to AJAX URL and return
-        return UrlUtils.ajaxUrl(url);
-    }
-    
+    }    
+
     // The action performed for snaprkit-parent:// URLs
     private Action snaprKitParentAction = new Action()
     {
