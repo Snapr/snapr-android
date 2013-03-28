@@ -133,8 +133,6 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 	
 	private Handler mHandler = new Handler();
 	
-	private Session mFacebookSession = null;
-	
 	private Runnable mUpdateQueueSettings = new Runnable()
 	{
 		@Override
@@ -188,7 +186,8 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		outState.putString("mFilterPackPath", mFilterPackPath);
 		
 		// Facebook session
-        Session.saveSession(mFacebookSession, outState);
+		Session session = Session.getActiveSession();
+        Session.saveSession(session, outState);
         
         // Facebook status listener
         mStatusListener.saveStatus(outState);
@@ -208,14 +207,14 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 	public void onStart()
 	{
 		super.onStart();
-		mFacebookSession.addCallback(mStatusListener);
+		Session.getActiveSession().addCallback(mStatusListener);
 	}
 
 	@Override
 	public void onStop()
 	{
 		super.onStop();
-		mFacebookSession.removeCallback(mStatusListener);
+		Session.getActiveSession().removeCallback(mStatusListener);
 	}
 
 	@Override
@@ -902,7 +901,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		super.onActivityResult(requestCode, resultCode, data);
 		
 		// Facebook processing
-		mFacebookSession.onActivityResult(getActivity(), requestCode, resultCode, data);
+		Session.getActiveSession().onActivityResult(getActivity(), requestCode, resultCode, data);
 		
 		switch (requestCode)
 		{
@@ -2794,18 +2793,18 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 	{
 		// Set Facebook session
     	Settings.addLoggingBehavior(LoggingBehavior.INCLUDE_ACCESS_TOKENS);
-        mFacebookSession = Session.getActiveSession();
-        if (mFacebookSession == null)
+        Session session = Session.getActiveSession();
+        if (session == null)
         {
             if (savedInstanceState != null)
             {
-            	mFacebookSession = Session.restoreSession(getActivity(), null, mStatusListener, savedInstanceState);
+            	session = Session.restoreSession(getActivity(), null, mStatusListener, savedInstanceState);
             }
-            if (mFacebookSession == null)
+            if (session == null)
             {
-            	mFacebookSession = new Session.Builder(getActivity()).setApplicationId(Global.FACEBOOK_APP_ID).build();
+            	session = new Session.Builder(getActivity()).setApplicationId(Global.FACEBOOK_APP_ID).build();
             }
-            Session.setActiveSession(mFacebookSession);
+            Session.setActiveSession(session);
         }
         
         // Restore Facebook status
@@ -2831,15 +2830,18 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 	}
 	
 	public void getFacebookReadAccess(FacebookSessionStatusListener listener, List<String> permissions)
-	{		
-        if (!mFacebookSession.isOpened() && !mFacebookSession.isClosed())
+	{
+		Session session = Session.getActiveSession();
+		
+		if (session == null || session.isClosed())
+		{
+			session = new Session.Builder(getActivity()).setApplicationId(Global.FACEBOOK_APP_ID).build();
+        	Session.setActiveSession(session);
+		}
+		
+        if (!session.isOpened() && !session.isClosed())
         {
-        	mFacebookSession.openForRead(new Session.OpenRequest(this).setCallback(mStatusListener).setPermissions(permissions));
-        }
-        else
-        {
-        	mFacebookSession = new Session.Builder(getActivity()).setApplicationId(Global.FACEBOOK_APP_ID).build();
-        	Session.setActiveSession(mFacebookSession);
+        	session.openForRead(new Session.OpenRequest(this).setCallback(mStatusListener).setPermissions(permissions));
         }
 	}
 	
@@ -2851,29 +2853,31 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 	public void getFacebookPublishAccess(FacebookSessionStatusListener listener, List<String> publishPermissions)
 	{		
 		// Check for publish permissions
+		Session session = Session.getActiveSession();
         
-        if (!mFacebookSession.isOpened() && !mFacebookSession.isClosed())
+		if (session == null || session.isClosed())
         {
-        	mFacebookSession.openForPublish(new Session.OpenRequest(this).setCallback(mStatusListener).setPermissions(publishPermissions));
+        	session = new Session.Builder(getActivity()).setApplicationId(Global.FACEBOOK_APP_ID).build();
+        	Session.setActiveSession(session);
         }
-        else if (mFacebookSession.isClosed())
+		
+		if (!session.isOpened() && !session.isClosed())
         {
-        	mFacebookSession = new Session.Builder(getActivity()).setApplicationId(Global.FACEBOOK_APP_ID).build();
-        	Session.setActiveSession(mFacebookSession);
+        	session.openForPublish(new Session.OpenRequest(this).setCallback(mStatusListener).setPermissions(publishPermissions));
         }
         else
         {
-        	List<String> permissions = mFacebookSession.getPermissions();
+        	List<String> permissions = session.getPermissions();
         	if (!isSubsetOf(publishPermissions, permissions))
 	        {
 	            Session.NewPermissionsRequest newPermissionsRequest = new Session.NewPermissionsRequest(this, publishPermissions);
-	            mFacebookSession.requestNewPublishPermissions(newPermissionsRequest);
+	            session.requestNewPublishPermissions(newPermissionsRequest);
 	            return;
 	        }
 	        else
 	        {
 	        	// Return Facebook access token
-	        	listener.onFacebookAccess(mFacebookSession.getAccessToken(), mFacebookSession.getExpirationDate(), mFacebookSession.getPermissions());
+	        	listener.onFacebookAccess(session.getAccessToken(), session.getExpirationDate(), session.getPermissions());
 	        	return;
 	        }
         }
