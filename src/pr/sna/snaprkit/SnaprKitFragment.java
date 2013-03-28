@@ -1313,6 +1313,16 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
     	{
     		// Clear the locally stored user info
     		UserInfoUtils.clearUserInfo(getContext());
+    		
+    		// Clear the FB native session
+    		if (Global.FACEBOOK_APP_ID != null && Global.FACEBOOK_APP_ID.length() > 0 )
+    		{
+    			Session session = Session.getActiveSession();
+    			if (session != null && !session.isClosed())
+    			{
+    				session.closeAndClearTokenInformation();
+    			}
+    		}
     	}
     };
     
@@ -2792,7 +2802,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 	public void initFacebookNative(Bundle savedInstanceState)
 	{
 		// Set Facebook session
-    	Settings.addLoggingBehavior(LoggingBehavior.INCLUDE_ACCESS_TOKENS);
+    	if (Global.LOG_MODE) Settings.addLoggingBehavior(LoggingBehavior.INCLUDE_ACCESS_TOKENS);
         Session session = Session.getActiveSession();
         if (session == null)
         {
@@ -2839,9 +2849,13 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
         	Session.setActiveSession(session);
 		}
 		
-        if (!session.isOpened() && !session.isClosed())
+        if (!session.isOpened())
         {
-        	session.openForRead(new Session.OpenRequest(this).setCallback(mStatusListener).setPermissions(permissions));
+        	session.openForRead(new Session.OpenRequest(this).setCallback(listener).setPermissions(permissions));
+        }
+        else
+        {
+        	listener.onFacebookAccess(session.getAccessToken(), session.getExpirationDate(), session.getPermissions());
         }
 	}
 	
@@ -2861,9 +2875,9 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
         	Session.setActiveSession(session);
         }
 		
-		if (!session.isOpened() && !session.isClosed())
+		if (!session.isOpened())
         {
-        	session.openForPublish(new Session.OpenRequest(this).setCallback(mStatusListener).setPermissions(publishPermissions));
+        	session.openForPublish(new Session.OpenRequest(this).setCallback(listener).setPermissions(publishPermissions));
         }
         else
         {
@@ -2926,6 +2940,8 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		@Override
         public void call(Session session, SessionState state, Exception exception)
         {
+			if (Global.LOG_MODE) Global.log(" -> FacebookSessionStatusListener: Received state: " + state.toString());
+			
         	if (state == SessionState.OPENED)
         	{
         		// Return read token here
