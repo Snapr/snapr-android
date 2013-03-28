@@ -1887,19 +1887,22 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
     			url = UrlUtils.getQueryParameter(uri, Global.PARAM_URL);
 			}
     		
-    		// Check if this is a Facebook link
-    		// TODO: Also check if we have the Facebook applicationId
-    		if (url.contains(Global.URL_FACEBOOK_LOGIN.substring(4)))
+    		// Check if this is a Facebook link that should be handled natively
+    		// Handle natively only when we have a FACEBOOK_APP_ID
+    		if (Global.FACEBOOK_APP_ID != null && Global.FACEBOOK_APP_ID.length() > 0)
     		{
-    			// Move this to Facebook native flow
-    			facebookLoginAction.run(url);
-    			return;
-    		}
-    		else if (url.contains(Global.URL_FACEBOOK_OAUTH.substring(4)))
-    		{
-    			// Move this to Facebook native flow
-    			facebookPublishAction.run(url);
-    			return;
+	    		if (url.contains(Global.URL_FACEBOOK_LOGIN.substring(4)))
+	    		{
+	    			// Move this to Facebook native flow
+	    			facebookLoginAction.run(url);
+	    			return;
+	    		}
+	    		else if (url.contains(Global.URL_FACEBOOK_OAUTH.substring(4)))
+	    		{
+	    			// Move this to Facebook native flow
+	    			facebookPublishAction.run(url);
+	    			return;
+	    		}
     		}
     		
     		if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Starting external webview with URL " + url);
@@ -2800,7 +2803,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
             }
             if (mFacebookSession == null)
             {
-            	mFacebookSession = new Session(getActivity());
+            	mFacebookSession = new Session.Builder(getActivity()).setApplicationId(Global.FACEBOOK_APP_ID).build();
             }
             Session.setActiveSession(mFacebookSession);
         }
@@ -2835,7 +2838,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
         }
         else
         {
-        	mFacebookSession = new Session(getActivity());
+        	mFacebookSession = new Session.Builder(getActivity()).setApplicationId(Global.FACEBOOK_APP_ID).build();
         	Session.setActiveSession(mFacebookSession);
         }
 	}
@@ -2855,7 +2858,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
         }
         else if (mFacebookSession.isClosed())
         {
-        	mFacebookSession = new Session(getActivity());
+        	mFacebookSession = new Session.Builder(getActivity()).setApplicationId(Global.FACEBOOK_APP_ID).build();
         	Session.setActiveSession(mFacebookSession);
         }
         else
@@ -3186,10 +3189,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 	
 	// Start via the normal flow with custom page
 	public void startNormalFlow(String pageUrl)
-	{
-		// Initialize URL base
-		Global.URL_BASE = Global.getLocalUrlBase(getActivity());
-		
+	{		
 		// Load the user info
 		loadUserInfo();
 		
@@ -3225,9 +3225,6 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		
 		// Load the user info
 		loadUserInfo();
-		
-		// Initialize URL base
-		Global.URL_BASE = Global.getLocalUrlBase(getActivity());
 		
 		// Set the shared picture filename
 		mSharedPictureFileName = sharedPictureFileName;
@@ -3275,9 +3272,6 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 	// Url is provided using base name from HTML build
 	public void goToPage(String pageUrl)
 	{
-		// Initialize URL base
-		if (Global.URL_BASE == null) Global.URL_BASE = Global.getLocalUrlBase(getActivity());
-		
 		loadUserProvidedUrl(pageUrl);
 	}	
 	

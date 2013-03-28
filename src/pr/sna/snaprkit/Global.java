@@ -19,17 +19,23 @@ public class Global
 	// Java debugging
     public static final boolean LOG_MODE = true;
     
-	// HTML debugging and local URL base
-    public static final boolean HTML_DEBUG = false;
-	public static final String URL_BASE_SDCARD_HTML = "file://" + Environment.getExternalStorageDirectory().getAbsolutePath() + "/snaprkit_html/";  // must end in slash
-	public static final String URL_BASE_ASSETS_HTML = "file:///android_asset/snaprkit_html/"; // must end in slash
-	public static String URL_BASE = "";              // generated based on HTML_DEBUG and URL_BASE_* values above, overwritten from start flows in Honeycomb+
-	
 	// Remote environment and remote URL base
 	public static final String ENVIRONMENT = "dev";                       // either dev, dev-android, live, live-android
 	public static final String URL_SERVER_PROD = "https://api.sna.pr/";   // must end in slash
 	public static final String URL_SERVER_DEV = "http://dev.sna.pr/api/"; // must end in slash
-	public static final String URL_SERVER = getRemoteUrlBase();           // generated based on ENVIRONMENT and URL_SERVER_* values above
+	public static final String URL_SERVER = isLiveEnvironment()?URL_SERVER_PROD: URL_SERVER_DEV;
+    
+	// HTML debugging and local URL base
+	public static final boolean HTML_DEBUG = false;
+	public static final String URL_BASE_SDCARD_HTML = "file://" + Environment.getExternalStorageDirectory().getAbsolutePath() + "/snaprkit_html/";  // must end in slash
+	public static final String URL_BASE_ASSETS_HTML = "file:///android_asset/snaprkit_html/"; // must end in slash
+	public static String URL_BASE = HTML_DEBUG?URL_BASE_SDCARD_HTML:URL_BASE_ASSETS_HTML;
+	
+	// Native Facebook login and publish
+	// Leave APP_IDs blank to use web login and publish
+	public static final String FACEBOOK_APP_ID_PROD = "";
+	public static final String FACEBOOK_APP_ID_DEV = "151738444987320";
+	public static final String FACEBOOK_APP_ID = isLiveEnvironment()?FACEBOOK_APP_ID_PROD:FACEBOOK_APP_ID_DEV;
 	
 	// Shared Preferences
 	public static final String SNAPR_PREFERENCES = "SnaprPrefs";
@@ -82,13 +88,13 @@ public class Global
 	public static final String URL_SNAPR_UPLOAD_PROGRESS = "snapr://upload_progress";
 	public static final String URL_SNAPR_REDIRECT = "snapr://redirect";
 	
-	public static final String URL_UPLOAD_LOCATION = getRemoteUrlBase() + "upload/";
-	public static final String URL_SEARCH_LOCATION = getRemoteUrlBase() + "search/";
+	public static final String URL_UPLOAD_LOCATION = URL_SERVER + "upload/";
+	public static final String URL_SEARCH_LOCATION = URL_SERVER + "search/";
 	public static final String URL_MAPS_GEOCODE = "http://maps.googleapis.com/maps/api/geocode/json";
 	
-	public static final String URL_FACEBOOK_LOGIN = getRemoteUrlBase() + "linked_services/facebook/signin/";
-	public static final String URL_FACEBOOK_OAUTH = getRemoteUrlBase() + "linked_services/facebook/oauth/";
-	public static final String URL_FACEBOOK_PUBLISH = getRemoteUrlBase() + "linked_services/facebook/";
+	public static final String URL_FACEBOOK_LOGIN = URL_SERVER + "linked_services/facebook/signin/";
+	public static final String URL_FACEBOOK_OAUTH = URL_SERVER + "linked_services/facebook/oauth/";
+	public static final String URL_FACEBOOK_PUBLISH = URL_SERVER + "linked_services/facebook/";
 	
 	// Parameters
 	public static final String PARAM_USERNAME = "username";
@@ -344,28 +350,9 @@ public class Global
 		return metrics.densityDpi;
 	}
 
-	@SuppressWarnings("unused")
-	public static String getLocalUrlBase(Activity activity)
+	public static boolean isLiveEnvironment()
 	{
-		if (HTML_DEBUG == true)
-		{
-			return URL_BASE_SDCARD_HTML;
-		}
-		else
-		{
-			return URL_BASE_ASSETS_HTML;
-		}
+		return ENVIRONMENT.startsWith("live");
 	}
 	
-	public static String getRemoteUrlBase()
-	{
-		if (ENVIRONMENT.startsWith("live"))
-		{
-			return URL_SERVER_PROD;
-		}
-		else
-		{
-			return URL_SERVER_DEV;
-		}
-	}
 }
