@@ -26,6 +26,7 @@ import com.facebook.Request;
 import com.facebook.Request.GraphUserCallback;
 import com.facebook.Response;
 import com.facebook.Session;
+import com.facebook.Session.OpenRequest;
 import com.facebook.SessionState;
 import com.facebook.Settings;
 import com.facebook.model.GraphUser;
@@ -2851,7 +2852,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		
         if (!session.isOpened())
         {
-        	session.openForRead(new Session.OpenRequest(this).setCallback(listener).setPermissions(permissions));
+        	session.openForRead(getSessionOpenRequest(listener, permissions));
         }
         else
         {
@@ -2877,7 +2878,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		
 		if (!session.isOpened())
         {
-        	session.openForPublish(new Session.OpenRequest(this).setCallback(listener).setPermissions(publishPermissions));
+        	session.openForPublish(getSessionOpenRequest(listener, publishPermissions));
         }
         else
         {
@@ -2895,6 +2896,14 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 	        	return;
 	        }
         }
+	}
+	
+	private OpenRequest getSessionOpenRequest(FacebookSessionStatusListener listener, List<String> permissions)
+	{
+		OpenRequest openRequest = new Session.OpenRequest(this);
+		openRequest.setCallback(listener);
+		openRequest.setPermissions(permissions);
+		return openRequest;
 	}
 	
 	private boolean isSubsetOf(Collection<String> subset, Collection<String> superset)
