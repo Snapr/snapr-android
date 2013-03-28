@@ -182,7 +182,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		
 		outState.putString("mUserData", mPictureAcquisitionManager.getUserData());
 		
-		outState.putString("mmStickerPathPath", mStickerPathPath);
+		outState.putString("mStickerPathPath", mStickerPathPath);
 		outState.putString("mFilterPackPath", mFilterPackPath);
 		
 		// Facebook session
