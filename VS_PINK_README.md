@@ -193,25 +193,9 @@ PINK Nation uses a custom login to exchange PINK Nation user details with an Sna
 
 Here is how to use the Pink custom login:
 
-1. Before starting the SnaprKit module, call `getUserInfoFromServer` function which can be found in the `LoginUtils.java` file of the sample app, and which is described below:
+1. Before starting the SnaprKit module, call `getUserInfoFromServer` function which can be found in the `LoginUtils.java` file of the sample app, and which is described in section 9.1 below.
 
-    public static UserInfo getUserInfoFromServer(String url, String firstName, String email, String key, String appGroup) throws RuntimeException
-    
-    Parameters:
-    
-    * url - The URL of the endpoint that registers Pink users with Snapr. Use `http://dev.sna.pr/api/linked_services/pink/get_token/` in development and `https://api.sna.pr/linked_services/pink/get_token/` in production.
-    * firstName - User's first name
-    * email - User's email
-    * key - A secret string. Send ‘test_key’ as this has become embedded in production.
-    * appGroup - Application group. Send ‘pink-nation-android’ for Android.
-    
-    Returns:
-    * UserInfo object
-    
-    Exceptions:
-    * RuntimeException - Exception containing a description of the error
-
-2. Register the Snapr user with Snapr. To do this, pass the `UserInfo` object from the call above to the [SnaprKitFragment.setUserInfo()(#SnaprKitFragmentReference) function.
+2. Register the Snapr user with Snapr. To do this, take the `UserInfo` object returned from the call above and pass it to the SnaprKitFragment.setUserInfo() function which is described in section 9.2 below.
 
 ## 7. Backend Server Configuration
 You can configure the app to communicate with either the Snapr development environment or the Snapr production environment.
@@ -249,7 +233,6 @@ The following table shows the list of functions available:
 
 The following functions are available through SnaprKitFragment:
 
-<a name="SnaprKitFragmentReference"/>
 Function | Description
 -------- | --------
 void startNormalFlow() | Starts the normal flow using the default menu page
@@ -270,3 +253,23 @@ Function | Description
 -------- | --------
 void onPageFinished(String url) | Triggers when a page has finished loading. You can find out which page finished via the url parameter
 void onSnaprKitParent(String url) | Triggers when the build sends a SnaprKitParent message, and provides the full url through the url parameter
+
+### 9.2 LoginUtils
+
+The LoginUtils module contains the following functions for custom Pink login:
+
+Function | Description
+-------- | --------
+public static UserInfo getUserInfoFromServer(String url, String firstName, String email, String key, String appGroup) throws RuntimeException | 
+Parameters:    
+* url - The URL of the endpoint that registers Pink users with Snapr. Use `http://dev.sna.pr/api/linked_services/pink/get_token/` in development and `https://api.sna.pr/linked_services/pink/get_token/` in production.
+* firstName - User's first name
+* email - User's email
+* key - A secret string. Send ‘test_key’ as this has become embedded in production.
+* appGroup - Application group. Send ‘pink-nation-android’ for Android.
+    
+Returns:
+* UserInfo object
+    
+Exceptions:
+* RuntimeException - Exception containing a description of the error
