@@ -102,7 +102,7 @@ The following hardware features entries let the Android Market know what hardwar
         android:required="false" />
 
 ### 3.5.4 Activity declaration
-Then, inside the <application> tag, add a reference to the following activity:
+Then, inside the <application> tag, add a reference to the following activities:
 
     <activity android:name="pr.sna.snaprkit.WebViewExternalActivity"  
         android:screenOrientation="portrait"   
@@ -115,6 +115,11 @@ Then, inside the <application> tag, add a reference to the following activity:
         android:configChanges="keyboardHidden|orientation"
         android:screenOrientation="portrait"
         android:theme="@style/Application.Theme.NoTitleBar">
+    </activity>
+    
+    <activity android:name="com.facebook.LoginActivity"
+        android:theme="@android:style/Theme.Translucent.NoTitleBar"
+        android:label="@string/app_name">
     </activity>
 
 ### 3.5.5 Services declaration
@@ -146,7 +151,7 @@ In the manifest, locate the activity entry for the activity that contains the Sn
         android:name=".MainActivity"
         android:screenOrientation="portrait"
         android:configChanges="keyboardHidden|orientation"
-        android:theme="@android:style/Theme.NoTitleBar"__>
+        android:theme="@android:style/Theme.NoTitleBar">
     </activity>
 
 ## 5.2 Setup Base Class
