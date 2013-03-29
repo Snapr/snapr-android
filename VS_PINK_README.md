@@ -149,11 +149,22 @@ In the manifest, locate the activity entry for the activity that contains the Sn
         android:theme="@android:style/Theme.NoTitleBar"__>
     </activity>
 
-### 5.2 Setup Base Class
+## 5.2 Setup Base Class
 Open the source file for the activity that contains the SnaprKit fragment and change the class declaration to make the class extend `FragmentActivity` rather than `Activity`.
 
-## 5.3 Initialize
-### 5.3.1 Static Fragment
+
+## 5.3 Setup Pink Custom Login
+
+PINK Nation uses a custom login to exchange PINK Nation user details with an Snapr OAuth token that can be used against the Snapr API. If a Snapr account does not already exist for the supplied details then Snapr will automatically create one.
+
+Here is how to use the Pink custom login:
+
+1. Before initializing the SnaprKit module, call `getUserInfoFromServer` function which can be found in the `LoginUtils.java` file of the sample app, and which is described in section 8.1 below.
+
+2. Take the `UserInfo` object returned from the call above and pass it to the `SnaprKitFragment.setUserInfo()` function which is described in section 8.2 below. How you do this will depend on whether you are using the SnaprKitFragment in a static or dynamic way (see section below).
+
+## 5.4 Initialize
+### 5.4.1 Static Fragment
 If you are using the fragment in an activity without swapping it, then add the following code in the `onCreate` method of your activity:
 
     // Add this to the class members
@@ -166,14 +177,14 @@ If you are using the fragment in an activity without swapping it, then add the f
     // Start the normal activity flow
     mSnaprKitFragment.startNormalFlow();`
 
-### 5.3.2 Dynamic Fragment
+### 5.4.2 Dynamic Fragment
 If you are swapping the fragment in and out of the activity, then do the following:
 
 * Create a new fragment class called `MySnaprKitFragment` that extends the `SnaprKitFragment` class included in SnaprKit.
 * In the `onCreate` event, perform the one-time tasks that do not involve the UI (such as external log in, if this is a requirement for your project).
 * In the `onCreateActivity` event, perform the tasks that need to be repeated every time the fragment is brought back, or the tasks that deal with the UI.
 
-### 5.3.3 Add Back button support
+### 5.4.3 Add Back button support
 To support webview navigation using the back button, override the `onBackPressed` method in the activity that contains the SnaprKit fragment:
 
     @Override
@@ -187,26 +198,16 @@ To support webview navigation using the back button, override the `onBackPressed
         }
     }
 
-## 6. Pink Custom Login
-
-PINK Nation uses a custom login to exchange PINK Nation user details with an Snapr OAuth token that can be used against the Snapr API. If a Snapr account does not already exist for the supplied details then Snapr will automatically create one.
-
-Here is how to use the Pink custom login:
-
-1. Before starting the SnaprKit module, call `getUserInfoFromServer` function which can be found in the `LoginUtils.java` file of the sample app, and which is described in section 9.1 below.
-
-2. Take the `UserInfo` object returned from the call above and pass it to the `SnaprKitFragment.setUserInfo()` function which is described in section 9.2 below.
-
-## 7. Backend Server Configuration
+## 6. Backend Server Configuration
 You can configure the app to communicate with either the Snapr development environment or the Snapr production environment.
 
 To change between these, edit the `src/pr/sna/snaprkit/Global.java` file in the SnaprKit library and set the `ENVIRONMENT` string to either `dev-android` (development) or `live-android` (production).
 
-## 8. Native Facebook Configuration
+## 7. Native Facebook Configuration
 
 SnaprKit 3.0 now allows you to use native Facebook login and sharing using Facebook SDK 3.0 and higher.
 
-### 8.1 Facebook SDK Configuration
+### 7.1 Facebook SDK Configuration
 
 If your app already includes the Facebook SDK library, then you should adjust the SnaprKit dependencies so that SnaprKit uses the same Facebook library as your main project.
 
@@ -218,7 +219,7 @@ Here is how to reconfigure SnaprKit to use the appropriate library. These instru
 4. Click the `Add` button, select your Facebook SDK project from the list of projects and then click `OK`.
 5. Clean / refresh the project for the changes to take effect.
 
-### 8.2 Facebook Native Login and Sharing
+### 7.2 Facebook Native Login and Sharing
 
 To enable these features you must take the following steps:
 
@@ -226,10 +227,10 @@ To enable these features you must take the following steps:
 2. Make a note of the Facebook application IDs from step 1 above. Edit the `src/pr/sna/snaprkit/Global.java` file in the SnaprKit library and enter the IDs under `FACEBOOK_APP_ID_PROD` and `FACEBOOK_APP_ID_DEV`.
 3. Once the APP_ID values are in place, SnaprKit will use native Facebook functionality. If you don’t provide Facebook application IDs, SnaprKit will fall back to the Facebook web login and share.
 
-## 9. API Reference
+## 8. API Reference
 The following table shows the list of functions available:
 
-### 9.1 SnaprKitFragment
+### 8.1 SnaprKitFragment
 
 The following functions are available through SnaprKitFragment:
 
@@ -256,7 +257,7 @@ void onSnaprKitParent(String url) | Triggers when the build sends a SnaprKitPare
 
 ### 9.2 LoginUtils
 
-The LoginUtils module contains the following functions for custom Pink login:
+The LoginUtils module contains the following function for custom Pink login:
 
     public static UserInfo getUserInfoFromServer(String url, String firstName, String email, String key, String appGroup) throws RuntimeException
     
