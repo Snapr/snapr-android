@@ -195,7 +195,7 @@ Here is how to use the Pink custom login:
 
 1. Before starting the SnaprKit module, call `getUserInfoFromServer` function which can be found in the `LoginUtils.java` file of the sample app, and which is described in section 9.1 below.
 
-2. Register the Snapr user with Snapr. To do this, take the `UserInfo` object returned from the call above and pass it to the SnaprKitFragment.setUserInfo() function which is described in section 9.2 below.
+2. Take the `UserInfo` object returned from the call above and pass it to the `SnaprKitFragment.setUserInfo()` function which is described in section 9.2 below.
 
 ## 7. Backend Server Configuration
 You can configure the app to communicate with either the Snapr development environment or the Snapr production environment.
@@ -258,9 +258,8 @@ void onSnaprKitParent(String url) | Triggers when the build sends a SnaprKitPare
 
 The LoginUtils module contains the following functions for custom Pink login:
 
-Function | Description
--------- | --------
-public static UserInfo getUserInfoFromServer(String url, String firstName, String email, String key, String appGroup) throws RuntimeException | 
+    public static UserInfo getUserInfoFromServer(String url, String firstName, String email, String key, String appGroup) throws RuntimeException
+    
 Parameters:    
 * url - The URL of the endpoint that registers Pink users with Snapr. Use `http://dev.sna.pr/api/linked_services/pink/get_token/` in development and `https://api.sna.pr/linked_services/pink/get_token/` in production.
 * firstName - User's first name
