@@ -1,5 +1,7 @@
 package pr.sna.snaprkit.utils;
 
+import java.util.Date;
+
 import pr.sna.snaprkit.Global;
 import pr.sna.snaprkit.R;
 
@@ -19,10 +21,12 @@ public class GeoManager implements LocationListener {
 	private Handler mHandler = new Handler();
 	private boolean mIsActive;
     private int mCaller;
-	private TransitionDialog mTransitionDialog = null;
+    private static Date sLastGeolocationFailureDate;
+    private TransitionDialog mTransitionDialog = null;
     private static final int LOCATION_DISTANCE_TOLERANCE = 100;             // plus minus tolerance for distance 
     private static final int LOCATION_TIME_TOLERANCE = 1 * 30 * 1000;		// plus minus tolerance time (really just minus)
     private static final int LOCATION_TIMEOUT = 1 * 20 * 1000;				// location timeout
+    private static final int LOCATION_FAILURE_TIMEOUT = 5 * 60 * 1000;		// time to avoid querying location after failure
     
     private Runnable mTimeOutRunnable = new Runnable()
 	{
@@ -30,6 +34,7 @@ public class GeoManager implements LocationListener {
 		public void run()
 		{
 			mIsActive = false;
+			sLastGeolocationFailureDate = new Date();
 			if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod());
 	    	mLocationManager.removeUpdates(GeoManager.this);
 	    	mGeoListener.onTimeOut(mCurrentLocation, mCaller);
@@ -55,6 +60,13 @@ public class GeoManager implements LocationListener {
 	public void getLocation(GeoListener listener, int caller)
     {
     	if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod());
+    	
+    	// Do not perform geolocation if we failed recently
+    	if ((sLastGeolocationFailureDate != null) && (new Date().getTime() - sLastGeolocationFailureDate.getTime()) <= LOCATION_FAILURE_TIMEOUT)
+    	{
+    		listener.onTimeOut(mCurrentLocation, caller);
+    		return;
+    	}
     	
     	mIsActive = true;
     	mCaller = caller;
