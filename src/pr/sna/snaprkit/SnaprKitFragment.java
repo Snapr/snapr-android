@@ -699,8 +699,20 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 							}
 							else
 							{
-								// Set the queue to paused
-								updateQueueSettings(false, mQueueUploadModeWifiOnly);
+								// Determine how to handle error
+								// For apps which don't display a queue, we cancel the upload
+								// For apps which have a queue, we pause the queue
+								if (Global.UPLOAD_FAILED_AUTO_CLEAR)
+								{
+									// Cancel the upload
+									cancelUpload(localId);
+									updateQueueStatus();
+								}
+								else
+								{
+									// Set the queue to paused
+									updateQueueSettings(false, mQueueUploadModeWifiOnly);
+								}
 								
 								// Display alert dialog
 								showUploadError(errorMessage);

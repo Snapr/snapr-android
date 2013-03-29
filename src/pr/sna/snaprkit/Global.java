@@ -31,6 +31,10 @@ public class Global
 	public static final String URL_BASE_ASSETS_HTML = "file:///android_asset/snaprkit_html/"; // must end in slash
 	public static String URL_BASE = HTML_DEBUG?URL_BASE_SDCARD_HTML:URL_BASE_ASSETS_HTML;
 	
+	// Upload file failed behaviors
+	public static final boolean UPLOAD_FAILED_AUTO_CLEAR = true;         // Clear uploads that fail because of errors
+	                                                                     // Should be enabled for apps which don't display a file queue
+	
 	// Native Facebook login and publish
 	// Leave APP_IDs blank to use web login and publish
 	public static final String FACEBOOK_APP_ID_PROD = "";
