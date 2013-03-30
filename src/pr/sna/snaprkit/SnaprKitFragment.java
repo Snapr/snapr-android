@@ -21,6 +21,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.facebook.FacebookOperationCanceledException;
 import com.facebook.LoggingBehavior;
 import com.facebook.Request;
 import com.facebook.Request.GraphUserCallback;
@@ -2935,17 +2936,20 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		// Members
 		private String mOriginalUrl = null;
 		private boolean mRequestedPublishPermissions = false;
+		private boolean mImmediatelyRequestPublishPermissions = false;
 		
 		public FacebookSessionStatusListener()
 		{
 			mOriginalUrl = null;
 			mRequestedPublishPermissions = false;
+			mImmediatelyRequestPublishPermissions = false;
 		}
 		
 		public void saveStatus(Bundle outState)
 		{
 			outState.putString("mOriginalUrl", mOriginalUrl);
 			outState.putBoolean("mRequestedPublishPermissions", mRequestedPublishPermissions);
+			outState.putBoolean("mImmediatelyRequestPublishPermissions", mImmediatelyRequestPublishPermissions);
 		}
 		
 		public void restoreStatus(Bundle savedInstanceState)
@@ -2954,6 +2958,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 			{
 				mOriginalUrl = savedInstanceState.getString("mOriginalUrl");
 				mRequestedPublishPermissions = savedInstanceState.getBoolean("mRequestedPublishPermissions");
+				mImmediatelyRequestPublishPermissions = savedInstanceState.getBoolean("mImmediatelyRequestPublishPermissions");
 			}
 		}
 		
@@ -2966,26 +2971,37 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 			
         	if (state == SessionState.OPENED)
         	{
-        		// Return read token here
-        		onFacebookAccess(session.getAccessToken(), session.getExpirationDate(), session.getPermissions());
-
-        		// If debugging, get the user info
-        		if (Global.LOG_MODE)
-                {
-	                Request.executeMeRequestAsync(session, new GraphUserCallback()
+        		// Check if we must immediately request publish permissions
+        		if (mImmediatelyRequestPublishPermissions)
+        		{
+        			if (Global.LOG_MODE) Global.log(Global.TAG, " -> FacebookSessionStatusListener.call(): Completed obtaining read permissions after publish failure, requesting publish permissions");
+        			setRequestedPublishPermissions(true);
+        			setImmediatelyRequestPublishPermissions(false);
+        			getFacebookPublishAccess(FacebookSessionStatusListener.this, getRequiredPublishPermissions());
+        		}
+        		else
+        		{	
+	        		// Return read token here
+	        		onFacebookAccess(session.getAccessToken(), session.getExpirationDate(), session.getPermissions());
+	
+	        		// If debugging, get the user info
+	        		if (Global.LOG_MODE)
 	                {
-	                    @Override
-	                    public void onCompleted(GraphUser user, Response response)
-	                    {
-                        	if (user != null)
-                        	{
-                        		Global.log("Got Facebook user id: " + user.getId());
-                        		Global.log("Got Facebook email:" + user.asMap().get("email"));
-                        		Global.log("Got Facebook bday: " + user.getBirthday());
-                        	}
-	                    }
-	                });
-                }
+		                Request.executeMeRequestAsync(session, new GraphUserCallback()
+		                {
+		                    @Override
+		                    public void onCompleted(GraphUser user, Response response)
+		                    {
+	                        	if (user != null)
+	                        	{
+	                        		Global.log("Got Facebook user id: " + user.getId());
+	                        		Global.log("Got Facebook email:" + user.asMap().get("email"));
+	                        		Global.log("Got Facebook bday: " + user.getBirthday());
+	                        	}
+		                    }
+		                });
+	                }
+        		}
         	}
         	else if(state == SessionState.OPENED_TOKEN_UPDATED)
             {
@@ -2994,6 +3010,14 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
             }
         	else if (state == SessionState.CLOSED_LOGIN_FAILED)
         	{
+        		if (exception instanceof FacebookOperationCanceledException && 
+        				exception.getMessage().contains("The app must ask for a basic read permission at install time."))
+        		{
+        			if (Global.LOG_MODE) Global.log(Global.TAG, " -> FacebookSessionStatusListener.call(): Restarting the publish process because we do not have read permissions");
+        			mStatusListener.setRequestedPublishPermissions(false);
+        			mStatusListener.setImmediatelyRequestPublishPermissions(true);
+        			getFacebookReadAccess(mStatusListener, getRequiredReadPermissions(false));
+        		}
         		onFacebookError(exception);
         	}
         }
@@ -3034,6 +3058,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		@Override
 		public void onFacebookError(Exception e)
 		{
+			if (Global.LOG_MODE) Global.log("onFacebookError: Got exception " + e);
 			Uri uri = Uri.parse(mOriginalUrl);
 			String redirectUrl = UrlUtils.getQueryParameter(uri, Global.PARAM_REDIRECT);
 			if (!mRequestedPublishPermissions)
@@ -3054,6 +3079,11 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		public void setRequestedPublishPermissions(boolean requestedPublishPermissions)
 		{
 			mRequestedPublishPermissions = requestedPublishPermissions;
+		}
+		
+		public void setImmediatelyRequestPublishPermissions(boolean immediatelyRequestPublishPermissions)
+		{
+			mImmediatelyRequestPublishPermissions = immediatelyRequestPublishPermissions;
 		}
 	}
 	

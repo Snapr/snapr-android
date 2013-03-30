@@ -37,8 +37,8 @@ public class Global
 	
 	// Native Facebook login and publish
 	// Leave APP_IDs blank to use web login and publish
-	public static final String FACEBOOK_APP_ID_PROD = "";
-	public static final String FACEBOOK_APP_ID_DEV = "151738444987320";
+	public static final String FACEBOOK_APP_ID_PROD = "173120539508411";
+	public static final String FACEBOOK_APP_ID_DEV = "173120539508411";
 	public static final String FACEBOOK_APP_ID = isLiveEnvironment()?FACEBOOK_APP_ID_PROD:FACEBOOK_APP_ID_DEV;
 	
 	// Shared Preferences
