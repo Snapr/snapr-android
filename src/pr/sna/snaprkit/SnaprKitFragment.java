@@ -2962,6 +2962,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
         public void call(Session session, SessionState state, Exception exception)
         {
 			if (Global.LOG_MODE) Global.log(" -> FacebookSessionStatusListener: Received state: " + state.toString());
+			if (Global.LOG_MODE && exception != null) Global.log(" -> FacebookSessionStatusListener: got exception: \n" + ExceptionUtils.getExceptionStackString(exception));
 			
         	if (state == SessionState.OPENED)
         	{
@@ -2991,6 +2992,10 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
                 // Return publishing token here
         		onFacebookAccess(session.getAccessToken(), session.getExpirationDate(), session.getPermissions());
             }
+        	else if (state == SessionState.CLOSED_LOGIN_FAILED)
+        	{
+        		onFacebookError(exception);
+        	}
         }
 		
 		@Override
@@ -3026,6 +3031,21 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 			}
 		}
 		
+		@Override
+		public void onFacebookError(Exception e)
+		{
+			Uri uri = Uri.parse(mOriginalUrl);
+			String redirectUrl = UrlUtils.getQueryParameter(uri, Global.PARAM_REDIRECT);
+			if (!mRequestedPublishPermissions)
+			{
+				SnaprKitFragment.this.onSnaprFacebookLoginError(e, redirectUrl);
+			}
+			else
+			{
+				SnaprKitFragment.this.onSnaprFacebookPublishError(e, redirectUrl);
+			}
+		}
+		
 		public void setOriginalUrl(String originalUrl)
 		{
 			mOriginalUrl = originalUrl;
@@ -3040,6 +3060,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 	interface OnFacebookAccessListener
 	{
 		public void onFacebookAccess(String accessToken, Date expirationDate, List<String> permissions);
+		public void onFacebookError(Exception e);
 	}
 	
     // The action performed when logging in via Facebook
@@ -3091,46 +3112,37 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
     	}
     };
     
-	@Override
-	public void onSnaprFacebookLogin(UserInfo userInfo, String redirectUrl)
-	{
-		// Log
-		if (Global.LOG_MODE) Global.log(Global.TAG, " -> onSnaprLogin: Received redirect URL " + redirectUrl);
-		
-		// Check if the redirect url starts with snapr://redirect
-		boolean isSnaprRedirect = redirectUrl.startsWith(Global.URL_SNAPR_REDIRECT);
+    private String unpackRedirectUrl(String redirectUrl)
+    {
+    	boolean isSnaprRedirect = redirectUrl.startsWith(Global.URL_SNAPR_REDIRECT);
 		if (isSnaprRedirect)
 		{
 			Uri redirectUri = Uri.parse(redirectUrl);
 			redirectUrl = redirectUri.getQueryParameter(Global.PARAM_REDIRECT_URL);
 		}
 		
-		// Create redirect url
+		return redirectUrl;
+    }
+    
+	@Override
+	public void onSnaprFacebookLogin(UserInfo userInfo, String redirectUrl)
+	{
+		// Log
+		if (Global.LOG_MODE) Global.log(Global.TAG, " -> onSnaprLogin: Received redirect URL " + redirectUrl);
+		
+		// Unpack snapr://redirect URLs
+		redirectUrl = unpackRedirectUrl(redirectUrl);
+		
+		// Update redirect url
 		HashMap<String, String> params = new HashMap<String, String>();
 		params.put("access_token", userInfo.mAccessToken);
 		params.put("display_username", userInfo.mDisplayUserName);
 		params.put("snapr_user", userInfo.mSnaprUserName);
 		redirectUrl = UrlUtils.appendParamsToUrl(redirectUrl, params);
 		
-		// Add snapr://redirect back in
-		if (isSnaprRedirect)
-		{
-			Vector<BasicNameValuePair> snaprRedirectParams = new Vector<BasicNameValuePair>();
-			snaprRedirectParams.add(new BasicNameValuePair(Global.PARAM_REDIRECT_URL, redirectUrl));
-			redirectUrl = UrlUtils.createUrl(Global.URL_SNAPR_REDIRECT, snaprRedirectParams, false);
-		}
-		
 		// Redirect
 		if (Global.LOG_MODE) Global.log(Global.TAG, " -> Redirecting to " + redirectUrl);
-		if (!isSnaprRedirect)
-		{
-			mWebView.loadUrl(redirectUrl);
-		}
-		else
-		{
-			Action action = getActionForUrl(redirectUrl);
-			action.run(redirectUrl);
-		}
+		mWebView.loadUrl(redirectUrl);
 		
 		// Log
 		if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
@@ -3143,12 +3155,14 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		if (Global.LOG_MODE) Global.log(Global.TAG, " -> onSnaprLoginError: Received redirect URL " + redirectUrl + " and error");		
 		if (Global.LOG_MODE) Global.log(ExceptionUtils.getExceptionStackString(e));
 		
+		// Unpack snapr://redirect URLs
+		redirectUrl = unpackRedirectUrl(redirectUrl);
+		
 		// Create redirect url
 		HashMap<String, String> params = new HashMap<String, String>();
 		params.put("error", e.getMessage());
 		redirectUrl = UrlUtils.appendParamsToUrl(redirectUrl, params);
 		
-		// Redirect
 		if (Global.LOG_MODE) Global.log(Global.TAG, " -> Redirecting to " + redirectUrl);
 		mWebView.loadUrl(redirectUrl);
 		
@@ -3162,18 +3176,12 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		// Log
 		if (Global.LOG_MODE) Global.log(Global.TAG, " -> onSnaprFacebookPublish: Received redirect URL " + redirectUrl);
 		
+		// Unpack snapr://redirect URLs
+		redirectUrl = unpackRedirectUrl(redirectUrl);
+		
 		// Redirect
 		if (Global.LOG_MODE) Global.log(Global.TAG, " -> Redirecting to " + redirectUrl);
-		boolean isSnaprRedirect = redirectUrl.startsWith(Global.URL_SNAPR_REDIRECT);
-		if (!isSnaprRedirect)
-		{
-			mWebView.loadUrl(redirectUrl);
-		}
-		else
-		{
-			Action action = getActionForUrl(redirectUrl);
-			action.run(redirectUrl);
-		}
+		mWebView.loadUrl(redirectUrl);
 		
 		// Log
 		if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
@@ -3185,6 +3193,9 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		// Log
 		if (Global.LOG_MODE) Global.log(Global.TAG, " -> onSnaprFacebookPublishError: Received redirect URL " + redirectUrl + " and error");		
 		if (Global.LOG_MODE) Global.log(ExceptionUtils.getExceptionStackString(e));
+		
+		// Unpack snapr://redirect URLs
+		redirectUrl = unpackRedirectUrl(redirectUrl);
 		
 		// Create redirect url
 		HashMap<String, String> params = new HashMap<String, String>();
