@@ -13,18 +13,37 @@ I assume you already have the Android environment installed on your system and E
 See [http://developer.android.com/sdk/installing.html](http://developer.android.com/sdk/installing.html) and [http://developer.android.com/sdk/eclipse-adt.html](http://developer.android.com/sdk/eclipse-adt.html) if you need instructions on how to setup the Android environment.
 
 ## 2. Workspace setup
-First, we’ll need to import the Eclipse library project into our workspace.
+First, we’ll need to import the Eclipse library projects into our workspace.
 
-### 2.1 Import Project
-Open Eclipse and select `Import` from the file menu.
+Unpack the provided zip archive with the SnaprKit library files to a directory of your choice.
 
-### 2.2 Set Up Import
-The import dialog will appear. From the list of import options, select `Existing Projects into Workspace,` and then click `Next.`
+You will need to import 3 separate library projects:
 
-### 2.3 Select the File
-In the new dialog, click on the `Select archive file` radio button and then click the `Browse` button on the right. From here, select the `SnaprKit3.0.zip` file included with this document. Click on the `Finish` button at the bottom of the dialog.
+* __FacebookSDK__, located under `SnaprKit/android_libs/FacebookSDK`
+* __SnaprKitFX__, located under `SnaprKit/android_libs/SnaprKitFX`
+* __SnaprKit__ located under `SnaprKit`
 
-A new Android library project called `SnaprKit` will be created in your current workspace. This is the required library project which you must include in your application if you want to use Snapr.
+For *each* of these projects, follow the steps below:
+
+1. Select `Import` from the file menu.
+
+2. The import dialog will appear. From the list of import options, select `Existing Projects into Workspace,` and then click `Next.`
+
+3. Click on the `Select root directory` radio button option.
+
+4. Click the `Browse` button to the right of the selected radio option.
+
+5. Navigate to the root directory of the library you want to import (see the relative paths for each library above).
+
+6. Click on the `Finish` button to create the library in your current workspace.
+
+7. Right click on the newly created Android library project and select `Properties'. 
+
+8. In the left hand side of the `Properties` dialog, select the `Android` section. 
+
+9. In the right hand side of the `Properties` dialog, under the `Project Build Target` section, select `Android 4.0`, which corresponds to API level 14.
+
+10. Click `OK` to dismiss the `Properties` dialog.
 
 ## 3. Include Snapr in a new Application
 Here’s a step by step guide on how to include SnaprKit in a new Android application.
