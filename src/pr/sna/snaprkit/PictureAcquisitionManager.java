@@ -317,7 +317,14 @@ public class PictureAcquisitionManager
     public void onPictureAcquired(Intent data)
     {    	
     	// Log
-    	if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod());
+    	if (Global.LOG_MODE)
+    	{
+    		Global.log(Global.TAG, " -> " + Global.getCurrentMethod());
+    		Global.log(Global.TAG, " -> " + Global.getCurrentMethod() + ": Picture data intent is ");
+    		Global.log(Global.TAG, "" + data);
+    		Global.log(Global.TAG, " -> " + Global.getCurrentMethod() + ": Picture data uri is ");
+    		Global.log(Global.TAG, "" + mImageUri);
+    	}
     	
     	// Check source
     	// JMVS - Changed
@@ -327,6 +334,13 @@ public class PictureAcquisitionManager
     	boolean isContentUri = hasUri ? (mImageUri.getScheme() != null && mImageUri.getScheme().equalsIgnoreCase("content")) : false;
     	mImagePath = hasUri ? isContentUri ? UrlUtils.getRealPathFromURI(getContext(), mImageUri) : UrlUtils.imageUri2Path(mImageUri) : null;
 		
+    	if (Global.LOG_MODE)
+    	{
+    		Global.log(Global.TAG, " -> " + Global.getCurrentMethod() + ": hasUri is " + hasUri);
+    		Global.log(Global.TAG, " -> " + Global.getCurrentMethod() + ": isContentUri is " + isContentUri);
+    		Global.log(Global.TAG, " -> " + Global.getCurrentMethod() + ": mImagePath is " + mImagePath);
+    	}
+    	
 		// Check again
 		if (mImagePath == null)
 		{
