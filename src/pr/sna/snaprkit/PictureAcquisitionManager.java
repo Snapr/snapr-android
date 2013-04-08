@@ -329,7 +329,7 @@ public class PictureAcquisitionManager
     	// Check source
     	// JMVS - Changed
 //    	if (mImageUri == null && data != null) mImageUri = data.getData();
-    	if (data != null) mImageUri = data.getData();
+    	if (data != null && data.getData() != null) mImageUri = data.getData();
     	boolean hasUri = mImageUri != null;
     	boolean isContentUri = hasUri ? (mImageUri.getScheme() != null && mImageUri.getScheme().equalsIgnoreCase("content")) : false;
     	mImagePath = hasUri ? isContentUri ? UrlUtils.getRealPathFromURI(getContext(), mImageUri) : UrlUtils.imageUri2Path(mImageUri) : null;
