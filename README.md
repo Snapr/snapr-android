@@ -208,7 +208,7 @@ To support webview navigation using the back button, override the `onBackPressed
 ## 6. Backend Server Configuration
 You can configure the app to communicate with either the Snapr development environment or the Snapr production environment.
 
-To change between these, edit the `src/pr/sna/snaprkit/Global.java` file in the SnaprKit library and set the `ENVIRONMENT` string to either `dev-android` (development) or `live-android` (production).
+To change between these, edit the `src/pr/sna/snaprkit/Global.java` file in the SnaprKit library and set the `ENVIRONMENT` string to either `dev-android` (development) or `live-android` (production). When configuring SnaprKit for production use, also make sure that the `LOG_MODE` and `HTML_DEBUG` booleans in the same file are set to `false`.
 
 ## 7. Native Facebook Configuration
 
