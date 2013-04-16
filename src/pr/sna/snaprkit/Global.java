@@ -76,6 +76,7 @@ public class Global
 	public static final String SCHEME_FILE = "file";
 	
 	// Pages
+	public static final String URL_SNAPR_DOMAIN = "sna.pr";
 	public static final String URL_MENU = "index.html";
 	public static final String URL_HOME = "home/";
 	public static final String URL_UPLOAD = "upload/";
@@ -96,8 +97,10 @@ public class Global
 	public static final String URL_SEARCH_LOCATION = URL_SERVER + "search/";
 	public static final String URL_MAPS_GEOCODE = "http://maps.googleapis.com/maps/api/geocode/json";
 	
-	public static final String URL_FACEBOOK_LOGIN = URL_SERVER + "linked_services/facebook/signin/";
-	public static final String URL_FACEBOOK_OAUTH = URL_SERVER + "linked_services/facebook/oauth/";
+	public static final String URL_FACEBOOK_LOGIN_BASE = "linked_services/facebook/signin/";
+	public static final String URL_FACEBOOK_LOGIN = URL_SERVER + URL_FACEBOOK_LOGIN_BASE;
+	public static final String URL_FACEBOOK_OAUTH_BASE = "linked_services/facebook/oauth/";
+	public static final String URL_FACEBOOK_OAUTH = URL_SERVER + URL_FACEBOOK_OAUTH_BASE;
 	public static final String URL_FACEBOOK_PUBLISH = URL_SERVER + "linked_services/facebook/";
 	
 	// Parameters

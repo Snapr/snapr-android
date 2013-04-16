@@ -1914,13 +1914,13 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
     		// Handle natively only when we have a FACEBOOK_APP_ID
     		if (Global.FACEBOOK_APP_ID != null && Global.FACEBOOK_APP_ID.length() > 0)
     		{
-	    		if (url.contains(Global.URL_FACEBOOK_LOGIN.substring(4)))
+    			if (url.contains(Global.URL_SNAPR_DOMAIN) && url.contains(Global.URL_FACEBOOK_LOGIN_BASE))
 	    		{
 	    			// Move this to Facebook native flow
 	    			facebookLoginAction.run(url);
 	    			return;
 	    		}
-	    		else if (url.contains(Global.URL_FACEBOOK_OAUTH.substring(4)))
+    			else if (url.contains(Global.URL_SNAPR_DOMAIN) && url.contains(Global.URL_FACEBOOK_OAUTH_BASE))
 	    		{
 	    			// Move this to Facebook native flow
 	    			facebookPublishAction.run(url);
