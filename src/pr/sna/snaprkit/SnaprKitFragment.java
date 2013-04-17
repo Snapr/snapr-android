@@ -1983,6 +1983,41 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 			if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
     	}
     };
+    
+    // The alert action
+    private Action alertAction = new Action() {
+    	@Override
+    	public void run(String url)
+    	{
+    		// Log
+    		if (Global.LOG_MODE) Global.log(Global.TAG, " -> alertAction: Received URL " + url);
+    		
+    		
+    		// Get the setting from the URL
+    		Uri uri = Uri.parse(url);
+    		String title = UrlUtils.getQueryParameter(uri, Global.PARAM_TITLE);
+    		if (title == null) title="";
+    		String buttonLabel = UrlUtils.getQueryParameter(uri, Global.PARAM_OTHER_BUTTON_1_LABEL);
+    		if (buttonLabel == null) buttonLabel = "";
+    		String message = UrlUtils.getQueryParameter(uri, Global.PARAM_MESSAGE);
+    		if (message == null) message = "";
+    		
+    		// Display the alert
+    		new AlertDialog.Builder(getActivity())  
+            .setTitle(title)  
+            .setMessage(message)
+            .setPositiveButton(buttonLabel,  
+                    new AlertDialog.OnClickListener()  
+                    {  
+                        public void onClick(DialogInterface dialog, int which)  
+                        {  
+                        }  
+                    })  
+            .setCancelable(false) 
+            .create()  
+            .show();
+    	}
+    };
 
     private void initActionMap()
     {
@@ -2002,6 +2037,8 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		mActionMappings.add(new UrlMapping("snapr://camera.*", cameraAction));
     	mActionMappings.add(new UrlMapping("snapr://photo-library.*", photoGalleryAction));
     	mActionMappings.add(new UrlMapping("snapr://action.*", actionSheetAction));
+    	mActionMappings.add(new UrlMapping("snapr://alert.*", alertAction));
+    	
     	mActionMappings.add(new UrlMapping("snapr://link.*", externalBrowseAction));
     	if (Global.USE_AVIARY_SDK) mActionMappings.add(new UrlMapping("snapr://aviary.*", editPhotoAction));
 		mActionMappings.add(new UrlMapping("snapr://.*", defaultAction));
