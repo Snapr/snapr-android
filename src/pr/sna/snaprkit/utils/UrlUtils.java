@@ -200,7 +200,7 @@ public class UrlUtils
 	{
 		// Add the app mode
 		params.add(new BasicNameValuePair(Global.PARAM_APPMODE, "android"));
-		params.add(new BasicNameValuePair(Global.PARAM_ENVIRONMENT, Global.ENVIRONMENT));
+		params.add(new BasicNameValuePair(Global.PARAM_ENVIRONMENT, pr.sna.snaprkit.utils.Configuration.getInstance().getEnvironment()));
 
 		// Customize some parameters based on logged in status
 		String[] userInfo = new String[3];
@@ -500,5 +500,20 @@ public class UrlUtils
     	}
     	
     	return returnUrl;
+    }
+    
+    public static String currentServerUrl(String path)
+    {
+    	String base;
+    	if(pr.sna.snaprkit.utils.Configuration.getInstance().isLiveEnvironment())
+    	{
+    		base = Global.URL_SERVER_PROD;
+    	}
+    	else
+    	{
+    		base = Global.URL_SERVER_DEV;
+    	}
+    	
+    	return base + path;
     }
 }

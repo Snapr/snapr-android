@@ -99,7 +99,7 @@ public class FacebookLoginAsyncTask extends AbstractErrorHandlingAsyncTask<Faceb
     	params.add(new BasicNameValuePair(Global.PARAM_TOKEN_PERMISSIONS, tokenPermissions));
         
         // Create the URL
-        url = UrlUtils.createUrl(Global.URL_FACEBOOK_LOGIN, params, false);
+        url = UrlUtils.createUrl(UrlUtils.currentServerUrl(Global.URL_FACEBOOK_LOGIN_BASE), params, false);
         
         // Return
         return url;

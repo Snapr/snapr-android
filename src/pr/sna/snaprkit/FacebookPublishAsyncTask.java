@@ -8,6 +8,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import pr.sna.snaprkit.utils.UrlUtils;
 import pr.sna.snaprkit.utils.http.HttpPoster;
 import pr.sna.snaprkit.utils.http.HttpPosterException;
 
@@ -33,7 +34,7 @@ public class FacebookPublishAsyncTask extends AbstractErrorHandlingAsyncTask<Fac
 		
 		// Post to endpoint and get result
 		HttpPoster poster = new HttpPoster();
-		String jsonString = poster.post(Global.URL_FACEBOOK_PUBLISH, postParams);
+		String jsonString = poster.post(UrlUtils.currentServerUrl(Global.URL_FACEBOOK_PUBLISH_BASE), postParams);
 		
 		// Parse result
 		JSONObject json = new JSONObject(jsonString);

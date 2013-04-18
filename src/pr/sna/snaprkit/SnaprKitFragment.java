@@ -1056,12 +1056,16 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
     /** Called when the fragment is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
-    {
-    	// Log
-    	if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod());
-    	
+    {	
     	// Create regular suspects
     	super.onCreate(savedInstanceState);
+    	
+    	// Load the configuration
+        pr.sna.snaprkit.utils.Configuration.init(SnaprKitFragment.this.getActivity());
+        Global.LOG_MODE = pr.sna.snaprkit.utils.Configuration.getInstance().getLoggingEnabled();
+        
+    	// Log
+    	if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod());
     	
     	// Set the options menu
     	if (Global.LOG_MODE) setHasOptionsMenu(true);
@@ -1166,7 +1170,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
     	// Add appmode = android every time
         params = new Vector<BasicNameValuePair>();
         params.add(new BasicNameValuePair(Global.PARAM_APPMODE, "android"));
-        params.add(new BasicNameValuePair(Global.PARAM_ENVIRONMENT, Global.ENVIRONMENT));
+        params.add(new BasicNameValuePair(Global.PARAM_ENVIRONMENT, pr.sna.snaprkit.utils.Configuration.getInstance().getEnvironment()));
         params.add(new BasicNameValuePair(Global.PARAM_LANGUAGE, LocalizationUtils.getLanguageCode()));
         params.add(new BasicNameValuePair(Global.PARAM_LOCALE, LocalizationUtils.getLocaleCode()));
         
@@ -1207,7 +1211,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
     	// Add appmode = android every time
         params = new Vector<BasicNameValuePair>();
         params.add(new BasicNameValuePair(Global.PARAM_APPMODE, "android"));
-        params.add(new BasicNameValuePair(Global.PARAM_ENVIRONMENT, Global.ENVIRONMENT));
+        params.add(new BasicNameValuePair(Global.PARAM_ENVIRONMENT, pr.sna.snaprkit.utils.Configuration.getInstance().getEnvironment()));
         
         /*
         // Customize some parameters based on logged in status
@@ -1329,7 +1333,8 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
     		UserInfoUtils.clearUserInfo(getContext());
     		
     		// Clear the FB native session
-    		if (Global.FACEBOOK_APP_ID != null && Global.FACEBOOK_APP_ID.length() > 0 )
+    		String facebookAppId = pr.sna.snaprkit.utils.Configuration.getInstance().getFacebookAppId();
+    		if (facebookAppId != null && facebookAppId.length() > 0 )
     		{
     			Session session = Session.getActiveSession();
     			if (session != null && !session.isClosed())
@@ -1912,7 +1917,8 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
     		
     		// Check if this is a Facebook link that should be handled natively
     		// Handle natively only when we have a FACEBOOK_APP_ID
-    		if (Global.FACEBOOK_APP_ID != null && Global.FACEBOOK_APP_ID.length() > 0)
+    		String facebookAppId = pr.sna.snaprkit.utils.Configuration.getInstance().getFacebookAppId();
+    		if (facebookAppId != null && facebookAppId.length() > 0)
     		{
     			if (url.contains(Global.URL_SNAPR_DOMAIN) && url.contains(Global.URL_FACEBOOK_LOGIN_BASE))
 	    		{
@@ -2170,7 +2176,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 				if (SnaprKitFragment.this.getActivity() != null && !SnaprKitFragment.this.getActivity().isFinishing()) // Need check to avoid random crashes when we are in the backgroound
 				{
 	                new AlertDialog.Builder(getActivity())  
-	                    .setTitle(R.string.snaprkit_name)  
+	                    .setTitle(pr.sna.snaprkit.utils.Configuration.getInstance().getAppName())  
 	                    .setMessage(message)  
 	                    .setPositiveButton(android.R.string.ok,  
 	                            new AlertDialog.OnClickListener()  
@@ -2863,7 +2869,8 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
             }
             if (session == null)
             {
-            	session = new Session.Builder(getActivity()).setApplicationId(Global.FACEBOOK_APP_ID).build();
+            	String facebookAppId = pr.sna.snaprkit.utils.Configuration.getInstance().getFacebookAppId();
+            	session = new Session.Builder(getActivity()).setApplicationId(facebookAppId).build();
             }
             Session.setActiveSession(session);
         }
@@ -2896,7 +2903,8 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		
 		if (session == null || session.isClosed())
 		{
-			session = new Session.Builder(getActivity()).setApplicationId(Global.FACEBOOK_APP_ID).build();
+			String facebookAppId = pr.sna.snaprkit.utils.Configuration.getInstance().getFacebookAppId();
+			session = new Session.Builder(getActivity()).setApplicationId(facebookAppId).build();
         	Session.setActiveSession(session);
 		}
 		
@@ -2922,7 +2930,8 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
         
 		if (session == null || session.isClosed())
         {
-        	session = new Session.Builder(getActivity()).setApplicationId(Global.FACEBOOK_APP_ID).build();
+			String facebookAppId = pr.sna.snaprkit.utils.Configuration.getInstance().getFacebookAppId();
+        	session = new Session.Builder(getActivity()).setApplicationId(facebookAppId).build();
         	Session.setActiveSession(session);
         }
 		

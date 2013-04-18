@@ -17,13 +17,11 @@ public class Global
 	public static final String TAG = "SNAPRKIT";
 	
 	// Java debugging
-    public static final boolean LOG_MODE = true;
+    public static boolean LOG_MODE = true; // This is now modified at runtime with configuration value
     
 	// Remote environment and remote URL base
-	public static final String ENVIRONMENT = "dev";                       // either dev, dev-android, live, live-android
 	public static final String URL_SERVER_PROD = "https://api.sna.pr/";   // must end in slash
 	public static final String URL_SERVER_DEV = "http://dev.sna.pr/api/"; // must end in slash
-	public static final String URL_SERVER = isLiveEnvironment()?URL_SERVER_PROD: URL_SERVER_DEV;
     
 	// HTML debugging and local URL base
 	public static final boolean HTML_DEBUG = false;
@@ -34,13 +32,7 @@ public class Global
 	// Upload file failed behaviors
 	public static final boolean UPLOAD_FAILED_AUTO_CLEAR = true;         // Clear uploads that fail because of errors
 	                                                                     // Should be enabled for apps which don't display a file queue
-	
-	// Native Facebook login and publish
-	// Leave APP_IDs blank to use web login and publish
-	public static final String FACEBOOK_APP_ID_PROD = "173120539508411";
-	public static final String FACEBOOK_APP_ID_DEV = "173120539508411";
-	public static final String FACEBOOK_APP_ID = isLiveEnvironment()?FACEBOOK_APP_ID_PROD:FACEBOOK_APP_ID_DEV;
-	
+		
 	// Shared Preferences
 	public static final String SNAPR_PREFERENCES = "SnaprPrefs";
 	public static final String SNAPR_PREFERENCES_DISPLAY_USERNAME = "snapr_display_user";
@@ -93,15 +85,13 @@ public class Global
 	public static final String URL_SNAPR_UPLOAD_PROGRESS = "snapr://upload_progress";
 	public static final String URL_SNAPR_REDIRECT = "snapr://redirect";
 	
-	public static final String URL_UPLOAD_LOCATION = URL_SERVER + "upload/";
-	public static final String URL_SEARCH_LOCATION = URL_SERVER + "search/";
+	public static final String URL_UPLOAD_LOCATION_BASE = "upload/";
+	public static final String URL_SEARCH_LOCATION_BASE = "search/";
 	public static final String URL_MAPS_GEOCODE = "http://maps.googleapis.com/maps/api/geocode/json";
 	
 	public static final String URL_FACEBOOK_LOGIN_BASE = "linked_services/facebook/signin/";
-	public static final String URL_FACEBOOK_LOGIN = URL_SERVER + URL_FACEBOOK_LOGIN_BASE;
 	public static final String URL_FACEBOOK_OAUTH_BASE = "linked_services/facebook/oauth/";
-	public static final String URL_FACEBOOK_OAUTH = URL_SERVER + URL_FACEBOOK_OAUTH_BASE;
-	public static final String URL_FACEBOOK_PUBLISH = URL_SERVER + "linked_services/facebook/";
+	public static final String URL_FACEBOOK_PUBLISH_BASE = "linked_services/facebook/";
 	
 	// Parameters
 	public static final String PARAM_USERNAME = "username";
@@ -356,10 +346,4 @@ public class Global
 		// Return
 		return metrics.densityDpi;
 	}
-
-	public static boolean isLiveEnvironment()
-	{
-		return ENVIRONMENT.startsWith("live");
-	}
-	
 }
