@@ -36,7 +36,6 @@ import pr.sna.snaprkit.FacebookLoginAsyncTask.OnSnaprFacebookLoginListener;
 import pr.sna.snaprkit.FacebookPublishAsyncTask.OnSnaprFacebookPublishListener;
 import pr.sna.snaprkit.PictureAcquisitionManager.PictureAcquisitionListener;
 import pr.sna.snaprkit.dummy.FeatherActivity;
-import pr.sna.snaprkit.utils.AlertUtils;
 import pr.sna.snaprkit.utils.CameraUtils;
 import pr.sna.snaprkit.utils.ExceptionUtils;
 import pr.sna.snaprkit.utils.LocalizationUtils;
@@ -643,6 +642,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 				else if (broadcast == Global.BROADCAST_UPLOAD_ERROR)
 				{
 					// Extract params
+					String errorMessage = "";
 					String localId = intent.getStringExtra(Global.PARAM_LOCAL_ID);
 					Exception exception = (Exception) intent.getSerializableExtra(Global.PARAM_EXCEPTION);
 					
@@ -650,7 +650,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 					if (exception instanceof SnaprApiException)
 					{
 						String errorType = ((SnaprApiException) exception).getType();
-						String errorMessage = ((SnaprApiException) exception).getMessage();
+						errorMessage = ((SnaprApiException) exception).getMessage();
 						
 						if (errorType != null)
 						{							
@@ -672,7 +672,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 								errorMessage = getString(R.string.snaprkit_error_upload_invalid_login);
 								
 								// Show message
-								showUploadError(errorMessage);
+								//showUploadError(errorMessage);
 							}
 							else if (errorType.equals("validation.duplicate_upload"))
 							{
@@ -684,7 +684,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 								errorMessage = getString(R.string.snaprkit_error_upload_duplicate_image);
 								
 								// Show message
-								showUploadError(errorMessage);
+								//showUploadError(errorMessage);
 							}
 							else if (errorType.equals("validation.corrupt_file"))
 							{
@@ -696,14 +696,14 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 								errorMessage = getString(R.string.snaprkit_error_upload_corrupt_image);
 						        
 								// Show message
-								showUploadError(errorMessage);
+								//showUploadError(errorMessage);
 							}
 							else
 							{
 								// Determine how to handle error
 								// For apps which don't display a queue, we cancel the upload
 								// For apps which have a queue, we pause the queue
-								if (Global.UPLOAD_FAILED_AUTO_CLEAR)
+								if (pr.sna.snaprkit.utils.Configuration.getInstance().getAutoClearFailedUploads())
 								{
 									// Cancel the upload
 									cancelUpload(localId);
@@ -716,7 +716,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 								}
 								
 								// Display alert dialog
-								showUploadError(errorMessage);
+								//showUploadError(errorMessage);
 							}
 						}
 					}
@@ -729,11 +729,11 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 						int httpStatusCode = ((HttpResponseException) exception).getStatusCode(); 
 						
 						// Override message
-						String errorMessage = (httpStatusCode >= 500)?getString(R.string.snaprkit_error_upload_server_error):
+						errorMessage = (httpStatusCode >= 500)?getString(R.string.snaprkit_error_upload_server_error):
 								getString(R.string.snaprkit_error_upload_connect);
 						
 						// Show message
-						showUploadError(errorMessage);
+						//showUploadError(errorMessage);
 					}
 					else if (exception instanceof ConnectTimeoutException)
 					{
@@ -741,10 +741,10 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 						updateQueueSettings(false, mQueueUploadModeWifiOnly);
 						
 						// Override message
-						String errorMessage = getString(R.string.snaprkit_error_upload_connect_timeout);
+						errorMessage = getString(R.string.snaprkit_error_upload_connect_timeout);
 						
 						// Show message
-						showUploadError(errorMessage);
+						//showUploadError(errorMessage);
 					}
 					else if (exception instanceof IOException)
 					{
@@ -752,10 +752,10 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 						updateQueueSettings(false, mQueueUploadModeWifiOnly);
 						
 						// Other types of IOExceptions (HttpResponseException and ConnectionTimeOutException) handled above
-						String errorMessage = getString(R.string.snaprkit_error_upload_connect);
+						errorMessage = getString(R.string.snaprkit_error_upload_connect);
 						
 						// Show message
-						showUploadError(errorMessage);
+						//showUploadError(errorMessage);
 					}
 					else
 					{
@@ -765,11 +765,14 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 						updateQueueSettings(false, mQueueUploadModeWifiOnly);
 						
 						// Get error message
-						String errorMessage = getString(R.string.snaprkit_error_upload);
+						errorMessage = getString(R.string.snaprkit_error_upload);
 						
 						// Show message
-						showUploadError(errorMessage);
+						//showUploadError(errorMessage);
 					}
+					
+					// Call upload_failed
+					mWebView.loadUrl("javascript:upload_failed('" + localId + "', '" + UrlUtils.jsEscape(errorMessage) + "');");
 				}
 				else
 				{
@@ -2754,10 +2757,12 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
         if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod());
     }
 	
+    /*
 	private void showUploadError(String errorMessage)
 	{
 		AlertUtils.showAlert(getActivity(), errorMessage, getString(R.string.snaprkit_error_upload));
 	}
+	*/
 	
     /**
      * Show a picker to allow the user to select a file

@@ -29,10 +29,6 @@ public class Global
 	public static final String URL_BASE_ASSETS_HTML = "file:///android_asset/snaprkit_html/"; // must end in slash
 	public static String URL_BASE = HTML_DEBUG?URL_BASE_SDCARD_HTML:URL_BASE_ASSETS_HTML;
 	
-	// Upload file failed behaviors
-	public static final boolean UPLOAD_FAILED_AUTO_CLEAR = true;         // Clear uploads that fail because of errors
-	                                                                     // Should be enabled for apps which don't display a file queue
-		
 	// Shared Preferences
 	public static final String SNAPR_PREFERENCES = "SnaprPrefs";
 	public static final String SNAPR_PREFERENCES_DISPLAY_USERNAME = "snapr_display_user";
