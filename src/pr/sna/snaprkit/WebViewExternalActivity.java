@@ -256,8 +256,9 @@ public class WebViewExternalActivity extends Activity {
             {
         		if (!isFinishing()) // Need check to avoid random crashes when we are in the backgroound
         		{
+        			String appName = pr.sna.snaprkit.utils.Configuration.getInstance().getAppName();
 	                new AlertDialog.Builder(WebViewExternalActivity.this)  
-	                    .setTitle(R.string.snaprkit_name)  
+	                    .setTitle(appName)  
 	                    .setMessage(message)  
 	                    .setPositiveButton(android.R.string.ok,  
 	                            new AlertDialog.OnClickListener()  
@@ -280,8 +281,9 @@ public class WebViewExternalActivity extends Activity {
             {
             	if (!isFinishing()) // Need check to avoid random crashes when we are in the backgroound
             	{
+            		String appName = pr.sna.snaprkit.utils.Configuration.getInstance().getAppName();
 	                new AlertDialog.Builder(WebViewExternalActivity.this)
-	                    .setTitle(R.string.snaprkit_name)
+	                    .setTitle(appName)
 	                    .setMessage(message)
 	                    .setPositiveButton(android.R.string.ok, 
 	                            new DialogInterface.OnClickListener() 

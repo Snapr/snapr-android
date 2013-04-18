@@ -2,7 +2,6 @@
 <resources>
     
     <!-- SnaprKit -->
-    <string name="snaprkit_name">Snapr</string>
     <string name="snaprkit_close">Close</string>
     <string name="snaprkit_and">and</string>
     <string name="snaprkit_please_wait">Please wait</string>

@@ -42,7 +42,7 @@
         android:required="false" />
  
     <!-- You must define these entries in your manifest under the application tag -->
-    <application android:label="@string/snaprkit_name" > 
+    <application> 
         
 		<!-- SnaprKit: Activities, required -->
 		<activity android:name="pr.sna.snaprkit.WebViewExternalActivity"

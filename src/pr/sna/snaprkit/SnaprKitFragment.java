@@ -2175,8 +2175,9 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
             {
 				if (SnaprKitFragment.this.getActivity() != null && !SnaprKitFragment.this.getActivity().isFinishing()) // Need check to avoid random crashes when we are in the backgroound
 				{
+					String appName = pr.sna.snaprkit.utils.Configuration.getInstance().getAppName();
 	                new AlertDialog.Builder(getActivity())  
-	                    .setTitle(pr.sna.snaprkit.utils.Configuration.getInstance().getAppName())  
+	                    .setTitle(appName)  
 	                    .setMessage(message)  
 	                    .setPositiveButton(android.R.string.ok,  
 	                            new AlertDialog.OnClickListener()  
@@ -2199,8 +2200,9 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
             {
             	if (!getActivity().isFinishing()) // Need check to avoid random crashes when we are in the backgroound
             	{
+            		String appName = pr.sna.snaprkit.utils.Configuration.getInstance().getAppName();
 	                new AlertDialog.Builder(getActivity())
-	                    .setTitle(R.string.snaprkit_name)
+	                    .setTitle(appName)
 	                    .setMessage(message)
 	                    .setPositiveButton(android.R.string.ok, 
 	                            new DialogInterface.OnClickListener() 
