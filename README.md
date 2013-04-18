@@ -72,18 +72,48 @@ Please copy the following assets from the sample project into the corresponding 
 * __Filter files__ - Copy the filter files from the sample project’s `/assets/filter_packs/` directory and move them to the same directory in your application.
 * __Sticker files__ - Copy the sticker files from the sample project’s `/assets/sticker_packs/` directory and move them to the same directory in your application.
 
-### 3.4 Resources
+### 3.4 Configuration File
+
+SnaprKit lets you configure settings that are specific to your app using a special configuration file called `snaprkit.properties`.
+
+1. Create an new text file called `snaprkit.properties` and place it in your project in the `assets` folder.
+
+2. Add the following standard template text to the file:
+
+    appName = Your App Name  
+    loggingEnabled = false  
+    environment = dev-android  
+    facebookAppIdLive = Your Facebook App Id  
+    facebookAppIdDev = Your Facebook App Id  
+    autoClearFailedUploads = true  
+
+3. Fill in the missing settings for appName, facebookAppIdLive and facebookAppIdDev, and adjust existing setting as appropriate. The table below explains what each setting means:
+
+Key | Type | Description
+--- | ---- | -----------
+appName | String | The name of your application
+loggingEnabled | Boolean (true / false) | Indicates whether SnaprKit should log events. You should set this to false, unless instructed otherwise by Snapr.
+environment | String (dev / live) | Tells SnaprKit whether to use production or development servers
+facebookAppIdLive | String (numeric value) | This is the Facebook app id when using the production environment. Leave this blank to disable native Facebook functionality and fall back to the web-based Facebook functionality.
+facebookAppIdDev | String (numeric value) | This is the Facebook app id when using the development environment. Leave this blank to disable native Facebook functionality and fall back to the web-based Facebook functionality.
+autoClearFailedUploads |  Boolean (true / false) | Indicates whether SnaprKit should clear failed uploads from queue. Set this to `true` for apps which do not have a full queue manager to prevent the queue from getting blocked.
+
+#### 3.4.3 Troubleshooting
+
+If you configuration is invalid, your app will exit at runtime with an exception. Examine the error message in the log and make appropriate corrections.
+
+### 3.5 Resources
 Depending on the project, we may provide additional image resouces to customize the look and feel of the graphics effects module. You should copy the indicated files from the `res/drawable-*hdpi` folder(s) of the sample project to the corresponding folders in your project.
 
-### 3.5 AndroidManifest.xml
+### 3.6 AndroidManifest.xml
 Add some entries to the manifest file of your application.
 
-### 3.5.1 Minimum SDK
+### 3.6.1 Minimum SDK
 Add the following lines within the <manifest> tag
 
     <uses-sdk android:targetSdkVersion="14" android:minSdkVersion="8" />
 
-### 3.5.2 Permissions
+### 3.6.2 Permissions
 To function correctly, SnaprKit requires a variety of permissions. To grant the necessary permissions, add these entries inside the `AndroidManifest.xml` `<manifest>` tag in your app:
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -95,7 +125,7 @@ To function correctly, SnaprKit requires a variety of permissions. To grant the 
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
 
-### 3.5.3. Hardware Features
+### 3.6.3. Hardware Features
 The following hardware features entries let the Android Market know what hardware your app is using:
 
     <uses-feature
@@ -114,7 +144,7 @@ The following hardware features entries let the Android Market know what hardwar
         android:name="android.hardware.wifi"
         android:required="false" />
 
-### 3.5.4 Activity declaration
+### 3.6.4 Activity declaration
 Then, inside the <application> tag, add a reference to the following activities:
 
     <activity android:name="pr.sna.snaprkit.WebViewExternalActivity"  
@@ -135,7 +165,7 @@ Then, inside the <application> tag, add a reference to the following activities:
         android:label="@string/app_name">
     </activity>
 
-### 3.5.5 Services declaration
+### 3.6.5 Services declaration
 Also inside the <application> tag, add a reference to the following services:
 
     <service
@@ -205,16 +235,11 @@ To support webview navigation using the back button, override the `onBackPressed
         }
     }
 
-## 6. Backend Server Configuration
-You can configure the app to communicate with either the Snapr development environment or the Snapr production environment.
-
-To change between these, edit the `src/pr/sna/snaprkit/Global.java` file in the SnaprKit library and set the `ENVIRONMENT` string to either `dev-android` (development) or `live-android` (production). When configuring SnaprKit for production use, also make sure that the `LOG_MODE` and `HTML_DEBUG` booleans in the same file are set to `false`.
-
-## 7. Native Facebook Configuration
+## 6. Native Facebook Configuration
 
 SnaprKit 3.0 now allows you to use native Facebook login and sharing using Facebook SDK 3.0 and higher.
 
-### 7.1 Facebook SDK Configuration
+### 6.1 Facebook SDK Configuration
 
 If your app already includes the Facebook SDK library, then you should adjust the SnaprKit dependencies so that SnaprKit uses the same Facebook library as your main project.
 
@@ -226,18 +251,18 @@ Here is how to reconfigure SnaprKit to use the appropriate library. These instru
 4. Click the `Add` button, select your Facebook SDK project from the list of projects and then click `OK`.
 5. Clean / refresh the project for the changes to take effect.
 
-### 7.2 Facebook Native Login and Sharing
+### 6.2 Facebook Native Login and Sharing
 
 To enable these features you must take the following steps:
 
 1. Go to [developers.facebook.com](developers.facebook.com) and create two Facebook applications: one for production and one for development.
-2. Make a note of the Facebook application IDs from step 1 above. Edit the `src/pr/sna/snaprkit/Global.java` file in the SnaprKit library and enter the IDs under `FACEBOOK_APP_ID_PROD` and `FACEBOOK_APP_ID_DEV`.
+2. Make a note of the Facebook application IDs from step 1 above. Edit your `snaprkit.properties` file and enter the IDs under `facebookAppIdLive` and `facebookAppIdDev`.
 3. Once the APP_ID values are in place, SnaprKit will use native Facebook functionality. If you don’t provide Facebook application IDs, SnaprKit will fall back to the Facebook web login and share.
 
-## 8. API Reference
+## 7. API Reference
 The following table shows the list of functions available:
 
-### 8.1 SnaprKitFragment
+### 7.1 SnaprKitFragment
 
 The following functions are available through SnaprKitFragment:
 
