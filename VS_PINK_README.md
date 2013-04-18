@@ -86,7 +86,7 @@ SnaprKit lets you configure settings that are specific to your app using a speci
     facebookAppIdDev = Your Facebook App Id  
     autoClearFailedUploads = true  
 
-3. Fill in the missing settings for `appName`, `facebookAppIdLive` and `facebookAppIdDev`, and adjust existing setting as appropriate. The table below explains what each setting means:
+3. Fill in the missing settings for `appName`, `facebookAppIdLive` and `facebookAppIdDev`, and adjust existing settings as appropriate. The table below explains what each setting means:
 
 Key | Type | Description
 :-- | :--- | :----------
