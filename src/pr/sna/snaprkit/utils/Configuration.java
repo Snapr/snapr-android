@@ -4,11 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-import pr.sna.snaprkit.Global;
-
 import android.content.Context;
 import android.content.res.AssetManager;
-import android.util.Log;
 
 public class Configuration
 {
@@ -53,12 +50,11 @@ public class Configuration
 			throw new java.lang.IllegalArgumentException("SnaprKit configuration could not be loaded!");
 		}
 		
-		// Log configuration
-		//Log.e(Global.TAG, "Configuration properties are: " + mProperties);
-		
-		if (!isValid())
+		// Notify user of all configuration errors
+		String errors = getValidationErrors();
+		if (errors != null && errors.length() > 0)
 		{
-			throw new java.lang.IllegalArgumentException("SnaprKit configuration is invalid!");
+			throw new java.lang.IllegalArgumentException("SnaprKit configuration is invalid!\n"+errors);
 		}
 	}
 	
@@ -106,36 +102,36 @@ public class Configuration
 		}
 	}
 	
-	public boolean isValid()
-	{
+	private String getValidationErrors()
+	{	
+		// Declare
+		String errors = "";
+		
 		// Perform validity checks
 		if (mProperties != null)
 		{
 			// Validate fields one by one and output error messages
 			if (!hasValidBooleanValue(PROPERTY_AUTO_CLEAR_FAILED_UPLOADS))
 			{
-				Log.e(Global.TAG, "Invalid boolean value for field autoClearFailedUploads!");
-				return false;
+				errors += "Invalid boolean value for field autoClearFailedUploads!\n";
 			}
 			
 			if (!hasValidBooleanValue(PROPERTY_LOGGING_ENABLED))
 			{
-				Log.e(Global.TAG, "Invalid boolean value for field loggingEnabled!");
-				return false;
+				errors +="Invalid boolean value for field loggingEnabled!\n";
 			}
 			
 			String validEnvironmentValues[] = {"dev","dev-android","live","live-android"};
 			if (!hasValidStringValue(PROPERTY_ENVIRONMENT, validEnvironmentValues))
 			{
-				Log.e(Global.TAG, "Invalid string value for field environment!");
-				return false;
+				errors += "Invalid string value for field environment!\n";
 			}
 			
-			return true;
+			return errors;
 		}
 		
 		// Invalid configuration
-		return false;
+		return "Properties failed to load!";
 	}
 	
 	public String getAppName()
