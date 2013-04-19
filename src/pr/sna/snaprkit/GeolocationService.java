@@ -186,6 +186,12 @@ public class GeolocationService extends Service
 		if (intent == null)
 			return result;
 		
+		// Load the configuration
+		if (pr.sna.snaprkit.utils.Configuration.getInstance() == null)
+		{
+			pr.sna.snaprkit.utils.Configuration.init(GeolocationService.this);
+		}
+		
 		// Check the intent message type
 		int action = intent.getIntExtra(Global.PARAM_ACTION, -1);
 		if (action == Global.ACTION_GEOLOCATION_START)

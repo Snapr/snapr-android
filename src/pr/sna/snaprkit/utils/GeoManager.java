@@ -25,8 +25,8 @@ public class GeoManager implements LocationListener {
     private TransitionDialog mTransitionDialog = null;
     private static final int LOCATION_DISTANCE_TOLERANCE = 100;             // plus minus tolerance for distance 
     private static final int LOCATION_TIME_TOLERANCE = 1 * 30 * 1000;		// plus minus tolerance time (really just minus)
-    private static final int LOCATION_TIMEOUT = 1 * 20 * 1000;				// location timeout
-    private static final int LOCATION_FAILURE_TIMEOUT = 5 * 60 * 1000;		// time to avoid querying location after failure
+    //private static final int LOCATION_TIMEOUT = 1 * 20 * 1000;				// location timeout
+    //private static final int LOCATION_FAILURE_TIMEOUT = 5 * 60 * 1000;		// time to avoid querying location after failure
     
     private Runnable mTimeOutRunnable = new Runnable()
 	{
@@ -62,10 +62,17 @@ public class GeoManager implements LocationListener {
     	if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod());
     	
     	// Do not perform geolocation if we failed recently
-    	if ((sLastGeolocationFailureDate != null) && (new Date().getTime() - sLastGeolocationFailureDate.getTime()) <= LOCATION_FAILURE_TIMEOUT)
+    	int timeout = pr.sna.snaprkit.utils.Configuration.getInstance().getLocationFailureTimeoutInterval()*1000;
+    	Date now = new Date();
+    	if ((sLastGeolocationFailureDate != null) && (now.getTime() - sLastGeolocationFailureDate.getTime()) <= timeout)
     	{
+    		if (Global.LOG_MODE) Global.log(Global.TAG, "Skipping the location check because we are under failure threshold: \nLastFailureDate: " + sLastGeolocationFailureDate +"\nNow: " + now);  
     		listener.onTimeOut(mCurrentLocation, caller);
     		return;
+    	}
+    	else
+    	{
+    		if (Global.LOG_MODE) Global.log(Global.TAG, "Location check values: \nLastFailureDate: " + sLastGeolocationFailureDate +"\nNow: " + now);
     	}
     	
     	mIsActive = true;
@@ -97,7 +104,9 @@ public class GeoManager implements LocationListener {
     			0,  
     			this);
     	
-    	mHandler.postDelayed(mTimeOutRunnable, LOCATION_TIMEOUT);
+    	timeout = pr.sna.snaprkit.utils.Configuration.getInstance().getLocationTimeoutInterval()*1000;
+    	
+    	mHandler.postDelayed(mTimeOutRunnable, timeout);
     	
     	if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
     }

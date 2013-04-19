@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import pr.sna.snaprkit.Global;
+
 import android.content.Context;
 import android.content.res.AssetManager;
 
@@ -17,6 +19,8 @@ public class Configuration
 	private static final String PROPERTY_FACEBOOK_APP_ID_LIVE = "facebookAppIdLive";
 	private static final String PROPERTY_FACEBOOK_APP_ID_DEV = "facebookAppIdDev";
 	private static final String PROPERTY_AUTO_CLEAR_FAILED_UPLOADS = "autoClearFailedUploads";
+	private static final String PROPERTY_LOCATION_TIMEOUT_INTERVAL = "locationTimeoutInterval";
+	private static final String PROPERTY_LOCATION_FAILURE_TIMEOUT_INTERVAL = "locationFailureTimeoutInterval";
 	private static final String PROPERTY_VALUE_TRUE = "true";
 	private static final String PROPERTY_VALUE_FALSE = "false";
 	
@@ -70,6 +74,8 @@ public class Configuration
 		props.setProperty(PROPERTY_FACEBOOK_APP_ID_LIVE, "");
 		props.setProperty(PROPERTY_FACEBOOK_APP_ID_DEV, "");
 		props.setProperty(PROPERTY_AUTO_CLEAR_FAILED_UPLOADS, "false");
+		props.setProperty(PROPERTY_LOCATION_TIMEOUT_INTERVAL, "20"); // 20 seconds
+		props.setProperty(PROPERTY_LOCATION_FAILURE_TIMEOUT_INTERVAL, "300"); // 5 minutes
 		
 		// Return
 		return props;
@@ -121,6 +127,18 @@ public class Configuration
 				errors +="Invalid boolean value for field loggingEnabled!\n";
 			}
 			
+			// Validate fields one by one and output error messages
+			if (!hasValidIntValue(PROPERTY_LOCATION_TIMEOUT_INTERVAL))
+			{
+				errors += "Non integer value for field locationTimeoutInterval!\n";
+			}
+			
+			// Validate fields one by one and output error messages
+			if (!hasValidIntValue(PROPERTY_LOCATION_FAILURE_TIMEOUT_INTERVAL))
+			{
+				errors += "Non integer value for field locationFailureTimeoutInterval!\n";
+			}
+			
 			String validEnvironmentValues[] = {"dev","dev-android","live","live-android"};
 			if (!hasValidStringValue(PROPERTY_ENVIRONMENT, validEnvironmentValues))
 			{
@@ -168,6 +186,16 @@ public class Configuration
 	{
 		return getBooleanProperty(PROPERTY_AUTO_CLEAR_FAILED_UPLOADS);
 	}
+	
+	public int getLocationTimeoutInterval()
+	{
+		return getIntProperty(PROPERTY_LOCATION_TIMEOUT_INTERVAL);
+	}
+	
+	public int getLocationFailureTimeoutInterval()
+	{
+		return getIntProperty(PROPERTY_LOCATION_FAILURE_TIMEOUT_INTERVAL);
+	}
 
 	public boolean getBooleanProperty(String propertyName)
 	{
@@ -177,7 +205,7 @@ public class Configuration
 		{
 			return true;
 		}
-		if (PROPERTY_VALUE_FALSE.equals(result))
+		else if (PROPERTY_VALUE_FALSE.equals(result))
 		{
 			return false;
 		}
@@ -185,6 +213,23 @@ public class Configuration
 		{
 			return false;
 		}
+	}
+	
+	public int getIntProperty(String propertyName)
+	{
+		String resultString = getProperty(propertyName);
+		int resultInt = 0;
+		
+		try
+		{
+			resultInt = Integer.parseInt(resultString);
+		}
+		catch (NumberFormatException e)
+		{
+			Global.log(ExceptionUtils.getExceptionStackString(e));
+		}
+		
+		return resultInt;
 	}
 	
 	private boolean hasValidBooleanValue(String propertyName)
@@ -203,6 +248,22 @@ public class Configuration
 		{
 			return false;
 		}
+	}
+	
+	private boolean hasValidIntValue(String propertyName)
+	{
+		String resultString = getProperty(propertyName);
+		
+		try
+		{
+			Integer.parseInt(resultString);
+		}
+		catch (NumberFormatException e)
+		{
+			return false;
+		}
+		
+		return true;
 	}
 	
 	private boolean hasValidStringValue(String propertyName, String validPropertyValues[])

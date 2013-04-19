@@ -826,6 +826,12 @@ public class UploadService extends Service
 		if (intent == null)
 			return super.onStartCommand(intent, flags, startId);
 
+		// Load the configuration
+		if (pr.sna.snaprkit.utils.Configuration.getInstance() == null)
+		{
+			pr.sna.snaprkit.utils.Configuration.init(UploadService.this);
+		}
+		
 		// Check the intent message type
 		int action = intent.getIntExtra(Global.PARAM_ACTION, -1);
 		if (action == Global.ACTION_QUEUE_START)
