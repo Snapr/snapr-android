@@ -41,6 +41,7 @@ public class Global
 	public static final String SNAPR_PREFERENCES_MAP_LAST_ZOOM_LEVEL = "map_last_zoom_level";
 	public static final String SNAPR_PREFERENCES_MAP_FILTER_LAST_INDEX = "map_filter_last_index";
 	public static final String SNAPR_PREFERENCES_MAP_FILTER_LAST_DATE = "map_filter_last_date";
+	public static final String SNAPR_PREFERENCES_LAST_GEOLOCATION_FAILURE_DATE = "last_geolocation_failure_date";
 
 	// Features
 	public static final boolean USE_AVIARY_SDK = false;
