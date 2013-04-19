@@ -93,9 +93,11 @@ Key | Type | Description
 appName | String | The name of your application
 loggingEnabled | Boolean (`true` or `false`) | Indicates whether SnaprKit should log events. You should set this to false, unless instructed otherwise by Snapr.
 environment | String (`dev-android` or `live-android`) | Tells SnaprKit whether to use production or development servers
-facebookAppIdLive | String (numeric value) | This is the Facebook app id when using the production environment. Leave this blank to disable native Facebook functionality and fall back to the web-based Facebook functionality.
-facebookAppIdDev | String (numeric value) | This is the Facebook app id when using the development environment. Leave this blank to disable native Facebook functionality and fall back to the web-based Facebook functionality.
+facebookAppIdLive | Number | This is the Facebook app id when using the production environment. Leave this blank to disable native Facebook functionality and fall back to the web-based Facebook functionality.
+facebookAppIdDev | Number | This is the Facebook app id when using the development environment. Leave this blank to disable native Facebook functionality and fall back to the web-based Facebook functionality.
 autoClearFailedUploads |  Boolean (`true` or `false`) | Indicates whether SnaprKit should clear failed uploads from queue. Set this to `true` for apps which do not have a full queue manager to prevent the queue from getting blocked. Set to `true` for PinkNation.
+locationTimeoutInterval | Number | Indicates the maximum number of seconds to wait for a location before timing out.
+locationFailureTimeoutInterval | Number | Indicates the number of seconds to wait after a location retrieval failed before trying to retrieve the location again.
 
 ### 3.5 Resources
 For VS Pink, we have provide additional image resouces to customize the look and feel of the graphics effects module.

@@ -86,6 +86,8 @@ SnaprKit lets you configure settings that are specific to your app using a speci
     facebookAppIdLive = Your Facebook App Id  
     facebookAppIdDev = Your Facebook App Id  
     autoClearFailedUploads = true  
+    locationTimeoutInterval = 20  
+    locationFailureTimeoutInterval = 300  
 
 3. Fill in the missing settings for appName, facebookAppIdLive and facebookAppIdDev, and adjust existing settings as appropriate. The table below explains what each setting means:
 
@@ -94,9 +96,11 @@ Key | Type | Description
 appName | String | The name of your application
 loggingEnabled | Boolean (`true` or `false`) | Indicates whether SnaprKit should log events. You should set this to false, unless instructed otherwise by Snapr.
 environment | String (`dev` or `live`) | Tells SnaprKit whether to use production or development servers
-facebookAppIdLive | String (numeric value) | This is the Facebook app id when using the production environment. Leave this blank to disable native Facebook functionality and fall back to the web-based Facebook functionality.
-facebookAppIdDev | String (numeric value) | This is the Facebook app id when using the development environment. Leave this blank to disable native Facebook functionality and fall back to the web-based Facebook functionality.
+facebookAppIdLive | Number | This is the Facebook app id when using the production environment. Leave this blank to disable native Facebook functionality and fall back to the web-based Facebook functionality.
+facebookAppIdDev | Number | This is the Facebook app id when using the development environment. Leave this blank to disable native Facebook functionality and fall back to the web-based Facebook functionality.
 autoClearFailedUploads |  Boolean (`true` or `false`) | Indicates whether SnaprKit should clear failed uploads from queue. Set this to `true` for apps which do not have a full queue manager to prevent the queue from getting blocked.
+locationTimeoutInterval | Number | Indicates the maximum number of seconds to wait for a location before timing out.
+locationFailureTimeoutInterval | Number | Indicates the number of seconds to wait after a location retrieval failed before trying to retrieve the location again.
 
 #### 3.4.3 Troubleshooting
 
