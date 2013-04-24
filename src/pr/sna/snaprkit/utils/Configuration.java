@@ -21,6 +21,7 @@ public class Configuration
 	private static final String PROPERTY_AUTO_CLEAR_FAILED_UPLOADS = "autoClearFailedUploads";
 	private static final String PROPERTY_LOCATION_TIMEOUT_INTERVAL = "locationTimeoutInterval";
 	private static final String PROPERTY_LOCATION_FAILURE_TIMEOUT_INTERVAL = "locationFailureTimeoutInterval";
+	private static final String PROPERTY_IMAGE_ASPECT_RATIO = "imageAspectRatio";
 	private static final String PROPERTY_VALUE_TRUE = "true";
 	private static final String PROPERTY_VALUE_FALSE = "false";
 	
@@ -54,6 +55,8 @@ public class Configuration
 			throw new java.lang.IllegalArgumentException("SnaprKit configuration could not be loaded!");
 		}
 		
+		if (Global.LOG_MODE) Global.log("Configuration object is: " + mProperties);
+		
 		// Notify user of all configuration errors
 		String errors = getValidationErrors();
 		if (errors != null && errors.length() > 0)
@@ -76,6 +79,7 @@ public class Configuration
 		props.setProperty(PROPERTY_AUTO_CLEAR_FAILED_UPLOADS, "false");
 		props.setProperty(PROPERTY_LOCATION_TIMEOUT_INTERVAL, "20"); // 20 seconds
 		props.setProperty(PROPERTY_LOCATION_FAILURE_TIMEOUT_INTERVAL, "300"); // 5 minutes
+		props.setProperty(PROPERTY_IMAGE_ASPECT_RATIO, "1.0000"); // Perfect square
 		
 		// Return
 		return props;
@@ -127,13 +131,11 @@ public class Configuration
 				errors +="Invalid boolean value for field loggingEnabled!\n";
 			}
 			
-			// Validate fields one by one and output error messages
 			if (!hasValidIntValue(PROPERTY_LOCATION_TIMEOUT_INTERVAL))
 			{
 				errors += "Non integer value for field locationTimeoutInterval!\n";
 			}
 			
-			// Validate fields one by one and output error messages
 			if (!hasValidIntValue(PROPERTY_LOCATION_FAILURE_TIMEOUT_INTERVAL))
 			{
 				errors += "Non integer value for field locationFailureTimeoutInterval!\n";
@@ -143,6 +145,11 @@ public class Configuration
 			if (!hasValidStringValue(PROPERTY_ENVIRONMENT, validEnvironmentValues))
 			{
 				errors += "Invalid string value for field environment!\n";
+			}
+			
+			if (!hasValidFloatValue(PROPERTY_IMAGE_ASPECT_RATIO))
+			{
+				errors += "Non float value for field imageAspectRatio!\n";
 			}
 			
 			return errors;
@@ -196,6 +203,11 @@ public class Configuration
 	{
 		return getIntProperty(PROPERTY_LOCATION_FAILURE_TIMEOUT_INTERVAL);
 	}
+	
+	public float getImageAspectRatio()
+	{
+		return getFloatProperty(PROPERTY_IMAGE_ASPECT_RATIO);
+	}
 
 	public boolean getBooleanProperty(String propertyName)
 	{
@@ -232,6 +244,23 @@ public class Configuration
 		return resultInt;
 	}
 	
+	public float getFloatProperty(String propertyName)
+	{
+		String resultString = getProperty(propertyName);
+		float resultFloat = 0;
+		
+		try
+		{
+			resultFloat = Float.parseFloat(resultString);
+		}
+		catch (NumberFormatException e)
+		{
+			Global.log(ExceptionUtils.getExceptionStackString(e));
+		}
+		
+		return resultFloat;
+	}
+	
 	private boolean hasValidBooleanValue(String propertyName)
 	{
 		String result = getProperty(propertyName);
@@ -257,6 +286,22 @@ public class Configuration
 		try
 		{
 			Integer.parseInt(resultString);
+		}
+		catch (NumberFormatException e)
+		{
+			return false;
+		}
+		
+		return true;
+	}
+	
+	private boolean hasValidFloatValue(String propertyName)
+	{
+		String resultString = getProperty(propertyName);
+		
+		try
+		{
+			Float.parseFloat(resultString);
 		}
 		catch (NumberFormatException e)
 		{

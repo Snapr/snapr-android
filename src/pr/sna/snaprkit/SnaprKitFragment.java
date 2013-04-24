@@ -323,6 +323,9 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 				mLastPictureLongitude = longitude;
 				mLastPictureDate = new Date();
 				
+				// Get settings from config
+				float imageAspectRatio = pr.sna.snaprkit.utils.Configuration.getInstance().getImageAspectRatio();
+				
 				// Display pic options page
 				if (fileName != null)
 				{
@@ -337,6 +340,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 							builder.setStickerPackPath(mStickerPathPath);
 							builder.setFilterPackPath(mFilterPackPath);
 							builder.setSettings(mSettings);
+							builder.setImageAspectRatio(imageAspectRatio);
 							displayPhotoEdit(getActivity(), builder);
 						}
 						else
@@ -356,6 +360,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 							builder.setStickerPackPath(mStickerPathPath);
 							builder.setFilterPackPath(mFilterPackPath);
 							builder.setSettings(mSettings);
+							builder.setImageAspectRatio(imageAspectRatio);
 							displayPhotoEdit(getActivity(), builder);
 						}
 						else
