@@ -1,13 +1,16 @@
 package pr.sna.snaprkit;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
@@ -16,12 +19,26 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.facebook.FacebookOperationCanceledException;
+import com.facebook.LoggingBehavior;
+import com.facebook.Request;
+import com.facebook.Request.GraphUserCallback;
+import com.facebook.Response;
+import com.facebook.Session;
+import com.facebook.Session.OpenRequest;
+import com.facebook.SessionState;
+import com.facebook.Settings;
+import com.facebook.model.GraphUser;
+
+import pr.sna.snaprkit.FacebookLoginAsyncTask.OnSnaprFacebookLoginListener;
+import pr.sna.snaprkit.FacebookPublishAsyncTask.OnSnaprFacebookPublishListener;
 import pr.sna.snaprkit.PictureAcquisitionManager.PictureAcquisitionListener;
 import pr.sna.snaprkit.dummy.FeatherActivity;
-import pr.sna.snaprkit.utils.AlertUtils;
 import pr.sna.snaprkit.utils.CameraUtils;
+import pr.sna.snaprkit.utils.ExceptionUtils;
 import pr.sna.snaprkit.utils.LocalizationUtils;
 import pr.sna.snaprkit.utils.UserInfoUtils;
 import pr.sna.snaprkit.utils.FileUtils;
@@ -47,9 +64,11 @@ import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
+import android.util.Base64;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
@@ -67,7 +86,7 @@ import android.webkit.WebView;
 //import com.aviary.android.feather.FeatherActivity;
 import android.widget.Button;
 
-public class SnaprKitFragment extends Fragment
+public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginListener, OnSnaprFacebookPublishListener
 {
 	// Constants
 	private static final int ACTION_REQUEST_FEATHER = 100;
@@ -167,8 +186,15 @@ public class SnaprKitFragment extends Fragment
 		
 		outState.putString("mUserData", mPictureAcquisitionManager.getUserData());
 		
-		outState.putString("mmStickerPathPath", mStickerPathPath);
+		outState.putString("mStickerPathPath", mStickerPathPath);
 		outState.putString("mFilterPackPath", mFilterPackPath);
+		
+		// Facebook session
+		Session session = Session.getActiveSession();
+        Session.saveSession(session, outState);
+        
+        // Facebook status listener
+        mStatusListener.saveStatus(outState);
 		
 		// Save the WebView history
 		mWebView.saveState(outState);
@@ -179,6 +205,22 @@ public class SnaprKitFragment extends Fragment
 		closeBroadcastReceivers();
 	}
 	
+	
+	
+	@Override
+	public void onStart()
+	{
+		super.onStart();
+		Session.getActiveSession().addCallback(mStatusListener);
+	}
+
+	@Override
+	public void onStop()
+	{
+		super.onStop();
+		Session.getActiveSession().removeCallback(mStatusListener);
+	}
+
 	@Override
 	public void onPause()
 	{
@@ -284,6 +326,9 @@ public class SnaprKitFragment extends Fragment
 				mLastPictureLongitude = longitude;
 				mLastPictureDate = new Date();
 				
+				// Get settings from config
+				float imageAspectRatio = pr.sna.snaprkit.utils.Configuration.getInstance().getImageAspectRatio();
+				
 				// Display pic options page
 				if (fileName != null)
 				{
@@ -298,6 +343,7 @@ public class SnaprKitFragment extends Fragment
 							builder.setStickerPackPath(mStickerPathPath);
 							builder.setFilterPackPath(mFilterPackPath);
 							builder.setSettings(mSettings);
+							builder.setImageAspectRatio(imageAspectRatio);
 							displayPhotoEdit(getActivity(), builder);
 						}
 						else
@@ -317,6 +363,7 @@ public class SnaprKitFragment extends Fragment
 							builder.setStickerPackPath(mStickerPathPath);
 							builder.setFilterPackPath(mFilterPackPath);
 							builder.setSettings(mSettings);
+							builder.setImageAspectRatio(imageAspectRatio);
 							displayPhotoEdit(getActivity(), builder);
 						}
 						else
@@ -511,29 +558,12 @@ public class SnaprKitFragment extends Fragment
 						// Call upload_completed JS
 						String localId = intent.getStringExtra(Global.PARAM_LOCAL_ID);
 						String snaprId = intent.getStringExtra(Global.PARAM_SNAPR_ID);
-						if (Global.LOG_MODE) Global.log( " -> " + Global.getCurrentMethod() + ": Sending upload_completed('" + localId + "', '"  + snaprId + "')");
-						mWebView.loadUrl("javascript:upload_completed('" + localId + "', '"  + snaprId + "')");
-						
-						// Log
-						if (Global.LOG_MODE) Global.log( " -> " + Global.getCurrentMethod() + ": Determining signups needed");
-						
 						String signupsNeeded = intent.getStringExtra(Global.PARAM_SIGNUPS_NEEDED);
-						String redirectUrl = "";
-						if (signupsNeeded != null && signupsNeeded.length() != 0)
-						{
-							// Log
-							if (Global.LOG_MODE) Global.log( " -> " + Global.getCurrentMethod() + ": Need signups for " + signupsNeeded);
-							
-							// Get the needed signups URL and load it
-							String url = getSignupsNeededUrl(snaprId, signupsNeeded, redirectUrl);
-							if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Signups URL is " + url);
-							mWebView.loadUrl(url);
-						}
-						else
-						{
-							// Log
-							if (Global.LOG_MODE) Global.log( " -> " + Global.getCurrentMethod() + ": No signups needed");
-						}
+						String uploadCompletedParams = buildUploadCompletedParameters(localId, snaprId, signupsNeeded);
+						//String uploadCompletedParams = "{localId:'" + localId + "', snapr_id:'" + snaprId + "', to_link:['facebook']}";
+						
+						if (Global.LOG_MODE) Global.log( " -> " + Global.getCurrentMethod() + ": Sending upload_completed(" + UrlUtils.jsEscape(uploadCompletedParams) + ")");
+						mWebView.loadUrl("javascript:upload_completed(" + UrlUtils.jsEscape(uploadCompletedParams) + ")");
 					}
 				}
 				else if (broadcast == Global.BROADCAST_UPLOAD_PROGRESS)
@@ -620,6 +650,7 @@ public class SnaprKitFragment extends Fragment
 				else if (broadcast == Global.BROADCAST_UPLOAD_ERROR)
 				{
 					// Extract params
+					String errorMessage = "";
 					String localId = intent.getStringExtra(Global.PARAM_LOCAL_ID);
 					Exception exception = (Exception) intent.getSerializableExtra(Global.PARAM_EXCEPTION);
 					
@@ -627,7 +658,7 @@ public class SnaprKitFragment extends Fragment
 					if (exception instanceof SnaprApiException)
 					{
 						String errorType = ((SnaprApiException) exception).getType();
-						String errorMessage = ((SnaprApiException) exception).getMessage();
+						errorMessage = ((SnaprApiException) exception).getMessage();
 						
 						if (errorType != null)
 						{							
@@ -649,7 +680,7 @@ public class SnaprKitFragment extends Fragment
 								errorMessage = getString(R.string.snaprkit_error_upload_invalid_login);
 								
 								// Show message
-								showUploadError(errorMessage);
+								//showUploadError(errorMessage);
 							}
 							else if (errorType.equals("validation.duplicate_upload"))
 							{
@@ -661,7 +692,7 @@ public class SnaprKitFragment extends Fragment
 								errorMessage = getString(R.string.snaprkit_error_upload_duplicate_image);
 								
 								// Show message
-								showUploadError(errorMessage);
+								//showUploadError(errorMessage);
 							}
 							else if (errorType.equals("validation.corrupt_file"))
 							{
@@ -673,15 +704,27 @@ public class SnaprKitFragment extends Fragment
 								errorMessage = getString(R.string.snaprkit_error_upload_corrupt_image);
 						        
 								// Show message
-								showUploadError(errorMessage);
+								//showUploadError(errorMessage);
 							}
 							else
 							{
-								// Set the queue to paused
-								updateQueueSettings(false, mQueueUploadModeWifiOnly);
+								// Determine how to handle error
+								// For apps which don't display a queue, we cancel the upload
+								// For apps which have a queue, we pause the queue
+								if (pr.sna.snaprkit.utils.Configuration.getInstance().getAutoClearFailedUploads())
+								{
+									// Cancel the upload
+									cancelUpload(localId);
+									updateQueueStatus();
+								}
+								else
+								{
+									// Set the queue to paused
+									updateQueueSettings(false, mQueueUploadModeWifiOnly);
+								}
 								
 								// Display alert dialog
-								showUploadError(errorMessage);
+								//showUploadError(errorMessage);
 							}
 						}
 					}
@@ -694,11 +737,11 @@ public class SnaprKitFragment extends Fragment
 						int httpStatusCode = ((HttpResponseException) exception).getStatusCode(); 
 						
 						// Override message
-						String errorMessage = (httpStatusCode >= 500)?getString(R.string.snaprkit_error_upload_server_error):
+						errorMessage = (httpStatusCode >= 500)?getString(R.string.snaprkit_error_upload_server_error):
 								getString(R.string.snaprkit_error_upload_connect);
 						
 						// Show message
-						showUploadError(errorMessage);
+						//showUploadError(errorMessage);
 					}
 					else if (exception instanceof ConnectTimeoutException)
 					{
@@ -706,10 +749,10 @@ public class SnaprKitFragment extends Fragment
 						updateQueueSettings(false, mQueueUploadModeWifiOnly);
 						
 						// Override message
-						String errorMessage = getString(R.string.snaprkit_error_upload_connect_timeout);
+						errorMessage = getString(R.string.snaprkit_error_upload_connect_timeout);
 						
 						// Show message
-						showUploadError(errorMessage);
+						//showUploadError(errorMessage);
 					}
 					else if (exception instanceof IOException)
 					{
@@ -717,10 +760,10 @@ public class SnaprKitFragment extends Fragment
 						updateQueueSettings(false, mQueueUploadModeWifiOnly);
 						
 						// Other types of IOExceptions (HttpResponseException and ConnectionTimeOutException) handled above
-						String errorMessage = getString(R.string.snaprkit_error_upload_connect);
+						errorMessage = getString(R.string.snaprkit_error_upload_connect);
 						
 						// Show message
-						showUploadError(errorMessage);
+						//showUploadError(errorMessage);
 					}
 					else
 					{
@@ -730,11 +773,14 @@ public class SnaprKitFragment extends Fragment
 						updateQueueSettings(false, mQueueUploadModeWifiOnly);
 						
 						// Get error message
-						String errorMessage = getString(R.string.snaprkit_error_upload);
+						errorMessage = getString(R.string.snaprkit_error_upload);
 						
 						// Show message
-						showUploadError(errorMessage);
+						//showUploadError(errorMessage);
 					}
+					
+					// Call upload_failed
+					mWebView.loadUrl("javascript:upload_failed('" + localId + "', '" + UrlUtils.jsEscape(errorMessage) + "');");
 				}
 				else
 				{
@@ -746,6 +792,31 @@ public class SnaprKitFragment extends Fragment
 			// Log
 			if (Global.LOG_MODE) Global.log( " <- " + Global.getCurrentMethod());
 		}
+	}
+	
+	private String buildUploadCompletedParameters(String localId, String snaprId, String signupsNeeded)
+	{
+		String[] signups = signupsNeeded.split(",");
+		
+		JSONObject uploadCompletedParameters = new JSONObject();
+		try
+		{
+			uploadCompletedParameters.put(Global.PARAM_LOCAL_ID, localId);
+			uploadCompletedParameters.put(Global.PARAM_SNAPR_ID, snaprId);
+			JSONArray signupsArray = new JSONArray();
+			for (String s: signups)
+			{
+				signupsArray.put(s);
+			}
+			uploadCompletedParameters.put(Global.PARAM_TO_LINK, signupsArray);
+		}
+		catch (JSONException e)
+		{
+			e.printStackTrace();
+			return "";
+		}
+
+		return uploadCompletedParameters.toString();
 	}
 	
 	/**
@@ -853,6 +924,9 @@ public class SnaprKitFragment extends Fragment
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		
 		super.onActivityResult(requestCode, resultCode, data);
+		
+		// Facebook processing
+		Session.getActiveSession().onActivityResult(getActivity(), requestCode, resultCode, data);
 		
 		switch (requestCode)
 		{
@@ -990,15 +1064,19 @@ public class SnaprKitFragment extends Fragment
 		super.onConfigurationChanged(newConfig);
 	}
 	
-    /** Called when the activity is first created. */
+    /** Called when the fragment is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
-    {
-    	// Log
-    	if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod());
-    	
+    {	
     	// Create regular suspects
     	super.onCreate(savedInstanceState);
+    	
+    	// Load the configuration
+        pr.sna.snaprkit.utils.Configuration.init(SnaprKitFragment.this.getActivity());
+        Global.LOG_MODE = pr.sna.snaprkit.utils.Configuration.getInstance().getLoggingEnabled();
+        
+    	// Log
+    	if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod());
     	
     	// Set the options menu
     	if (Global.LOG_MODE) setHasOptionsMenu(true);
@@ -1009,6 +1087,8 @@ public class SnaprKitFragment extends Fragment
         // Log
         if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod());
     }
+    
+    
     
 	@Override public void onActivityCreated(Bundle savedInstanceState) {
     	super.onActivityCreated(savedInstanceState);
@@ -1101,7 +1181,7 @@ public class SnaprKitFragment extends Fragment
     	// Add appmode = android every time
         params = new Vector<BasicNameValuePair>();
         params.add(new BasicNameValuePair(Global.PARAM_APPMODE, "android"));
-        params.add(new BasicNameValuePair(Global.PARAM_ENVIRONMENT, Global.ENVIRONMENT));
+        params.add(new BasicNameValuePair(Global.PARAM_ENVIRONMENT, pr.sna.snaprkit.utils.Configuration.getInstance().getEnvironment()));
         params.add(new BasicNameValuePair(Global.PARAM_LANGUAGE, LocalizationUtils.getLanguageCode()));
         params.add(new BasicNameValuePair(Global.PARAM_LOCALE, LocalizationUtils.getLocaleCode()));
         
@@ -1142,7 +1222,7 @@ public class SnaprKitFragment extends Fragment
     	// Add appmode = android every time
         params = new Vector<BasicNameValuePair>();
         params.add(new BasicNameValuePair(Global.PARAM_APPMODE, "android"));
-        params.add(new BasicNameValuePair(Global.PARAM_ENVIRONMENT, Global.ENVIRONMENT));
+        params.add(new BasicNameValuePair(Global.PARAM_ENVIRONMENT, pr.sna.snaprkit.utils.Configuration.getInstance().getEnvironment()));
         
         /*
         // Customize some parameters based on logged in status
@@ -1216,59 +1296,8 @@ public class SnaprKitFragment extends Fragment
         
         // Convert to AJAX URL and return
         return UrlUtils.ajaxUrl(url);
-    }
-    
-    /**
-     * Build the signups for shared services URL 
-     * @return Returns the signups URL
-     */
-    private String getSignupsNeededUrl(String localId, String signupsNeeded, String redirectUrl)
-    {
-        // Declare
-        String url;
-    	Vector<BasicNameValuePair> params;
-        
-    	// Add appmode = android every time
-        params = new Vector<BasicNameValuePair>();
-        params.add(new BasicNameValuePair(Global.PARAM_APPMODE, "android"));
-        params.add(new BasicNameValuePair(Global.PARAM_ENVIRONMENT, Global.ENVIRONMENT));
-        
-        // Customize some parameters based on logged in status
-        if(haveUserInfo())
-		{
-        	// We have user info, so create URL that performs login
-        	params.add(new BasicNameValuePair(Global.PARAM_DISPLAY_USERNAME, mDisplayUserName));
-        	params.add(new BasicNameValuePair(Global.PARAM_SNAPR_USER, mSnaprUserName));
-        	params.add(new BasicNameValuePair(Global.PARAM_ACCESS_TOKEN, mAccessToken));
-		}
-        else
-        {
-        	// We have no username and password, so create URL that indicates new user
-        	params.add(new BasicNameValuePair(Global.PARAM_NEW_USER, "true"));
-        }
-        
-        // Pass the image id
-        params.add(new BasicNameValuePair(Global.PARAM_PHOTO_ID, localId));
-        
-        // Pass the signups needed
-        params.add(new BasicNameValuePair(Global.PARAM_TO_LINK, signupsNeeded));
-        
-        // Pass in a blank shared param
-        params.add(new BasicNameValuePair(Global.PARAM_SHARED, ""));
-        
-        // Pass the redirect url
-        if ((redirectUrl != null) && (redirectUrl.length() > 0))
-        {
-        	params.add(new BasicNameValuePair(Global.PARAM_REDIRECT_URL, redirectUrl));
-        }
-        
-        // Create the URL
-        url = UrlUtils.createUrl(UrlUtils.getFullLocalUrl(Global.URL_LINKED_SERVICES), params, true);
-        
-        // Convert to AJAX URL and return
-        return UrlUtils.ajaxUrl(url);
-    }
-    
+    }    
+
     // The action performed for snaprkit-parent:// URLs
     private Action snaprKitParentAction = new Action()
     {
@@ -1313,6 +1342,17 @@ public class SnaprKitFragment extends Fragment
     	{
     		// Clear the locally stored user info
     		UserInfoUtils.clearUserInfo(getContext());
+    		
+    		// Clear the FB native session
+    		String facebookAppId = pr.sna.snaprkit.utils.Configuration.getInstance().getFacebookAppId();
+    		if (facebookAppId != null && facebookAppId.length() > 0 )
+    		{
+    			Session session = Session.getActiveSession();
+    			if (session != null && !session.isClosed())
+    			{
+    				session.closeAndClearTokenInformation();
+    			}
+    		}
     	}
     };
     
@@ -1886,6 +1926,25 @@ public class SnaprKitFragment extends Fragment
     			url = UrlUtils.getQueryParameter(uri, Global.PARAM_URL);
 			}
     		
+    		// Check if this is a Facebook link that should be handled natively
+    		// Handle natively only when we have a FACEBOOK_APP_ID
+    		String facebookAppId = pr.sna.snaprkit.utils.Configuration.getInstance().getFacebookAppId();
+    		if (facebookAppId != null && facebookAppId.length() > 0)
+    		{
+    			if (url.contains(Global.URL_SNAPR_DOMAIN) && url.contains(Global.URL_FACEBOOK_LOGIN_BASE))
+	    		{
+	    			// Move this to Facebook native flow
+	    			facebookLoginAction.run(url);
+	    			return;
+	    		}
+    			else if (url.contains(Global.URL_SNAPR_DOMAIN) && url.contains(Global.URL_FACEBOOK_OAUTH_BASE))
+	    		{
+	    			// Move this to Facebook native flow
+	    			facebookPublishAction.run(url);
+	    			return;
+	    		}
+    		}
+    		
     		if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Starting external webview with URL " + url);
     		
     		// Start the external browse activity
@@ -1922,6 +1981,7 @@ public class SnaprKitFragment extends Fragment
     		// Log
     		if (Global.LOG_MODE) Global.log(Global.TAG, " -> actionSheetAction: Received URL " + url);
     		
+    		
     		// Get the setting from the URL
     		Uri uri = Uri.parse(url);
     		mContextMenuTitle = UrlUtils.getQueryParameter(uri, Global.PARAM_TITLE);
@@ -1940,7 +2000,124 @@ public class SnaprKitFragment extends Fragment
 			if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
     	}
     };
+    
+    // The alert action
+    private Action alertAction = new Action() {
+    	@Override
+    	public void run(String url)
+    	{
+    		// Log
+    		if (Global.LOG_MODE) Global.log(Global.TAG, " -> alertAction: Received URL " + url);
+    		
+    		
+    		// Get the setting from the URL
+    		Uri uri = Uri.parse(url);
+    		String title = UrlUtils.getQueryParameter(uri, Global.PARAM_TITLE);
+    		if (title == null) title="";
+    		String buttonLabel = UrlUtils.getQueryParameter(uri, Global.PARAM_OTHER_BUTTON_1_LABEL);
+    		if (buttonLabel == null) buttonLabel = "";
+    		String message = UrlUtils.getQueryParameter(uri, Global.PARAM_MESSAGE);
+    		if (message == null) message = "";
+    		
+    		// Display the alert
+    		new AlertDialog.Builder(getActivity())  
+            .setTitle(title)  
+            .setMessage(message)
+            .setPositiveButton(buttonLabel,  
+                    new AlertDialog.OnClickListener()  
+                    {  
+                        public void onClick(DialogInterface dialog, int which)  
+                        {  
+                        }  
+                    })  
+            .setCancelable(false) 
+            .create()  
+            .show();
+    	}
+    };
+    
+    // The download image action
+    private Action downloadImageAction = new Action() {
+    	@Override
+    	public void run(String url)
+    	{
+    		// Log
+    		if (Global.LOG_MODE) Global.log(Global.TAG, " -> downloadImageAction: Received URL " + url);
+    		
+    		// Get the setting from the URL
+    		// Note that the query parameter does not need to be decoded and that we need to correct some problems
+    		Uri uri = Uri.parse(url);
+    		final String imageData = UrlUtils.getEncodedQueryParameter(uri, Global.PARAM_IMAGE_DATA).replace(" ","+");
+    		
+    		// Display the alert
+    		new AlertDialog.Builder(getActivity())  
+    		.setTitle(R.string.snaprkit_downloadimage_title)  
+    		.setMessage(R.string.snaprkit_downloadimage_message)
+    		.setPositiveButton(R.string.snaprkit_save,  
+                    new AlertDialog.OnClickListener()  
+                    {  
+                        public void onClick(DialogInterface dialog, int which)  
+                        {
+                        	byte[] data = Base64.decode(imageData, Base64.DEFAULT);
+                        	SavePhotoTask savePhotoTask = new SavePhotoTask();
+                        	savePhotoTask.execute(data);
+                        }  
+                    })
+    		.setNegativeButton(R.string.snaprkit_cancel,
+            		new AlertDialog.OnClickListener()  
+		            {  
+		                public void onClick(DialogInterface dialog, int which)  
+		                {
+		                	// Do nothing
+		                }  
+		            })
+    		.setCancelable(false) 
+    		.create()  
+    		.show();
+    	}
+    };
 
+    class SavePhotoTask extends AsyncTask<byte[], Void, Boolean> {
+        @Override
+        protected Boolean doInBackground(byte[]... jpeg)
+        {
+        	// Prepare file
+        	File photo = new File(pr.sna.snaprkit.utils.FileUtils.getDCIMCameraDirectory(), CameraUtils.getPictureName());
+        	
+        	// Make sure that the photo file path exists!
+        	try
+        	{
+        		if(photo.exists() == false)
+        		{
+        			photo.getParentFile().mkdirs();
+        			photo.createNewFile();
+        		}
+        	}
+        	catch (IOException e)
+        	{
+        		if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() +  " Could not create file " + photo.getAbsolutePath());
+        		if (Global.LOG_MODE) Global.log(ExceptionUtils.getExceptionStackString(e));
+        		return false;
+        	}
+
+        	try
+        	{
+        		FileOutputStream fos=new FileOutputStream(photo.getPath());
+	
+        		fos.write(jpeg[0]);
+        		fos.close();
+        	}
+        	catch (java.io.IOException e)
+        	{
+        		if (Global.LOG_MODE) Global.log("Could not save image to disk");
+        		if (Global.LOG_MODE) Global.log(ExceptionUtils.getExceptionStackString(e));
+        		return false;
+        	}
+	
+        	return true;
+        }
+    }
+    
     private void initActionMap()
     {
 		mActionMappings.add(new UrlMapping("snaprkit-parent://.*", snaprKitParentAction));
@@ -1959,9 +2136,14 @@ public class SnaprKitFragment extends Fragment
 		mActionMappings.add(new UrlMapping("snapr://camera.*", cameraAction));
     	mActionMappings.add(new UrlMapping("snapr://photo-library.*", photoGalleryAction));
     	mActionMappings.add(new UrlMapping("snapr://action.*", actionSheetAction));
+    	mActionMappings.add(new UrlMapping("snapr://alert.*", alertAction));
+    	mActionMappings.add(new UrlMapping("snapr://download-image.*", downloadImageAction));
+    	
     	mActionMappings.add(new UrlMapping("snapr://link.*", externalBrowseAction));
     	if (Global.USE_AVIARY_SDK) mActionMappings.add(new UrlMapping("snapr://aviary.*", editPhotoAction));
 		mActionMappings.add(new UrlMapping("snapr://.*", defaultAction));
+		mActionMappings.add(new UrlMapping("https://sna.pr/api/linked_services/facebook/signin/.*redirect=.*", facebookLoginAction));
+		mActionMappings.add(new UrlMapping("https://sna.pr/api/linked_services/facebook/oauth/.*redirect=.*", facebookPublishAction));
 		mActionMappings.add(new UrlMapping("file://.*", defaultAction));
 		mActionMappings.add(new UrlMapping("http://.*", externalBrowseAction));
 		mActionMappings.add(new UrlMapping("https://.*", externalBrowseAction));
@@ -2085,10 +2267,11 @@ public class SnaprKitFragment extends Fragment
 			@Override  
             public boolean onJsAlert(WebView view, String url, String message, final android.webkit.JsResult result)  
             {
-				if (!SnaprKitFragment.this.getActivity().isFinishing()) // Need check to avoid random crashes when we are in the backgroound
+				if (SnaprKitFragment.this.getActivity() != null && !SnaprKitFragment.this.getActivity().isFinishing()) // Need check to avoid random crashes when we are in the backgroound
 				{
+					String appName = pr.sna.snaprkit.utils.Configuration.getInstance().getAppName();
 	                new AlertDialog.Builder(getActivity())  
-	                    .setTitle(R.string.snaprkit_name)  
+	                    .setTitle(appName)  
 	                    .setMessage(message)  
 	                    .setPositiveButton(android.R.string.ok,  
 	                            new AlertDialog.OnClickListener()  
@@ -2111,8 +2294,9 @@ public class SnaprKitFragment extends Fragment
             {
             	if (!getActivity().isFinishing()) // Need check to avoid random crashes when we are in the backgroound
             	{
+            		String appName = pr.sna.snaprkit.utils.Configuration.getInstance().getAppName();
 	                new AlertDialog.Builder(getActivity())
-	                    .setTitle(R.string.snaprkit_name)
+	                    .setTitle(appName)
 	                    .setMessage(message)
 	                    .setPositiveButton(android.R.string.ok, 
 	                            new DialogInterface.OnClickListener() 
@@ -2656,15 +2840,20 @@ public class SnaprKitFragment extends Fragment
     	
     	// Set action map
     	initActionMap();
+    	
+    	// Set the Facebok native objects
+    	initFacebookNative(savedInstanceState);
         
         // Log
         if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod());
     }
 	
+    /*
 	private void showUploadError(String errorMessage)
 	{
 		AlertUtils.showAlert(getActivity(), errorMessage, getString(R.string.snaprkit_error_upload));
 	}
+	*/
 	
     /**
      * Show a picker to allow the user to select a file
@@ -2758,6 +2947,442 @@ public class SnaprKitFragment extends Fragment
         if (mContextMenuOtherItem3Label != null) menu.add(0, 3, 0, mContextMenuOtherItem3Label);
         if (mContextMenuCancelItemLabel != null) menu.add(0, 0, 0, mContextMenuCancelItemLabel); // always last
 	}
+
+	// ------------------------------------------------------------------------
+	// Native Facebook integration
+	// ------------------------------------------------------------------------
+	
+	private FacebookSessionStatusListener mStatusListener = new FacebookSessionStatusListener();
+	
+	public void initFacebookNative(Bundle savedInstanceState)
+	{
+		// Set Facebook session
+    	if (Global.LOG_MODE) Settings.addLoggingBehavior(LoggingBehavior.INCLUDE_ACCESS_TOKENS);
+        Session session = Session.getActiveSession();
+        if (session == null)
+        {
+            if (savedInstanceState != null)
+            {
+            	session = Session.restoreSession(getActivity(), null, mStatusListener, savedInstanceState);
+            }
+            if (session == null)
+            {
+            	String facebookAppId = pr.sna.snaprkit.utils.Configuration.getInstance().getFacebookAppId();
+            	session = new Session.Builder(getActivity()).setApplicationId(facebookAppId).build();
+            }
+            Session.setActiveSession(session);
+        }
+        
+        // Restore Facebook status
+        mStatusListener.restoreStatus(savedInstanceState);
+	}
+	
+	public void getFacebookReadAccess(FacebookSessionStatusListener listener, boolean retrieveUserBirthday)
+	{
+		List<String> permissions = getRequiredReadPermissions(retrieveUserBirthday);
+		getFacebookReadAccess(listener, permissions);
+	}
+	
+	public List<String> getRequiredReadPermissions(boolean retrieveUserBirthday)
+	{
+		if (retrieveUserBirthday)
+		{
+			return Arrays.asList("email", "user_birthday");
+		}
+		else
+		{
+			return Arrays.asList("email");
+		}
+	}
+	
+	public void getFacebookReadAccess(FacebookSessionStatusListener listener, List<String> permissions)
+	{
+		Session session = Session.getActiveSession();
+		
+		if (session == null || session.isClosed())
+		{
+			String facebookAppId = pr.sna.snaprkit.utils.Configuration.getInstance().getFacebookAppId();
+			session = new Session.Builder(getActivity()).setApplicationId(facebookAppId).build();
+        	Session.setActiveSession(session);
+		}
+		
+        if (!session.isOpened())
+        {
+        	session.openForRead(getSessionOpenRequest(listener, permissions));
+        }
+        else
+        {
+        	listener.onFacebookAccess(session.getAccessToken(), session.getExpirationDate(), session.getPermissions());
+        }
+	}
+	
+	public List<String> getRequiredPublishPermissions()
+	{
+		return Arrays.asList("publish_stream");
+	}
+	
+	public void getFacebookPublishAccess(FacebookSessionStatusListener listener, List<String> publishPermissions)
+	{		
+		// Check for publish permissions
+		Session session = Session.getActiveSession();
+        
+		if (session == null || session.isClosed())
+        {
+			String facebookAppId = pr.sna.snaprkit.utils.Configuration.getInstance().getFacebookAppId();
+        	session = new Session.Builder(getActivity()).setApplicationId(facebookAppId).build();
+        	Session.setActiveSession(session);
+        }
+		
+		if (!session.isOpened())
+        {
+        	session.openForPublish(getSessionOpenRequest(listener, publishPermissions));
+        }
+        else
+        {
+        	List<String> permissions = session.getPermissions();
+        	if (!isSubsetOf(publishPermissions, permissions))
+	        {
+	            Session.NewPermissionsRequest newPermissionsRequest = new Session.NewPermissionsRequest(this, publishPermissions);
+	            session.requestNewPublishPermissions(newPermissionsRequest);
+	            return;
+	        }
+	        else
+	        {
+	        	// Return Facebook access token
+	        	listener.onFacebookAccess(session.getAccessToken(), session.getExpirationDate(), session.getPermissions());
+	        	return;
+	        }
+        }
+	}
+	
+	private OpenRequest getSessionOpenRequest(FacebookSessionStatusListener listener, List<String> permissions)
+	{
+		OpenRequest openRequest = new Session.OpenRequest(this);
+		openRequest.setCallback(listener);
+		openRequest.setPermissions(permissions);
+		return openRequest;
+	}
+	
+	private boolean isSubsetOf(Collection<String> subset, Collection<String> superset)
+	{
+	    for (String string : subset)
+	    {
+	        if (!superset.contains(string))
+	        {
+	            return false;
+	        }
+	    }
+	    return true;
+	}
+	
+	private class FacebookSessionStatusListener implements Session.StatusCallback, OnFacebookAccessListener
+	{
+		// Members
+		private String mOriginalUrl = null;
+		private boolean mRequestedPublishPermissions = false;
+		private boolean mImmediatelyRequestPublishPermissions = false;
+		
+		public FacebookSessionStatusListener()
+		{
+			mOriginalUrl = null;
+			mRequestedPublishPermissions = false;
+			mImmediatelyRequestPublishPermissions = false;
+		}
+		
+		public void saveStatus(Bundle outState)
+		{
+			outState.putString("mOriginalUrl", mOriginalUrl);
+			outState.putBoolean("mRequestedPublishPermissions", mRequestedPublishPermissions);
+			outState.putBoolean("mImmediatelyRequestPublishPermissions", mImmediatelyRequestPublishPermissions);
+		}
+		
+		public void restoreStatus(Bundle savedInstanceState)
+		{
+			if (savedInstanceState != null && !savedInstanceState.isEmpty())
+			{
+				mOriginalUrl = savedInstanceState.getString("mOriginalUrl");
+				mRequestedPublishPermissions = savedInstanceState.getBoolean("mRequestedPublishPermissions");
+				mImmediatelyRequestPublishPermissions = savedInstanceState.getBoolean("mImmediatelyRequestPublishPermissions");
+			}
+		}
+		
+		// Overridden method
+		@Override
+        public void call(Session session, SessionState state, Exception exception)
+        {
+			if (Global.LOG_MODE) Global.log(" -> FacebookSessionStatusListener: Received state: " + state.toString());
+			if (Global.LOG_MODE && exception != null) Global.log(" -> FacebookSessionStatusListener: got exception: \n" + ExceptionUtils.getExceptionStackString(exception));
+			
+        	if (state == SessionState.OPENED)
+        	{
+        		// Check if we must immediately request publish permissions
+        		if (mImmediatelyRequestPublishPermissions)
+        		{
+        			if (Global.LOG_MODE) Global.log(Global.TAG, " -> FacebookSessionStatusListener.call(): Completed obtaining read permissions after publish failure, requesting publish permissions");
+        			setRequestedPublishPermissions(true);
+        			setImmediatelyRequestPublishPermissions(false);
+        			getFacebookPublishAccess(FacebookSessionStatusListener.this, getRequiredPublishPermissions());
+        		}
+        		else
+        		{	
+	        		// Return read token here
+	        		onFacebookAccess(session.getAccessToken(), session.getExpirationDate(), session.getPermissions());
+	
+	        		// If debugging, get the user info
+	        		if (Global.LOG_MODE)
+	                {
+		                Request.executeMeRequestAsync(session, new GraphUserCallback()
+		                {
+		                    @Override
+		                    public void onCompleted(GraphUser user, Response response)
+		                    {
+	                        	if (user != null)
+	                        	{
+	                        		Global.log("Got Facebook user id: " + user.getId());
+	                        		Global.log("Got Facebook email:" + user.asMap().get("email"));
+	                        		Global.log("Got Facebook bday: " + user.getBirthday());
+	                        	}
+		                    }
+		                });
+	                }
+        		}
+        	}
+        	else if(state == SessionState.OPENED_TOKEN_UPDATED)
+            {
+                // Return publishing token here
+        		onFacebookAccess(session.getAccessToken(), session.getExpirationDate(), session.getPermissions());
+            }
+        	else if (state == SessionState.CLOSED_LOGIN_FAILED)
+        	{
+        		if (exception instanceof FacebookOperationCanceledException && 
+        				exception.getMessage().contains("The app must ask for a basic read permission at install time."))
+        		{
+        			if (Global.LOG_MODE) Global.log(Global.TAG, " -> FacebookSessionStatusListener.call(): Restarting the publish process because we do not have read permissions");
+        			mStatusListener.setRequestedPublishPermissions(false);
+        			mStatusListener.setImmediatelyRequestPublishPermissions(true);
+        			getFacebookReadAccess(mStatusListener, getRequiredReadPermissions(false));
+        		}
+        		onFacebookError(exception);
+        	}
+        }
+		
+		@Override
+		public void onFacebookAccess(String accessToken, Date expirationDate, List<String> permissions)
+		{
+			if (!mRequestedPublishPermissions)
+			{
+				FacebookLoginInfo loginInfo = new FacebookLoginInfo();
+				Uri uri = Uri.parse(mOriginalUrl);
+	    		loginInfo.mRedirectUrl = UrlUtils.getQueryParameter(uri, Global.PARAM_REDIRECT);
+	    		loginInfo.mClientId = UrlUtils.getQueryParameter(uri, Global.PARAM_CLIENT_ID);
+	    		loginInfo.mCreate = UrlUtils.getQueryParameter(uri, Global.PARAM_CREATE);
+	    		loginInfo.mMinAge = UrlUtils.getQueryParameter(uri, Global.PARAM_MIN_AGE);
+	    		loginInfo.mToken = accessToken;
+	    		loginInfo.mTokenExpirationDate = expirationDate;
+	    		loginInfo.mTokenPermissions = permissions;
+	    		
+	    		FacebookLoginAsyncTask facebookLoginTask = new FacebookLoginAsyncTask(SnaprKitFragment.this);
+	    		facebookLoginTask.execute(loginInfo);
+			}
+			else
+			{
+				FacebookPublishInfo publishInfo = new FacebookPublishInfo();
+				Uri uri = Uri.parse(mOriginalUrl);
+	    		publishInfo.mRedirectUrl = UrlUtils.getQueryParameter(uri, Global.PARAM_REDIRECT);
+	    		publishInfo.mSnaprToken = UrlUtils.getQueryParameter(uri, Global.PARAM_ACCESS_TOKEN);
+	    		publishInfo.mToken = accessToken;
+	    		publishInfo.mTokenExpirationDate = expirationDate;
+	    		publishInfo.mTokenPermissions = permissions;
+	    		
+	    		FacebookPublishAsyncTask facebookPublishTask = new FacebookPublishAsyncTask(SnaprKitFragment.this);
+	    		facebookPublishTask.execute(publishInfo);
+			}
+		}
+		
+		@Override
+		public void onFacebookError(Exception e)
+		{
+			if (Global.LOG_MODE) Global.log("onFacebookError: Got exception " + e);
+			Uri uri = Uri.parse(mOriginalUrl);
+			String redirectUrl = UrlUtils.getQueryParameter(uri, Global.PARAM_REDIRECT);
+			if (!mRequestedPublishPermissions)
+			{
+				SnaprKitFragment.this.onSnaprFacebookLoginError(e, redirectUrl);
+			}
+			else
+			{
+				SnaprKitFragment.this.onSnaprFacebookPublishError(e, redirectUrl);
+			}
+		}
+		
+		public void setOriginalUrl(String originalUrl)
+		{
+			mOriginalUrl = originalUrl;
+		}
+		
+		public void setRequestedPublishPermissions(boolean requestedPublishPermissions)
+		{
+			mRequestedPublishPermissions = requestedPublishPermissions;
+		}
+		
+		public void setImmediatelyRequestPublishPermissions(boolean immediatelyRequestPublishPermissions)
+		{
+			mImmediatelyRequestPublishPermissions = immediatelyRequestPublishPermissions;
+		}
+	}
+	
+	interface OnFacebookAccessListener
+	{
+		public void onFacebookAccess(String accessToken, Date expirationDate, List<String> permissions);
+		public void onFacebookError(Exception e);
+	}
+	
+    // The action performed when logging in via Facebook
+    private Action facebookLoginAction = new Action()
+    {
+    	@Override
+    	public void run(String url)
+    	{
+    		// Log
+    		if (Global.LOG_MODE) Global.log(Global.TAG, " -> facebookLoginAction: Received URL " + url);
+    		
+    		// Parse redirect URL and add it to Facebook status listener
+    		Uri uri = Uri.parse(url);
+    		String minAge = UrlUtils.getQueryParameter(uri, Global.PARAM_MIN_AGE);
+    		List<String> permissions = getRequiredReadPermissions((minAge != null && minAge.length() > 0));
+    		
+    		// Add items
+    		//mStatusListener = new FacebookSessionStatusListener();
+    		mStatusListener.setOriginalUrl(url);
+    		mStatusListener.setRequestedPublishPermissions(false);
+    		
+    		// Request read access
+    		getFacebookReadAccess(mStatusListener, permissions);
+			
+			// Log
+			if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
+    	}
+    };
+    
+    // The action performed when publishing in via Facebook
+    private Action facebookPublishAction = new Action() {
+    	@Override
+    	public void run(String url)
+    	{
+    		// Log
+    		if (Global.LOG_MODE) Global.log(Global.TAG, " -> facebookPublishAction: Received URL " + url);
+    		
+    		// Parse redirect URL and add it to Facebook status listener
+    		List<String> permissions = getRequiredPublishPermissions();
+    		//mStatusListener = new FacebookSessionStatusListener();
+    		mStatusListener.setOriginalUrl(url);
+    		mStatusListener.setRequestedPublishPermissions(true);
+    		
+    		// Request publish access
+    		getFacebookPublishAccess(mStatusListener, permissions);
+			
+			// Log
+			if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
+    	}
+    };
+    
+    private String unpackRedirectUrl(String redirectUrl)
+    {
+    	boolean isSnaprRedirect = redirectUrl.startsWith(Global.URL_SNAPR_REDIRECT);
+		if (isSnaprRedirect)
+		{
+			Uri redirectUri = Uri.parse(redirectUrl);
+			redirectUrl = redirectUri.getQueryParameter(Global.PARAM_REDIRECT_URL);
+		}
+		
+		return redirectUrl;
+    }
+    
+	@Override
+	public void onSnaprFacebookLogin(UserInfo userInfo, String redirectUrl)
+	{
+		// Log
+		if (Global.LOG_MODE) Global.log(Global.TAG, " -> onSnaprLogin: Received redirect URL " + redirectUrl);
+		
+		// Unpack snapr://redirect URLs
+		redirectUrl = unpackRedirectUrl(redirectUrl);
+		
+		// Update redirect url
+		HashMap<String, String> params = new HashMap<String, String>();
+		params.put("access_token", userInfo.mAccessToken);
+		params.put("display_username", userInfo.mDisplayUserName);
+		params.put("snapr_user", userInfo.mSnaprUserName);
+		redirectUrl = UrlUtils.appendParamsToUrl(redirectUrl, params);
+		
+		// Redirect
+		if (Global.LOG_MODE) Global.log(Global.TAG, " -> Redirecting to " + redirectUrl);
+		mWebView.loadUrl(redirectUrl);
+		
+		// Log
+		if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
+	}
+	
+	@Override
+	public void onSnaprFacebookLoginError(Throwable e, String redirectUrl)
+	{
+		// Log
+		if (Global.LOG_MODE) Global.log(Global.TAG, " -> onSnaprLoginError: Received redirect URL " + redirectUrl + " and error");		
+		if (Global.LOG_MODE) Global.log(ExceptionUtils.getExceptionStackString(e));
+		
+		// Unpack snapr://redirect URLs
+		redirectUrl = unpackRedirectUrl(redirectUrl);
+		
+		// Create redirect url
+		HashMap<String, String> params = new HashMap<String, String>();
+		params.put("error", e.getMessage());
+		redirectUrl = UrlUtils.appendParamsToUrl(redirectUrl, params);
+		
+		if (Global.LOG_MODE) Global.log(Global.TAG, " -> Redirecting to " + redirectUrl);
+		mWebView.loadUrl(redirectUrl);
+		
+		// Log
+		if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
+	}
+	
+	@Override
+	public void onSnaprFacebookPublish(String redirectUrl)
+	{
+		// Log
+		if (Global.LOG_MODE) Global.log(Global.TAG, " -> onSnaprFacebookPublish: Received redirect URL " + redirectUrl);
+		
+		// Unpack snapr://redirect URLs
+		redirectUrl = unpackRedirectUrl(redirectUrl);
+		
+		// Redirect
+		if (Global.LOG_MODE) Global.log(Global.TAG, " -> Redirecting to " + redirectUrl);
+		mWebView.loadUrl(redirectUrl);
+		
+		// Log
+		if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
+	}
+
+	@Override
+	public void onSnaprFacebookPublishError(Throwable e, String redirectUrl)
+	{
+		// Log
+		if (Global.LOG_MODE) Global.log(Global.TAG, " -> onSnaprFacebookPublishError: Received redirect URL " + redirectUrl + " and error");		
+		if (Global.LOG_MODE) Global.log(ExceptionUtils.getExceptionStackString(e));
+		
+		// Unpack snapr://redirect URLs
+		redirectUrl = unpackRedirectUrl(redirectUrl);
+		
+		// Create redirect url
+		HashMap<String, String> params = new HashMap<String, String>();
+		params.put("error", e.getMessage());
+		redirectUrl = UrlUtils.appendParamsToUrl(redirectUrl, params);
+		
+		// Redirect
+		if (Global.LOG_MODE) Global.log(Global.TAG, " -> Redirecting to " + redirectUrl);
+		mWebView.loadUrl(redirectUrl);
+		
+		// Log
+		if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
+	}
 	
 	// ------------------------------------------------------------------------
 	// Library interface
@@ -2790,10 +3415,7 @@ public class SnaprKitFragment extends Fragment
 	
 	// Start via the normal flow with custom page
 	public void startNormalFlow(String pageUrl)
-	{
-		// Initialize URL base
-		Global.URL_BASE = Global.getLocalUrlBase(getActivity());
-		
+	{		
 		// Load the user info
 		loadUserInfo();
 		
@@ -2829,9 +3451,6 @@ public class SnaprKitFragment extends Fragment
 		
 		// Load the user info
 		loadUserInfo();
-		
-		// Initialize URL base
-		Global.URL_BASE = Global.getLocalUrlBase(getActivity());
 		
 		// Set the shared picture filename
 		mSharedPictureFileName = sharedPictureFileName;
@@ -2879,9 +3498,6 @@ public class SnaprKitFragment extends Fragment
 	// Url is provided using base name from HTML build
 	public void goToPage(String pageUrl)
 	{
-		// Initialize URL base
-		if (Global.URL_BASE == null) Global.URL_BASE = Global.getLocalUrlBase(getActivity());
-		
 		loadUserProvidedUrl(pageUrl);
 	}	
 	

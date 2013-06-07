@@ -1,7 +1,9 @@
 package pr.sna.snaprkit.utils;
 
 import java.io.File;
+import java.net.URLEncoder;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -198,7 +200,7 @@ public class UrlUtils
 	{
 		// Add the app mode
 		params.add(new BasicNameValuePair(Global.PARAM_APPMODE, "android"));
-		params.add(new BasicNameValuePair(Global.PARAM_ENVIRONMENT, Global.ENVIRONMENT));
+		params.add(new BasicNameValuePair(Global.PARAM_ENVIRONMENT, pr.sna.snaprkit.utils.Configuration.getInstance().getEnvironment()));
 
 		// Customize some parameters based on logged in status
 		String[] userInfo = new String[3];
@@ -355,6 +357,22 @@ public class UrlUtils
     	return (value==null)?value:value.replace("+", " ");
     }
     
+    public static String getEncodedQueryParameter(Uri uri, String key)
+    {
+    	String encodedQuery = uri.getEncodedQuery();
+    	String paramPairs[] = encodedQuery.split("&");
+    	
+    	for (String paramPair : paramPairs)
+		{
+			if (paramPair.startsWith(key+"="))
+			{
+				return paramPair.substring(key.length()+1);
+			}
+		}
+    	
+    	return null;
+    }
+    
     /**
      * Removes the param-value pair with the specified param name from an encodedQuery
      * 
@@ -484,5 +502,34 @@ public class UrlUtils
     public static String jsEscape(String js)
     {
     	return js.replace("'", "&#39;");
+    }
+    
+    public static String appendParamsToUrl(String baseUrl, HashMap<String, String> params)
+    {
+    	// Declare
+    	String returnUrl = baseUrl;
+    	
+    	// Check ending
+    	for (String s: params.keySet())
+    	{
+    		returnUrl = returnUrl + "&" + URLEncoder.encode(s) + "=" + URLEncoder.encode(params.get(s));
+    	}
+    	
+    	return returnUrl;
+    }
+    
+    public static String currentServerUrl(String path)
+    {
+    	String base;
+    	if(pr.sna.snaprkit.utils.Configuration.getInstance().isLiveEnvironment())
+    	{
+    		base = Global.URL_SERVER_PROD;
+    	}
+    	else
+    	{
+    		base = Global.URL_SERVER_DEV;
+    	}
+    	
+    	return base + path;
     }
 }

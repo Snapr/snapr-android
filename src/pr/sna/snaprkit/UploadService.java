@@ -12,6 +12,7 @@ import org.json.JSONObject;
 
 import pr.sna.snaprkit.utils.SnaprJsonUtils;
 import pr.sna.snaprkit.Uploader.UploadListener;
+import pr.sna.snaprkit.utils.UrlUtils;
 import pr.sna.snaprkit.utils.UserInfoUtils;
 import pr.sna.snaprkit.utils.FileUtils;
 import pr.sna.snaprkit.utils.NetworkUtils;
@@ -825,6 +826,12 @@ public class UploadService extends Service
 		if (intent == null)
 			return super.onStartCommand(intent, flags, startId);
 
+		// Load the configuration
+		if (pr.sna.snaprkit.utils.Configuration.getInstance() == null)
+		{
+			pr.sna.snaprkit.utils.Configuration.init(UploadService.this);
+		}
+		
 		// Check the intent message type
 		int action = intent.getIntExtra(Global.PARAM_ACTION, -1);
 		if (action == Global.ACTION_QUEUE_START)
@@ -902,7 +909,7 @@ public class UploadService extends Service
 
 				// Create upload object
 				UploadInfo uploadInfo = new UploadInfo();
-				uploadInfo.setUploadUrl(Global.URL_UPLOAD_LOCATION);
+				uploadInfo.setUploadUrl(UrlUtils.currentServerUrl(Global.URL_UPLOAD_LOCATION_BASE));
 				uploadInfo.setAccessToken(accessToken);
 				uploadInfo.setLocalId(localId);
 				uploadInfo.setFileName(photo);

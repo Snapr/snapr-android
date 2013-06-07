@@ -1,4 +1,4 @@
-# SnaprKit 3.0 Android Installation Instructions
+# SnaprKit 3.0 Android Installation Instructions for VS Pink
 
 ## 1. Introduction
 This document will guide you through the creation of a sample application using the SnaprKit Android library.
@@ -70,7 +70,6 @@ Please copy the following assets from the sample project into the corresponding 
 
 * __HTML files__ - Copy the HTML files from the sample project’s `/assets/snaprkit_html/` directory and move them to the same directory in your application. These are required for proper library functioning.
 * __Filter files__ - Copy the filter files from the sample project’s `/assets/filter_packs/` directory and move them to the same directory in your application.
-* __Sticker files__ - Copy the sticker files from the sample project’s `/assets/sticker_packs/` directory and move them to the same directory in your application.
 
 ### 3.4 Configuration File
 
@@ -86,28 +85,29 @@ SnaprKit lets you configure settings that are specific to your app using a speci
     facebookAppIdLive = Your Facebook App Id  
     facebookAppIdDev = Your Facebook App Id  
     autoClearFailedUploads = true  
-    locationTimeoutInterval = 20  
-    locationFailureTimeoutInterval = 300  
 
-3. Fill in the missing settings for appName, facebookAppIdLive and facebookAppIdDev, and adjust existing settings as appropriate. The table below explains what each setting means:
+3. Fill in the missing settings for `appName`, `facebookAppIdLive` and `facebookAppIdDev`, and adjust existing settings as appropriate. The table below explains what each setting means:
 
 Key | Type | Description
 :-- | :--- | :----------
 appName | String | The name of your application
 loggingEnabled | Boolean (`true` or `false`) | Indicates whether SnaprKit should log events. You should set this to false, unless instructed otherwise by Snapr.
-environment | String (`dev` or `live`) | Tells SnaprKit whether to use production or development servers
+environment | String (`dev-android` or `live-android`) | Tells SnaprKit whether to use production or development servers
 facebookAppIdLive | Number | This is the Facebook app id when using the production environment. Leave this blank to disable native Facebook functionality and fall back to the web-based Facebook functionality.
 facebookAppIdDev | Number | This is the Facebook app id when using the development environment. Leave this blank to disable native Facebook functionality and fall back to the web-based Facebook functionality.
-autoClearFailedUploads |  Boolean (`true` or `false`) | Indicates whether SnaprKit should clear failed uploads from queue. Set this to `true` for apps which do not have a full queue manager to prevent the queue from getting blocked.
+autoClearFailedUploads |  Boolean (`true` or `false`) | Indicates whether SnaprKit should clear failed uploads from queue. Set this to `true` for apps which do not have a full queue manager to prevent the queue from getting blocked. Set to `true` for PinkNation.
 locationTimeoutInterval | Number | Indicates the maximum number of seconds to wait for a location before timing out.
 locationFailureTimeoutInterval | Number | Indicates the number of seconds to wait after a location retrieval failed before trying to retrieve the location again.
 
-#### 3.4.3 Troubleshooting
-
-If you configuration is invalid, your app will exit at runtime with an exception. Examine the error message in the log and make appropriate corrections.
-
 ### 3.5 Resources
-Depending on the project, we may provide additional image resouces to customize the look and feel of the graphics effects module. You should copy the indicated files from the `res/drawable-*hdpi` folder(s) of the sample project to the corresponding folders in your project.
+For VS Pink, we have provide additional image resouces to customize the look and feel of the graphics effects module.
+
+Please copy the files below from the `res/drawable-xhdpi` and `res/drawable-hdpi` folder(s) of the sample project to the corresponding folders in your project:
+
+    snaprkitfx_btn_fx_down.png
+    snaprkitfx_btn_fx_normal.png
+    snaprkitfx_btn_tick_disabled.png
+    snaprkitfx_btn_tick_normal.png
 
 ### 3.6 AndroidManifest.xml
 Add some entries to the manifest file of your application.
@@ -201,11 +201,22 @@ In the manifest, locate the activity entry for the activity that contains the Sn
         android:theme="@android:style/Theme.NoTitleBar">
     </activity>
 
-### 5.2 Setup Base Class
+## 5.2 Setup Base Class
 Open the source file for the activity that contains the SnaprKit fragment and change the class declaration to make the class extend `FragmentActivity` rather than `Activity`.
 
-## 5.3 Initialize
-### 5.3.1 Static Fragment
+
+## 5.3 Setup Pink Custom Login
+
+PINK Nation uses a custom login to exchange PINK Nation user details with an Snapr OAuth token that can be used against the Snapr API. If a Snapr account does not already exist for the supplied details then Snapr will automatically create one.
+
+Here is how to use the Pink custom login:
+
+1. Before initializing the SnaprKit module, call `getUserInfoFromServer` function which can be found in the `LoginUtils.java` file of the sample app, and which is described in section 8.1 below.
+
+2. Take the `UserInfo` object returned from the call above and pass it to the `SnaprKitFragment.setUserInfo()` function which is described in section 8.2 below. How you do this will depend on whether you are using the SnaprKitFragment in a static or dynamic way (see section below).
+
+## 5.4 Initialize
+### 5.4.1 Static Fragment
 If you are using the fragment in an activity without swapping it, then add the following code in the `onCreate` method of your activity:
 
     // Add this to the class members
@@ -218,14 +229,14 @@ If you are using the fragment in an activity without swapping it, then add the f
     // Start the normal activity flow
     mSnaprKitFragment.startNormalFlow();`
 
-### 5.3.2 Dynamic Fragment
+### 5.4.2 Dynamic Fragment
 If you are swapping the fragment in and out of the activity, then do the following:
 
 * Create a new fragment class called `MySnaprKitFragment` that extends the `SnaprKitFragment` class included in SnaprKit.
 * In the `onCreate` event, perform the one-time tasks that do not involve the UI (such as external log in, if this is a requirement for your project).
 * In the `onCreateActivity` event, perform the tasks that need to be repeated every time the fragment is brought back, or the tasks that deal with the UI.
 
-### 5.3.3 Add Back button support
+### 5.4.3 Add Back button support
 To support webview navigation using the back button, override the `onBackPressed` method in the activity that contains the SnaprKit fragment:
 
     @Override
@@ -290,3 +301,22 @@ Function | Description
 -------- | --------
 void onPageFinished(String url) | Triggers when a page has finished loading. You can find out which page finished via the url parameter
 void onSnaprKitParent(String url) | Triggers when the build sends a SnaprKitParent message, and provides the full url through the url parameter
+
+### 7.2 LoginUtils
+
+The LoginUtils module contains the following function for custom Pink login:
+
+    public static UserInfo getUserInfoFromServer(String url, String firstName, String email, String key, String appGroup) throws RuntimeException
+    
+Parameters:    
+* url - The URL of the endpoint that registers Pink users with Snapr. Use `http://dev.sna.pr/api/linked_services/pink/get_token/` in development and `https://api.sna.pr/linked_services/pink/get_token/` in production.
+* firstName - User's first name
+* email - User's email
+* key - A secret string. Send ‘test_key’ as this has become embedded in production.
+* appGroup - Application group. Send ‘pink-nation-android’ for Android.
+    
+Returns:
+* UserInfo object
+    
+Exceptions:
+* RuntimeException - Exception containing a description of the error

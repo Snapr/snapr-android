@@ -17,19 +17,17 @@ public class Global
 	public static final String TAG = "SNAPRKIT";
 	
 	// Java debugging
-    public static final boolean LOG_MODE = false;
+    public static boolean LOG_MODE = true; // This is now modified at runtime with configuration value
     
-	// HTML debugging and local URL base
-    public static final boolean HTML_DEBUG = false;
-	public static final String URL_BASE_SDCARD_HTML = "file://" + Environment.getExternalStorageDirectory().getAbsolutePath() + "/snaprkit_html/";  // must end in slash
-	public static final String URL_BASE_ASSETS_HTML = "file:///android_asset/snaprkit_html/"; // must end in slash
-	public static String URL_BASE = "";              // generated based on HTML_DEBUG and URL_BASE_* values above, overwritten from start flows in Honeycomb+
-	
 	// Remote environment and remote URL base
-	public static final String ENVIRONMENT = "dev";                       // either dev, dev-android, live, live-android
 	public static final String URL_SERVER_PROD = "https://api.sna.pr/";   // must end in slash
 	public static final String URL_SERVER_DEV = "http://dev.sna.pr/api/"; // must end in slash
-	public static final String URL_SERVER = getRemoteUrlBase();           // generated based on ENVIRONMENT and URL_SERVER_* values above
+    
+	// HTML debugging and local URL base
+	public static final boolean HTML_DEBUG = false;
+	public static final String URL_BASE_SDCARD_HTML = "file://" + Environment.getExternalStorageDirectory().getAbsolutePath() + "/snaprkit_html/";  // must end in slash
+	public static final String URL_BASE_ASSETS_HTML = "file:///android_asset/snaprkit_html/"; // must end in slash
+	public static String URL_BASE = HTML_DEBUG?URL_BASE_SDCARD_HTML:URL_BASE_ASSETS_HTML;
 	
 	// Shared Preferences
 	public static final String SNAPR_PREFERENCES = "SnaprPrefs";
@@ -43,6 +41,7 @@ public class Global
 	public static final String SNAPR_PREFERENCES_MAP_LAST_ZOOM_LEVEL = "map_last_zoom_level";
 	public static final String SNAPR_PREFERENCES_MAP_FILTER_LAST_INDEX = "map_filter_last_index";
 	public static final String SNAPR_PREFERENCES_MAP_FILTER_LAST_DATE = "map_filter_last_date";
+	public static final String SNAPR_PREFERENCES_LAST_GEOLOCATION_FAILURE_DATE = "last_geolocation_failure_date";
 
 	// Features
 	public static final boolean USE_AVIARY_SDK = false;
@@ -66,6 +65,7 @@ public class Global
 	public static final String SCHEME_FILE = "file";
 	
 	// Pages
+	public static final String URL_SNAPR_DOMAIN = "sna.pr";
 	public static final String URL_MENU = "index.html";
 	public static final String URL_HOME = "home/";
 	public static final String URL_UPLOAD = "upload/";
@@ -80,10 +80,15 @@ public class Global
 	public static final String URL_SNAPR_GET_LOCATION = "snapr://get_location";
 	public static final String URL_SNAPR_UPLOAD = "snapr://upload";
 	public static final String URL_SNAPR_UPLOAD_PROGRESS = "snapr://upload_progress";
+	public static final String URL_SNAPR_REDIRECT = "snapr://redirect";
 	
-	public static final String URL_UPLOAD_LOCATION = getRemoteUrlBase() + "upload/";
-	public static final String URL_SEARCH_LOCATION = getRemoteUrlBase() + "search/";
+	public static final String URL_UPLOAD_LOCATION_BASE = "upload/";
+	public static final String URL_SEARCH_LOCATION_BASE = "search/";
 	public static final String URL_MAPS_GEOCODE = "http://maps.googleapis.com/maps/api/geocode/json";
+	
+	public static final String URL_FACEBOOK_LOGIN_BASE = "linked_services/facebook/signin/";
+	public static final String URL_FACEBOOK_OAUTH_BASE = "linked_services/facebook/oauth/";
+	public static final String URL_FACEBOOK_PUBLISH_BASE = "linked_services/facebook/";
 	
 	// Parameters
 	public static final String PARAM_USERNAME = "username";
@@ -179,6 +184,13 @@ public class Global
 	public static final String PARAM_LANGUAGE = "language";
 	public static final String PARAM_LOCALE = "locale";
 	public static final String PARAM_EXCEPTION = "exception";
+	public static final String PARAM_MIN_AGE = "min_age";
+	public static final String PARAM_CREATE = "create";
+	public static final String PARAM_TOKEN = "token";
+	public static final String PARAM_TOKEN_EXPIRES = "token_expires";
+	public static final String PARAM_TOKEN_PERMISSIONS = "token_permissions";
+	public static final String PARAM_MESSAGE = "message";
+	public static final String PARAM_IMAGE_DATA = "image_data";
 	
 	// Images
 	public static final String IMAGE_NAME_PREFIX = "SNAPR_";
@@ -331,30 +343,5 @@ public class Global
 
 		// Return
 		return metrics.densityDpi;
-	}
-
-	@SuppressWarnings("unused")
-	public static String getLocalUrlBase(Activity activity)
-	{
-		if (HTML_DEBUG == true)
-		{
-			return URL_BASE_SDCARD_HTML;
-		}
-		else
-		{
-			return URL_BASE_ASSETS_HTML;
-		}
-	}
-	
-	public static String getRemoteUrlBase()
-	{
-		if (ENVIRONMENT.startsWith("live"))
-		{
-			return URL_SERVER_PROD;
-		}
-		else
-		{
-			return URL_SERVER_DEV;
-		}
 	}
 }
