@@ -357,6 +357,22 @@ public class UrlUtils
     	return (value==null)?value:value.replace("+", " ");
     }
     
+    public static String getEncodedQueryParameter(Uri uri, String key)
+    {
+    	String encodedQuery = uri.getEncodedQuery();
+    	String paramPairs[] = encodedQuery.split("&");
+    	
+    	for (String paramPair : paramPairs)
+		{
+			if (paramPair.startsWith(key+"="))
+			{
+				return paramPair.substring(key.length()+1);
+			}
+		}
+    	
+    	return null;
+    }
+    
     /**
      * Removes the param-value pair with the specified param name from an encodedQuery
      * 

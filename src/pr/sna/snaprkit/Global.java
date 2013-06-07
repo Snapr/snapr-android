@@ -190,6 +190,7 @@ public class Global
 	public static final String PARAM_TOKEN_EXPIRES = "token_expires";
 	public static final String PARAM_TOKEN_PERMISSIONS = "token_permissions";
 	public static final String PARAM_MESSAGE = "message";
+	public static final String PARAM_IMAGE_DATA = "image_data";
 	
 	// Images
 	public static final String IMAGE_NAME_PREFIX = "SNAPR_";

@@ -37,5 +37,9 @@
     <string name="snaprkit_log_email_subject">Android Device Log</string>
     <string name="snaprkit_log_email_body_text">&lt;Please explain the problem here&gt;</string>
     <string name="snaprkit_log_email_send">Send email with log&#8230;</string>
+    <string name="snaprkit_downloadimage_title">Download image</string>
+    <string name="snaprkit_downloadimage_message">Do you want to save this image to the Gallery?</string>
+    <string name="snaprkit_save">Save</string>
+    <string name="snaprkit_cancel">Cancel</string>
     
 </resources>

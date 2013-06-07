@@ -1,6 +1,7 @@
 package pr.sna.snaprkit;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -63,9 +64,11 @@ import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
+import android.util.Base64;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
@@ -2032,7 +2035,89 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
             .show();
     	}
     };
+    
+    // The download image action
+    private Action downloadImageAction = new Action() {
+    	@Override
+    	public void run(String url)
+    	{
+    		// Log
+    		if (Global.LOG_MODE) Global.log(Global.TAG, " -> downloadImageAction: Received URL " + url);
+    		
+    		// Get the setting from the URL
+    		// Note that the query parameter does not need to be decoded and that we need to correct some problems
+    		Uri uri = Uri.parse(url);
+    		final String imageData = UrlUtils.getEncodedQueryParameter(uri, Global.PARAM_IMAGE_DATA).replace(" ","+");
+    		
+    		// Display the alert
+    		new AlertDialog.Builder(getActivity())  
+    		.setTitle(R.string.snaprkit_downloadimage_title)  
+    		.setMessage(R.string.snaprkit_downloadimage_message)
+    		.setPositiveButton(R.string.snaprkit_save,  
+                    new AlertDialog.OnClickListener()  
+                    {  
+                        public void onClick(DialogInterface dialog, int which)  
+                        {
+                        	byte[] data = Base64.decode(imageData, Base64.DEFAULT);
+                        	SavePhotoTask savePhotoTask = new SavePhotoTask();
+                        	savePhotoTask.execute(data);
+                        }  
+                    })
+    		.setNegativeButton(R.string.snaprkit_cancel,
+            		new AlertDialog.OnClickListener()  
+		            {  
+		                public void onClick(DialogInterface dialog, int which)  
+		                {
+		                	// Do nothing
+		                }  
+		            })
+    		.setCancelable(false) 
+    		.create()  
+    		.show();
+    	}
+    };
 
+    class SavePhotoTask extends AsyncTask<byte[], Void, Boolean> {
+        @Override
+        protected Boolean doInBackground(byte[]... jpeg)
+        {
+        	// Prepare file
+        	File photo = new File(pr.sna.snaprkit.utils.FileUtils.getDCIMCameraDirectory(), CameraUtils.getPictureName());
+        	
+        	// Make sure that the photo file path exists!
+        	try
+        	{
+        		if(photo.exists() == false)
+        		{
+        			photo.getParentFile().mkdirs();
+        			photo.createNewFile();
+        		}
+        	}
+        	catch (IOException e)
+        	{
+        		if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() +  " Could not create file " + photo.getAbsolutePath());
+        		if (Global.LOG_MODE) Global.log(ExceptionUtils.getExceptionStackString(e));
+        		return false;
+        	}
+
+        	try
+        	{
+        		FileOutputStream fos=new FileOutputStream(photo.getPath());
+	
+        		fos.write(jpeg[0]);
+        		fos.close();
+        	}
+        	catch (java.io.IOException e)
+        	{
+        		if (Global.LOG_MODE) Global.log("Could not save image to disk");
+        		if (Global.LOG_MODE) Global.log(ExceptionUtils.getExceptionStackString(e));
+        		return false;
+        	}
+	
+        	return true;
+        }
+    }
+    
     private void initActionMap()
     {
 		mActionMappings.add(new UrlMapping("snaprkit-parent://.*", snaprKitParentAction));
@@ -2052,6 +2137,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
     	mActionMappings.add(new UrlMapping("snapr://photo-library.*", photoGalleryAction));
     	mActionMappings.add(new UrlMapping("snapr://action.*", actionSheetAction));
     	mActionMappings.add(new UrlMapping("snapr://alert.*", alertAction));
+    	mActionMappings.add(new UrlMapping("snapr://download-image.*", downloadImageAction));
     	
     	mActionMappings.add(new UrlMapping("snapr://link.*", externalBrowseAction));
     	if (Global.USE_AVIARY_SDK) mActionMappings.add(new UrlMapping("snapr://aviary.*", editPhotoAction));
