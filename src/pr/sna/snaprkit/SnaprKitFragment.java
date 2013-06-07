@@ -275,7 +275,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		super.onCreateOptionsMenu(menu, inflater);
 		
 		// Different handling for logging mode vs normal app
-		if (Global.LOG_MODE)
+		if (Global.LOG_DISK)
 		{
 			inflater.inflate(R.menu.snaprkit_debug, menu);
 		}
