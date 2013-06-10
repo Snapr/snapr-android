@@ -2050,8 +2050,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
     		final String imageData = UrlUtils.getEncodedQueryParameter(uri, Global.PARAM_IMAGE_DATA).replace(" ","+");
     		
     		// Display the alert
-    		new AlertDialog.Builder(getActivity())  
-    		.setTitle(R.string.snaprkit_downloadimage_title)  
+    		new AlertDialog.Builder(getActivity())
     		.setMessage(R.string.snaprkit_downloadimage_message)
     		.setPositiveButton(R.string.snaprkit_save,  
                     new AlertDialog.OnClickListener()  
