@@ -61,6 +61,7 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.location.Location;
+import android.media.MediaScannerConnection;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -2076,9 +2077,9 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
     	}
     };
 
-    class SavePhotoTask extends AsyncTask<byte[], Void, Boolean> {
+    class SavePhotoTask extends AsyncTask<byte[], Void, String> {
         @Override
-        protected Boolean doInBackground(byte[]... jpeg)
+        protected String doInBackground(byte[]... jpeg)
         {
         	// Prepare file
         	File photo = new File(pr.sna.snaprkit.utils.FileUtils.getDCIMCameraDirectory(), CameraUtils.getPictureName());
@@ -2096,7 +2097,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
         	{
         		if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() +  " Could not create file " + photo.getAbsolutePath());
         		if (Global.LOG_MODE) Global.log(ExceptionUtils.getExceptionStackString(e));
-        		return false;
+        		return null;
         	}
 
         	try
@@ -2110,11 +2111,17 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
         	{
         		if (Global.LOG_MODE) Global.log("Could not save image to disk");
         		if (Global.LOG_MODE) Global.log(ExceptionUtils.getExceptionStackString(e));
-        		return false;
+        		return null;
         	}
 	
-        	return true;
+        	return photo.getPath();
         }
+
+		@Override
+		protected void onPostExecute(String filePath)
+		{
+        	if(filePath != null) MediaScannerConnection.scanFile(getActivity().getApplicationContext(), new String[] { filePath }, null, null);
+		}
     }
     
     private void initActionMap()
