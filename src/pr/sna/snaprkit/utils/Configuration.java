@@ -22,6 +22,7 @@ public class Configuration
 	private static final String PROPERTY_LOCATION_TIMEOUT_INTERVAL = "locationTimeoutInterval";
 	private static final String PROPERTY_LOCATION_FAILURE_TIMEOUT_INTERVAL = "locationFailureTimeoutInterval";
 	private static final String PROPERTY_IMAGE_ASPECT_RATIO = "imageAspectRatio";
+	private static final String PROPERTY_LAUNCH_PARAMS = "launchParams";
 	private static final String PROPERTY_VALUE_TRUE = "true";
 	private static final String PROPERTY_VALUE_FALSE = "false";
 	
@@ -80,6 +81,7 @@ public class Configuration
 		props.setProperty(PROPERTY_LOCATION_TIMEOUT_INTERVAL, "20"); // 20 seconds
 		props.setProperty(PROPERTY_LOCATION_FAILURE_TIMEOUT_INTERVAL, "300"); // 5 minutes
 		props.setProperty(PROPERTY_IMAGE_ASPECT_RATIO, "1.0000"); // Perfect square
+		props.setProperty(PROPERTY_LAUNCH_PARAMS, ""); // No launch params
 		
 		// Return
 		return props;
@@ -207,6 +209,11 @@ public class Configuration
 	public float getImageAspectRatio()
 	{
 		return getFloatProperty(PROPERTY_IMAGE_ASPECT_RATIO);
+	}
+	
+	public String getLaunchParams()
+	{
+		return getProperty(PROPERTY_LAUNCH_PARAMS);
 	}
 
 	public boolean getBooleanProperty(String propertyName)

@@ -1215,6 +1215,10 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
         	params.add(new BasicNameValuePair(Global.PARAM_NEW_USER, "true"));
         }
         
+        // Append configuration extra params
+        String launchParams = pr.sna.snaprkit.utils.Configuration.getInstance().getLaunchParams();
+        if (launchParams != null && !launchParams.isEmpty()) UrlUtils.appendParams(params, launchParams);
+        
         // Create the URL
         url = UrlUtils.createUrl(UrlUtils.getFullLocalUrl(Global.URL_MENU), params, false);
         
