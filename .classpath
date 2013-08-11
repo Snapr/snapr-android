@@ -10,5 +10,6 @@
 	<classpathentry kind="lib" path="libs/commons-logging-1.1.1.jar"/>
 	<classpathentry kind="lib" path="libs/httpmime-4.1.1.jar"/>
 	<classpathentry kind="lib" path="libs/SanselanAndroid.jar"/>
-	<classpathentry kind="output" path="bin/classes" />
+	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
+	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
