@@ -191,6 +191,7 @@ public class Global
 	public static final String PARAM_TOKEN_PERMISSIONS = "token_permissions";
 	public static final String PARAM_MESSAGE = "message";
 	public static final String PARAM_IMAGE_DATA = "image_data";
+	public static final String PARAM_FX_MOD = "fx_mod";
 	
 	// Images
 	public static final String IMAGE_NAME_PREFIX = "SNAPR_";
@@ -270,6 +271,10 @@ public class Global
 	public static final int		GEOLOCATION_CAMERA = 1;
 	public static final int		GEOLOCATION_MAP = 2;
 	public static final int		GEOLOCATION_PHOTO_SHARE = 3;
+	
+	// Launch modes for FX module
+	public static final String  LAUNCH_MODE_FILTERS = "filters";
+	public static final String  LAUNCH_MODE_STICKERS = "stickers";
 	
 	// ---------------------------------------------------------------------------------
 	// Global methods

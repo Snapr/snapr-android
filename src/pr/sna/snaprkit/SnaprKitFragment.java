@@ -48,6 +48,7 @@ import pr.sna.snaprkit.utils.NetworkUtils;
 import pr.sna.snaprkit.utils.UrlUtils;
 import pr.sna.snaprkit.utils.webview.WebViewClientEx;
 import pr.sna.snaprkitfx.SnaprImageEditFragmentActivity;
+import pr.sna.snaprkitfx.SnaprImageEditFragmentActivity.LaunchMode;
 import pr.sna.snaprkitfx.SnaprSetting;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -345,6 +346,8 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 							builder.setFilterPackPath(mFilterPackPath);
 							builder.setSettings(mSettings);
 							builder.setImageAspectRatio(imageAspectRatio);
+							String launchMode = getLaunchMode(mPictureAcquisitionManager.getUserData());
+							if (launchMode != null) builder.setLaunchMode(Global.LAUNCH_MODE_STICKERS.equals(launchMode)?LaunchMode.STICKERS:LaunchMode.FILTERS);
 							displayPhotoEdit(getActivity(), builder);
 						}
 						else
@@ -365,6 +368,8 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 							builder.setFilterPackPath(mFilterPackPath);
 							builder.setSettings(mSettings);
 							builder.setImageAspectRatio(imageAspectRatio);
+							String launchMode = getLaunchMode(mPictureAcquisitionManager.getUserData());
+							if (launchMode != null) builder.setLaunchMode(Global.LAUNCH_MODE_STICKERS.equals(launchMode)?LaunchMode.STICKERS:LaunchMode.FILTERS);
 							displayPhotoEdit(getActivity(), builder);
 						}
 						else
@@ -385,6 +390,16 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 			}
 	    };
 	    return mPictureAcquisitionListener;
+	}
+	
+	// Read the launch mode from the camera / gallery params
+	private String getLaunchMode(String encodedParams)
+	{
+		// Get calling arguments and determine if we must set launch mode
+		String url = "snapr://dummy/?" + mPictureAcquisitionManager.getUserData();
+		Uri uri = Uri.parse(url);
+		String launchMode = uri.getQueryParameter(Global.PARAM_FX_MOD);
+		return launchMode;
 	}
 	
     // GeoListener to support snapr://get_location
