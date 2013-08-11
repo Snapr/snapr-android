@@ -85,6 +85,7 @@ SnaprKit lets you configure settings that are specific to your app using a speci
     facebookAppIdLive = Your Facebook App Id  
     facebookAppIdDev = Your Facebook App Id  
     autoClearFailedUploads = true  
+    launchParams = key=value&key2=value2   
 
 3. Fill in the missing settings for `appName`, `facebookAppIdLive` and `facebookAppIdDev`, and adjust existing settings as appropriate. The table below explains what each setting means:
 
@@ -98,16 +99,12 @@ facebookAppIdDev | Number | This is the Facebook app id when using the developme
 autoClearFailedUploads |  Boolean (`true` or `false`) | Indicates whether SnaprKit should clear failed uploads from queue. Set this to `true` for apps which do not have a full queue manager to prevent the queue from getting blocked. Set to `true` for PinkNation.
 locationTimeoutInterval | Number | Indicates the maximum number of seconds to wait for a location before timing out.
 locationFailureTimeoutInterval | Number | Indicates the number of seconds to wait after a location retrieval failed before trying to retrieve the location again.
+launchParams | String | Specifies a series of encoded key value pairs to be passed to the HTML build on startup
 
 ### 3.5 Resources
 For VS Pink, we have provide additional image resouces to customize the look and feel of the graphics effects module.
 
-Please copy the files below from the `res/drawable-xhdpi` and `res/drawable-hdpi` folder(s) of the sample project to the corresponding folders in your project:
-
-    snaprkitfx_btn_fx_down.png
-    snaprkitfx_btn_fx_normal.png
-    snaprkitfx_btn_tick_disabled.png
-    snaprkitfx_btn_tick_normal.png
+Please copy all files which start with `snaprkitfx_` from the `res/drawable-xhdpi` and `res/drawable-hdpi` folder(s) of the sample project to the corresponding folders in your project:
 
 ### 3.6 AndroidManifest.xml
 Add some entries to the manifest file of your application.

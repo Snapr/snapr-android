@@ -88,6 +88,7 @@ SnaprKit lets you configure settings that are specific to your app using a speci
     autoClearFailedUploads = true  
     locationTimeoutInterval = 20  
     locationFailureTimeoutInterval = 300  
+    launchParams = key=value&key2=value2   
 
 3. Fill in the missing settings for appName, facebookAppIdLive and facebookAppIdDev, and adjust existing settings as appropriate. The table below explains what each setting means:
 
@@ -101,13 +102,14 @@ facebookAppIdDev | Number | This is the Facebook app id when using the developme
 autoClearFailedUploads |  Boolean (`true` or `false`) | Indicates whether SnaprKit should clear failed uploads from queue. Set this to `true` for apps which do not have a full queue manager to prevent the queue from getting blocked.
 locationTimeoutInterval | Number | Indicates the maximum number of seconds to wait for a location before timing out.
 locationFailureTimeoutInterval | Number | Indicates the number of seconds to wait after a location retrieval failed before trying to retrieve the location again.
+launchParams | String | Specifies a series of encoded key value pairs to be passed to the HTML build on startup
 
 #### 3.4.3 Troubleshooting
 
 If you configuration is invalid, your app will exit at runtime with an exception. Examine the error message in the log and make appropriate corrections.
 
 ### 3.5 Resources
-Depending on the project, we may provide additional image resouces to customize the look and feel of the graphics effects module. You should copy the indicated files from the `res/drawable-*hdpi` folder(s) of the sample project to the corresponding folders in your project.
+Depending on the project, we may provide additional image resouces to customize the look and feel of the graphics effects module. You should copy any files that start with `snaprkitfx_` from the `res/drawable-*hdpi` folder(s) of the sample project to the corresponding folders in your project.
 
 ### 3.6 AndroidManifest.xml
 Add some entries to the manifest file of your application.
