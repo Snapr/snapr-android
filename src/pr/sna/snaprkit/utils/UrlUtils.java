@@ -455,6 +455,19 @@ public class UrlUtils
 		}
     }
     
+    public static void appendParams(Vector<BasicNameValuePair> existingParams, HashMap<String, String> newParams)
+    {
+		Set<String> paramNames = newParams.keySet();
+		for (String paramName: paramNames)
+		{
+			// Get the parameter value
+			String paramValue = newParams.get(paramName);
+			
+			// Add a new basic name value pair
+			existingParams.add(new BasicNameValuePair(paramName, paramValue));
+		}
+    }
+    
     /**
      * Takes an URL in the form snapr://redirect?redirect_url=encoded_url&param1=x&param2=y
      * and transforms it into an url like decode(encoded_url)&param1=x&param2=y

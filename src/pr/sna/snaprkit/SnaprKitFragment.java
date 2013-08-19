@@ -134,6 +134,8 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 	private String mFilterPackPath;		// the location (under assets) where the filter packs will be loaded from
 	private String mStickerPathPath;	// the location (under assets) where the sticker packs will be loaded from
 	
+	private HashMap<String, String> mLaunchParams;
+	
 	private Map<String, SnaprSetting> mSettings = new HashMap<String, SnaprSetting>();
 	private Intent mPendingIntent;
 	
@@ -190,6 +192,8 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		
 		outState.putString("mStickerPathPath", mStickerPathPath);
 		outState.putString("mFilterPackPath", mFilterPackPath);
+		
+		outState.putSerializable("mLaunchParams", mLaunchParams);
 		
 		// Facebook session
 		Session session = Session.getActiveSession();
@@ -1216,8 +1220,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
         }
         
         // Append configuration extra params
-        String launchParams = pr.sna.snaprkit.utils.Configuration.getInstance().getLaunchParams();
-        if (launchParams != null && !launchParams.isEmpty()) UrlUtils.appendParams(params, launchParams);
+        if (mLaunchParams != null && !mLaunchParams.isEmpty()) UrlUtils.appendParams(params, mLaunchParams);
         
         // Create the URL
         url = UrlUtils.createUrl(UrlUtils.getFullLocalUrl(Global.URL_MENU), params, false);
@@ -2600,7 +2603,8 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
     	if (Global.LOG_MODE) Global.log(" <- " + Global.getCurrentMethod());
     }
     
-    private void initSavedState(Bundle savedInstanceState)
+	@SuppressWarnings("unchecked")
+	private void initSavedState(Bundle savedInstanceState)
     {
     	// Log
     	if (Global.LOG_MODE) Global.log(" -> " + Global.getCurrentMethod());
@@ -2631,6 +2635,8 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 			
 			mStickerPathPath = savedInstanceState.getString("mStickerPathPath");
 			mFilterPackPath = savedInstanceState.getString("mFilterPackPath");
+			
+			mLaunchParams = (HashMap<String, String>)savedInstanceState.getSerializable("mLaunchParams");
 		}
     	
     	// Log
@@ -3596,5 +3602,10 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 	public void setFxSettings(Map<String, SnaprSetting> settings)
 	{
 		mSettings = settings;
+	}
+	
+	public void setLaunchParams(HashMap<String, String> params)
+	{
+		mLaunchParams = params;
 	}
 }
