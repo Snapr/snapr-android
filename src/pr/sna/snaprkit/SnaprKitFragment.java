@@ -131,8 +131,8 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 	private String mLastFoursquareVenueId = null;
 	private String mLastLocationName = null;
 	
-	private String mFilterPackPath;		// the location (under assets) where the filter packs will be loaded from
-	private String mStickerPathPath;	// the location (under assets) where the sticker packs will be loaded from
+	private String mFilterPackPath;					// the location (under assets) where the filter packs will be loaded from
+	private ArrayList<String> mStickerPackPaths;	// the location (under assets) where the sticker packs will be loaded from
 	
 	private HashMap<String, String> mLaunchParams;
 	
@@ -190,7 +190,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		
 		outState.putString("mUserData", mPictureAcquisitionManager.getUserData());
 		
-		outState.putString("mStickerPathPath", mStickerPathPath);
+		outState.putStringArrayList("mStickerPathPath", mStickerPackPaths);
 		outState.putString("mFilterPackPath", mFilterPackPath);
 		
 		outState.putSerializable("mLaunchParams", mLaunchParams);
@@ -346,7 +346,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 						{
 							// For camera, we already have a copy of the picture, so edit in place
 							SnaprImageEditFragmentActivity.Builder builder = new SnaprImageEditFragmentActivity.Builder(new File(fileName), new File(fileName), true, timeStamp);
-							builder.setStickerPackPath(mStickerPathPath);
+							builder.setStickerPackPaths(mStickerPackPaths);
 							builder.setFilterPackPath(mFilterPackPath);
 							builder.setSettings(mSettings);
 							builder.setImageAspectRatio(imageAspectRatio);
@@ -368,7 +368,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 							// For gallery provide output filename so module makes copy of source picture
 							File outputFile = new File(FileUtils.getDCIMCameraDirectory() + "/" + CameraUtils.getPictureName());
 							SnaprImageEditFragmentActivity.Builder builder = new SnaprImageEditFragmentActivity.Builder(new File(fileName), outputFile);
-							builder.setStickerPackPath(mStickerPathPath);
+							builder.setStickerPackPaths(mStickerPackPaths);
 							builder.setFilterPackPath(mFilterPackPath);
 							builder.setSettings(mSettings);
 							builder.setImageAspectRatio(imageAspectRatio);
@@ -2633,7 +2633,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 			mCurrentUrl = savedInstanceState.getString("mCurrentUrl");
 			if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Restored mCurrentUrl to " + mCurrentUrl);
 			
-			mStickerPathPath = savedInstanceState.getString("mStickerPathPath");
+			mStickerPackPaths = savedInstanceState.getStringArrayList("mStickerPathPath");
 			mFilterPackPath = savedInstanceState.getString("mFilterPackPath");
 			
 			mLaunchParams = (HashMap<String, String>)savedInstanceState.getSerializable("mLaunchParams");
@@ -3581,9 +3581,9 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
     	mFilterPackPath = path;
     }
 
-    public void setStickerPackPath(String path)
+    public void setStickerPackPaths(ArrayList<String> paths)
     {
-    	mStickerPathPath = path;
+    	mStickerPackPaths = paths;
     }
     
 	/**
