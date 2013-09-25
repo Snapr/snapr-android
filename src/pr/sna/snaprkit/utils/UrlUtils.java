@@ -373,6 +373,15 @@ public class UrlUtils
     	return null;
     }
     
+	public static String getEncodedQueryParameter(String encodedQuery, String paramName)
+	{
+		// Get calling arguments and determine if we must set launch mode
+		String url = "snapr://dummy/?" + encodedQuery;
+		Uri uri = Uri.parse(url);
+		String paramValue = uri.getQueryParameter(paramName);
+		return paramValue;
+	}
+    
     /**
      * Removes the param-value pair with the specified param name from an encodedQuery
      * 

@@ -350,8 +350,10 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 							builder.setFilterPackPath(mFilterPackPath);
 							builder.setSettings(mSettings);
 							builder.setImageAspectRatio(imageAspectRatio);
-							String launchMode = getLaunchMode(mPictureAcquisitionManager.getUserData());
+							String launchMode = UrlUtils.getEncodedQueryParameter(mPictureAcquisitionManager.getUserData(), Global.PARAM_FX_MOD);
 							if (launchMode != null) builder.setLaunchMode(Global.LAUNCH_MODE_STICKERS.equals(launchMode)?LaunchMode.STICKERS:LaunchMode.FILTERS);
+							String launchStickerPack = UrlUtils.getEncodedQueryParameter(mPictureAcquisitionManager.getUserData(), Global.PARAM_STICKER_PACK);
+							builder.setLaunchStickerPack(launchStickerPack);
 							displayPhotoEdit(getActivity(), builder);
 						}
 						else
@@ -372,8 +374,10 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 							builder.setFilterPackPath(mFilterPackPath);
 							builder.setSettings(mSettings);
 							builder.setImageAspectRatio(imageAspectRatio);
-							String launchMode = getLaunchMode(mPictureAcquisitionManager.getUserData());
+							String launchMode = UrlUtils.getEncodedQueryParameter(mPictureAcquisitionManager.getUserData(), Global.PARAM_FX_MOD);
 							if (launchMode != null) builder.setLaunchMode(Global.LAUNCH_MODE_STICKERS.equals(launchMode)?LaunchMode.STICKERS:LaunchMode.FILTERS);
+							String launchStickerPack = UrlUtils.getEncodedQueryParameter(mPictureAcquisitionManager.getUserData(), Global.PARAM_STICKER_PACK);
+							builder.setLaunchStickerPack(launchStickerPack);
 							displayPhotoEdit(getActivity(), builder);
 						}
 						else
@@ -394,16 +398,6 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 			}
 	    };
 	    return mPictureAcquisitionListener;
-	}
-	
-	// Read the launch mode from the camera / gallery params
-	private String getLaunchMode(String encodedParams)
-	{
-		// Get calling arguments and determine if we must set launch mode
-		String url = "snapr://dummy/?" + mPictureAcquisitionManager.getUserData();
-		Uri uri = Uri.parse(url);
-		String launchMode = uri.getQueryParameter(Global.PARAM_FX_MOD);
-		return launchMode;
 	}
 	
     // GeoListener to support snapr://get_location
