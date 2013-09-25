@@ -20,12 +20,14 @@ public class DownloadResponseHandler implements ResponseHandler<Boolean>
 	@Override
 	public Boolean handleResponse(HttpResponse response)
 	{
+		InputStream instream = null;
+		FileOutputStream outstream = null;
 		try
 		{
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK)
 			{
-				InputStream instream = response.getEntity().getContent();
-				FileOutputStream outstream = new FileOutputStream(mFileName);
+				instream = response.getEntity().getContent();
+				outstream = new FileOutputStream(mFileName);
 				int len;
     		    byte[] tmp = new byte[2048];
     		    while ((len = instream.read(tmp)) != -1)
@@ -38,6 +40,19 @@ public class DownloadResponseHandler implements ResponseHandler<Boolean>
 		catch (IOException e)
 		{
 			if (Global.LOG_MODE) Global.log(Global.getCurrentMethod() + ": Failed with error " + e);
+		}
+		finally
+		{
+			if (outstream != null)
+			{
+				try
+				{
+					outstream.close();
+				}
+				catch (IOException e)
+				{
+				}
+			}
 		}
 		return Boolean.FALSE;
 	}
