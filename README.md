@@ -281,7 +281,10 @@ void setUserInfo(String displayUserName, String snaprUserName, String accessToke
 void clearUserInfo() | Clears the current user info
 void setCredentials(String username, String accessToken) | Deprecated. Please use `setUserInfo(String username, String accessToken)` instead.
 void clearCredentials() | Deprecated. Please use `clearUserInfo()` instead.
+void setFilterPackPath(String path) | Specifies the `assets` subdirectory where the filter pack is located. If this method is not called, then SnaprKit will look for a default filter pack under `assets/filter_packs/defaults`.
+void setStickerPackPaths(ArrayList<String> paths) | Specifies the `assets` subdirectory where the sticker packs are located. If this method is not called, then SnaprKit will look for a default sticker pack under `assets/sticker_packs/defaults`.
 void setLaunchParams(HashMap<String, String> launchParams) | Sets the launch parameters to be passed on startup when using normal flow.
+void setFxSettings(HashMap<String, SnaprSetting> settings) | Sets the settings for the FX module, which are used to control visibility, locking and other features for sticker packs and individual stickers and filters.
 void setSnaprKitListener(SnaprKitListener listener) | Provides a listener to listen to SnaprKit events. See section on SnaprKitListener below for more info.
 void prepareSnaprAssets(AssetCopierListener listener, boolean showDialogs) | Deprecated, no longer necessary.
 
