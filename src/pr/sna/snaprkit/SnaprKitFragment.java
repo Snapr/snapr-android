@@ -136,7 +136,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 	
 	private HashMap<String, String> mLaunchParams;
 	
-	private Map<String, SnaprSetting> mSettings = new HashMap<String, SnaprSetting>();
+	private HashMap<String, SnaprSetting> mSettings = new HashMap<String, SnaprSetting>();
 	private Intent mPendingIntent;
 	
 	private Handler mHandler = new Handler();
@@ -194,6 +194,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		outState.putString("mFilterPackPath", mFilterPackPath);
 		
 		outState.putSerializable("mLaunchParams", mLaunchParams);
+		outState.putSerializable("mSettings", mSettings);
 		
 		// Facebook session
 		Session session = Session.getActiveSession();
@@ -2631,6 +2632,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 			mFilterPackPath = savedInstanceState.getString("mFilterPackPath");
 			
 			mLaunchParams = (HashMap<String, String>)savedInstanceState.getSerializable("mLaunchParams");
+			mSettings = (HashMap<String, SnaprSetting>)savedInstanceState.getSerializable("mSettings");
 		}
     	
     	// Log
@@ -3593,7 +3595,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 	 * Sets the full collection of configurations for effects, clearing out any existing entries.
 	 * @param config The configuration to set.
 	 */
-	public void setFxSettings(Map<String, SnaprSetting> settings)
+	public void setFxSettings(HashMap<String, SnaprSetting> settings)
 	{
 		mSettings = settings;
 	}
