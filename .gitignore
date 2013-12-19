@@ -17,3 +17,6 @@ local.properties
 # Windows Batch Files
 *.cmd
 *.bat
+
+# Eclipse settings
+.settings
