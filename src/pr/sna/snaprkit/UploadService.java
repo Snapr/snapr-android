@@ -12,6 +12,7 @@ import org.json.JSONObject;
 
 import pr.sna.snaprkit.utils.SnaprJsonUtils;
 import pr.sna.snaprkit.Uploader.UploadListener;
+import pr.sna.snaprkit.actions.InstagramAction;
 import pr.sna.snaprkit.utils.UrlUtils;
 import pr.sna.snaprkit.utils.UserInfoUtils;
 import pr.sna.snaprkit.utils.FileUtils;
@@ -333,11 +334,15 @@ public class UploadService extends Service
 		@Override
 		public void onUploadComplete(String localId, JSONObject jsonResponse)
 		{
+			
 			if (Global.LOG_MODE)
 				Global.log(" -> " + Global.getCurrentMethod());
 
 			// Get the upload information
 			UploadInfo uploadInfo = getUploadInfoById(localId);
+			
+			//Give the info to the instagram receiver in case we are uploading to instagram
+			InstagramAction.setLatestPicture(uploadInfo.getFileNameUrl());
 
 			// Check if we need sign ups
 			String signupsNeeded = getSignupsNeeded(uploadInfo, jsonResponse);

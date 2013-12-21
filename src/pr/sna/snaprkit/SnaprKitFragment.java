@@ -36,6 +36,7 @@ import com.facebook.model.GraphUser;
 import pr.sna.snaprkit.FacebookLoginAsyncTask.OnSnaprFacebookLoginListener;
 import pr.sna.snaprkit.FacebookPublishAsyncTask.OnSnaprFacebookPublishListener;
 import pr.sna.snaprkit.PictureAcquisitionManager.PictureAcquisitionListener;
+import pr.sna.snaprkit.actions.InstagramAction;
 import pr.sna.snaprkit.dummy.FeatherActivity;
 import pr.sna.snaprkit.utils.CameraUtils;
 import pr.sna.snaprkit.utils.ExceptionUtils;
@@ -2161,6 +2162,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
     	mActionMappings.add(new UrlMapping("snapr://action.*", actionSheetAction));
     	mActionMappings.add(new UrlMapping("snapr://alert.*", alertAction));
     	mActionMappings.add(new UrlMapping("snapr://download-image.*", downloadImageAction));
+		mActionMappings.add(new UrlMapping("snapr://instagram.*", new InstagramAction(getContext())));
     	
     	mActionMappings.add(new UrlMapping("snapr://link.*", externalBrowseAction));
     	if (Global.USE_AVIARY_SDK) mActionMappings.add(new UrlMapping("snapr://aviary.*", editPhotoAction));
@@ -2905,7 +2907,7 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 		builder.create().show();
 	}
     
-	private interface Action
+	public interface Action
 	{
 		public void run(String url);
 	}

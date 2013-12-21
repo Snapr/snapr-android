@@ -23,6 +23,7 @@
     <string name="snaprkit_error_location_retrieval_failure">Could not retrieve your location!</string>
     <string name="snaprkit_error_image_contents_retrieval_failure">Failed to retrieve picture contents!</string>
     <string name="snaprkit_error_unknown">Unknown error!</string>
+    <string name="snaprkit_error_instagram_not_installed">Instagram is not installed on your phone!</string>
     <string name="snaprkit_location_determining">Determining your location&#8230;</string>
     <string name="snaprkit_location_provider_network">network</string>
     <string name="snaprkit_location_provider_gps">GPS</string>

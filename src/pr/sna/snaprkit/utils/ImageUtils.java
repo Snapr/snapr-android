@@ -1,6 +1,8 @@
 package pr.sna.snaprkit.utils;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -9,14 +11,18 @@ import org.apache.sanselan.formats.tiff.TiffField;
 import org.apache.sanselan.formats.tiff.constants.TagInfo;
 
 import pr.sna.snaprkit.Global;
-
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.RectF;
 import android.media.ExifInterface;
 
 public class ImageUtils
 {
 	// Constants
-	private static String EXIF_DATE_FORMAT_1 = "yyyy:MM:dd HH:mm:ss";
-	private static String EXIF_DATE_FORMAT_2 = "yyyy/MM/dd HH:mm:ss";
+	private static final String EXIF_DATE_FORMAT_1 = "yyyy:MM:dd HH:mm:ss";
+	private static final String EXIF_DATE_FORMAT_2 = "yyyy/MM/dd HH:mm:ss";
+	private static final int INSTAGRAM_SIZE = 612;
 	
 	// ------------------------------------------------------------------------
 	// Picture store functions
@@ -155,5 +161,57 @@ public class ImageUtils
     	
     	// Return
     	return returnDate;
+    }
+    
+    /**
+     * Takes a photo and and modifies it to be compatible with instagrams limitations
+     *  (namely that it must be at least 612x612px)
+     * @param original the complete url to the original photo (must be of the format "file://<file info>.jpg")
+     * @return the path to the new photo created, or (param)original if no changes were needed, or null if there was an issue		
+     */
+	public static String getInstagramCompatiblePhoto(String original) {
+		try {
+			Bitmap orig = BitmapFactory.decodeFile(original.replace("file://", ""));
+			if (orig.getWidth() > INSTAGRAM_SIZE && orig.getHeight() > INSTAGRAM_SIZE) {
+				// If we meet the sizing requirements, return the original
+				orig.recycle();
+				return original;
+			} else {
+				// Otherwise we need to scale the photo up
+				int width, height;
+				if (orig.getWidth() < orig.getHeight()) {
+					// Need to scale width
+					width = INSTAGRAM_SIZE;
+					height = orig.getHeight() * width / orig.getWidth();
+				} else {
+					// Need to scale height
+					height = INSTAGRAM_SIZE;
+					width = orig.getWidth() * height / orig.getHeight();
+				}
+				
+				//Create the new image
+				Bitmap result = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+				Canvas canvas = new Canvas(result);
+				canvas.drawBitmap(orig, null, new RectF(0, 0, width, height), null);
+				
+				//Write it to a new file
+				String newFile = original.replace(".jpg", "") + "_instagram.png";
+				File file = new File(newFile.replace("file://", ""));
+				file.createNewFile();
+				FileOutputStream out = new FileOutputStream(file);
+				result.compress(Bitmap.CompressFormat.PNG, 90, out);
+				
+				result.recycle();
+				orig.recycle();
+				
+				out.flush();
+				out.close();
+				
+				return newFile;
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
     }
 }
