@@ -22,6 +22,7 @@ import android.content.IntentFilter;
 import android.location.Location;
 import android.media.ExifInterface;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 
@@ -667,9 +668,15 @@ public class PictureAcquisitionManager
     	if (Global.LOG_MODE) Global.log(Global.TAG, " -> " + Global.getCurrentMethod());
     	
     	// Select an image from the gallery
-    	Intent intent = new Intent();
-        intent.setType("image/*"); // cannot use jpeg or jpg here -- no results
-        intent.setAction(Intent.ACTION_GET_CONTENT);
+    	Intent intent;
+    	if (Build.VERSION.SDK_INT <19){
+	    	intent = new Intent();
+	        intent.setType("image/*"); // cannot use jpeg or jpg here -- no results
+	        intent.setAction(Intent.ACTION_GET_CONTENT);
+    	} else {
+    		//Kitkat
+    		intent = new Intent(Intent.ACTION_PICK,android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+    	}
         mFragment.startActivityForResult(Intent.createChooser(intent, mFragment.getString(R.string.snaprkit_media_select_picture)), SELECT_PICTURE);
     	
     	if (Global.LOG_MODE) Global.log(Global.TAG, " <- " + Global.getCurrentMethod());
