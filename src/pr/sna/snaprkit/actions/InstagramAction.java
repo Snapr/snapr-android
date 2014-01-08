@@ -43,7 +43,7 @@ public class InstagramAction implements Action {
 			
 			//Upload the photo by constructing an intent
 			Intent shareIntent = new Intent(android.content.Intent.ACTION_SEND);
-			shareIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			//shareIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			shareIntent.setType("image/*");                 
 			shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse(pathToUpload));
 			shareIntent.setPackage("com.instagram.android");
