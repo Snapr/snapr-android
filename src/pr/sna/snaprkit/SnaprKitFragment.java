@@ -22,17 +22,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.facebook.FacebookOperationCanceledException;
-import com.facebook.LoggingBehavior;
-import com.facebook.Request;
-import com.facebook.Request.GraphUserCallback;
-import com.facebook.Response;
-import com.facebook.Session;
-import com.facebook.Session.OpenRequest;
-import com.facebook.SessionState;
-import com.facebook.Settings;
-import com.facebook.model.GraphUser;
-
 import pr.sna.snaprkit.FacebookLoginAsyncTask.OnSnaprFacebookLoginListener;
 import pr.sna.snaprkit.FacebookPublishAsyncTask.OnSnaprFacebookPublishListener;
 import pr.sna.snaprkit.PictureAcquisitionManager.PictureAcquisitionListener;
@@ -40,13 +29,13 @@ import pr.sna.snaprkit.actions.InstagramAction;
 import pr.sna.snaprkit.dummy.FeatherActivity;
 import pr.sna.snaprkit.utils.CameraUtils;
 import pr.sna.snaprkit.utils.ExceptionUtils;
-import pr.sna.snaprkit.utils.LocalizationUtils;
-import pr.sna.snaprkit.utils.UserInfoUtils;
 import pr.sna.snaprkit.utils.FileUtils;
 import pr.sna.snaprkit.utils.GeoManager;
 import pr.sna.snaprkit.utils.GeoManager.GeoListener;
+import pr.sna.snaprkit.utils.LocalizationUtils;
 import pr.sna.snaprkit.utils.NetworkUtils;
 import pr.sna.snaprkit.utils.UrlUtils;
+import pr.sna.snaprkit.utils.UserInfoUtils;
 import pr.sna.snaprkit.utils.webview.WebViewClientEx;
 import pr.sna.snaprkitfx.SnaprImageEditFragmentActivity;
 import pr.sna.snaprkitfx.SnaprImageEditFragmentActivity.LaunchMode;
@@ -69,6 +58,7 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.util.Base64;
@@ -86,8 +76,19 @@ import android.webkit.JsResult;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-//import com.aviary.android.feather.FeatherActivity;
 import android.widget.Button;
+
+import com.facebook.FacebookOperationCanceledException;
+import com.facebook.LoggingBehavior;
+import com.facebook.Request;
+import com.facebook.Request.GraphUserCallback;
+import com.facebook.Response;
+import com.facebook.Session;
+import com.facebook.Session.OpenRequest;
+import com.facebook.SessionState;
+import com.facebook.Settings;
+import com.facebook.model.GraphUser;
+//import com.aviary.android.feather.FeatherActivity;
 
 public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginListener, OnSnaprFacebookPublishListener
 {
@@ -95,6 +96,8 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 	private static final int ACTION_REQUEST_FEATHER = 100;
 	private static final String UPLOAD_MODE_WIFI_ONLY = "Wi-Fi Only";
 	private static final String UPLOAD_MODE_ON = "On";
+	public static final String PHOTO_SHARED_PREFERENCES = "photo_shared_preferences";
+	public static final String PHOTO_FOLDER_KEY = "photo_folder";
 	
 	// Members
 	private View mView;
@@ -347,7 +350,14 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 						if (Global.USE_FX_MODULE)
 						{
 							// For camera, we already have a copy of the picture, so edit in place
-							SnaprImageEditFragmentActivity.Builder builder = new SnaprImageEditFragmentActivity.Builder(new File(fileName), new File(fileName), true, timeStamp);
+							//Check if we should use custom file
+							File output = new File(fileName);
+							if(getActivity().getSharedPreferences(PHOTO_SHARED_PREFERENCES, 0).contains(PHOTO_FOLDER_KEY)) {
+								output = new File(Environment.getExternalStorageDirectory() + File.separator
+							                    + "/" + getActivity().getSharedPreferences(PHOTO_SHARED_PREFERENCES, 
+							                    		0).getString(PHOTO_FOLDER_KEY, "snapr") + "/" + output.getName() + ".png");
+							}
+							SnaprImageEditFragmentActivity.Builder builder = new SnaprImageEditFragmentActivity.Builder(new File(fileName), output, true, timeStamp);
 							builder.setStickerPackPaths(mStickerPackPaths);
 							builder.setFilterPackPath(mFilterPackPath);
 							builder.setSettings(mSettings);
