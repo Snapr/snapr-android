@@ -380,7 +380,14 @@ public class SnaprKitFragment extends Fragment implements OnSnaprFacebookLoginLi
 						if (Global.USE_FX_MODULE)
 						{
 							// For gallery provide output filename so module makes copy of source picture
-							File outputFile = new File(FileUtils.getDCIMCameraDirectory() + "/" + CameraUtils.getPictureName());
+							File outputFile = new File(fileName);
+							if(getActivity().getSharedPreferences(PHOTO_SHARED_PREFERENCES, 0).contains(PHOTO_FOLDER_KEY)) {
+								outputFile = new File(Environment.getExternalStorageDirectory() + File.separator
+							                    + "/" + getActivity().getSharedPreferences(PHOTO_SHARED_PREFERENCES, 
+							                    		0).getString(PHOTO_FOLDER_KEY, "snapr") + "/" + outputFile.getName() + ".png");
+							} else {
+								outputFile = new File(FileUtils.getDCIMCameraDirectory() + "/" + CameraUtils.getPictureName());
+							}
 							SnaprImageEditFragmentActivity.Builder builder = new SnaprImageEditFragmentActivity.Builder(new File(fileName), outputFile);
 							builder.setStickerPackPaths(mStickerPackPaths);
 							builder.setFilterPackPath(mFilterPackPath);
